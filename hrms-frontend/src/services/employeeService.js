@@ -19,3 +19,6 @@ export const getMySalary = () => api.get('/employee/salary')
 // Holidays + Policies
 export const getHolidays = () => api.get('/employee/holidays')
 export const getPolicies = () => api.get('/employee/policies')
+
+// Payslips
+export const getMyPayslips = () => api.get('/employee/payslips')

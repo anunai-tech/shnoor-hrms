@@ -6,7 +6,7 @@ const authorize = require('../middleware/authorize')
 const { getMyLeaves, applyLeave } = require('../controllers/leaveController')
 const { clockIn, clockOut, getMyAttendance } = require('../controllers/attendanceController')
 const { getMyExpenses, submitExpense } = require('../controllers/expenseController')
-const { getMySalary } = require('../controllers/salaryController')
+const { getMySalary, getMyPayslips } = require('../controllers/salaryController')
 const { getHolidays, getPolicies } = require('../controllers/managerController')
 
 router.use(authenticate)
@@ -27,6 +27,7 @@ router.post('/expenses', submitExpense)
 
 // Salary
 router.get('/salary', getMySalary)
+router.get('/payslips', getMyPayslips)
 
 // Holidays + Policies (read only)
 router.get('/holidays', getHolidays)
