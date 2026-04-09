@@ -29,6 +29,239 @@ const plans = [
   },
 ]
 
+// ── FAQ DATA ─────────────────────────────────────────────
+const faqs = [
+  {
+    question: 'What is SHNOOR HRMS?',
+    answer: 'SHNOOR HRMS is a full-featured Human Resource Management System built for businesses of all sizes. It covers employee management, attendance tracking, leave management, payroll, expense claims, company policies, and more — all in one unified platform.',
+  },
+  {
+    question: 'How much does it cost?',
+    answer: 'We offer three plans. The Basic plan is completely free and supports up to 50 employees. The Pro plan is ₹499/month (or ₹3,500/year) with advanced features. The Enterprise plan is ₹3,500/month (or ₹30,000/year) for up to 1,000 employees with full multi-company support.',
+  },
+  {
+    question: 'Is there a free plan?',
+    answer: 'Yes! Our Basic plan is free forever with no credit card required. It supports up to 50 employees and includes attendance tracking, leave management, and basic reporting — a great starting point for small teams.',
+  },
+  {
+    question: 'How many employees can I manage?',
+    answer: 'The Basic and Pro plans support up to 50 employees. The Enterprise plan scales up to 1,000 employees and also supports managing multiple companies under a single account.',
+  },
+  {
+    question: 'What features are included?',
+    answer: 'SHNOOR HRMS includes employee profiles, attendance clock-in/out, leave applications and approvals, expense submissions, salary management with payslip generation, company policy documents, offboarding workflows, and a dynamic public landing page — all manageable from a clean dashboard.',
+  },
+  {
+    question: 'How do I get started?',
+    answer: "Getting started is simple. Reach out to us through the Contact form below — our team will set up your company account and provide login credentials to your designated HR Manager. From there, your manager can onboard employees, configure salary structures, and begin operations immediately.",
+  },
+  {
+    question: 'Is my data secure?',
+    answer: 'Absolutely. SHNOOR HRMS uses JWT-based authentication, bcrypt password hashing, and role-based access control to ensure only authorised users can access data. Each company\'s data is fully isolated — no cross-company data access is possible.',
+  },
+  {
+    question: 'Can I manage multiple companies?',
+    answer: 'Yes, the Enterprise plan supports full multi-company management. The SHNOOR Superadmin can onboard multiple companies, each with their own manager, employees, and completely isolated data — all managed from a single platform.',
+  },
+  {
+    question: 'How long does setup take?',
+    answer: 'Setup is very fast. Once you contact us, your company account is typically activated within one business day. Your HR Manager can then log in and start adding employees and configuring the system immediately — no technical expertise required.',
+  },
+  {
+    question: 'How do I contact support?',
+    answer: null, // special — triggers contact scroll
+  },
+]
+
+// ── FAQ CHATBOT COMPONENT ────────────────────────────────
+function FAQChatbot({ onContactClick }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [messages, setMessages] = useState([])
+  const [showQuestions, setShowQuestions] = useState(true)
+  const messagesEndRef = useRef(null)
+
+  // Welcome message on first open
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([{
+        from: 'bot',
+        text: "Hello! I'm the SHNOOR virtual assistant. Select a question below and I'll do my best to help you.",
+      }])
+    }
+  }, [isOpen])
+
+  // Auto-scroll to bottom on new message
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+    }
+  }, [messages, isOpen])
+
+  const handleQuestion = (faq) => {
+    // Add user question as message
+    const userMsg = { from: 'user', text: faq.question }
+
+    if (!faq.answer) {
+      // Special case — contact support
+      const botMsg = {
+        from: 'bot',
+        text: "I'd be happy to connect you with our team directly.",
+        isContact: true,
+      }
+      setMessages(prev => [...prev, userMsg, botMsg])
+    } else {
+      const botMsg = { from: 'bot', text: faq.answer }
+      setMessages(prev => [...prev, userMsg, botMsg])
+    }
+    setShowQuestions(false)
+  }
+
+  const handleReset = () => {
+    setShowQuestions(true)
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  return (
+    <>
+      {/* Floating chat button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105"
+        style={{ background: 'linear-gradient(135deg, #1e40af, #2563eb)' }}
+        aria-label="Open chat assistant"
+      >
+        {isOpen ? (
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+          </svg>
+        )}
+      </button>
+
+      {/* Chat window */}
+      {isOpen && (
+        <div
+          className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          style={{
+            maxHeight: '520px',
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.6)',
+            boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.5) inset',
+          }}
+        >
+          {/* Header */}
+          <div
+            className="px-5 py-4 flex items-center justify-between flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1e3a8a, #1d4ed8)' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5">
+                <img src="/shnoor-logo.png" alt="SHNOOR" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <p className="text-white font-semibold text-sm leading-tight">SHNOOR Assistant</p>
+                <p className="text-blue-200 text-xs">Always here to help</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <span className="text-blue-200 text-xs">Online</span>
+            </div>
+          </div>
+
+          {/* Messages area */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ maxHeight: '320px' }}>
+            {messages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {msg.from === 'bot' && (
+                  <div className="w-6 h-6 rounded-full flex-shrink-0 mr-2 mt-0.5 flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, #1e40af, #2563eb)' }}>
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2a5 5 0 015 5v2a5 5 0 01-10 0V7a5 5 0 015-5zm-7 16a7 7 0 0114 0H5z" />
+                    </svg>
+                  </div>
+                )}
+                <div>
+                  <div
+                    className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed max-w-xs ${msg.from === 'user'
+                      ? 'text-white rounded-tr-sm'
+                      : 'text-gray-800 rounded-tl-sm'
+                      }`}
+                    style={msg.from === 'user'
+                      ? { background: 'linear-gradient(135deg, #1e40af, #2563eb)' }
+                      : { background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.08)' }
+                    }
+                  >
+                    {msg.text}
+                    {msg.isContact && (
+                      <button
+                        onClick={() => { onContactClick(); setIsOpen(false) }}
+                        className="mt-2 flex items-center gap-1.5 text-blue-600 font-semibold text-xs hover:text-blue-800 transition"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Contact our team
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Questions / Ask another */}
+          <div
+            className="px-4 py-3 flex-shrink-0 border-t space-y-2"
+            style={{ borderColor: 'rgba(0,0,0,0.06)', background: 'rgba(248,250,252,0.9)' }}
+          >
+            {showQuestions ? (
+              <>
+                <p className="text-xs text-gray-400 font-medium mb-2">Select a question</p>
+                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  {faqs.map((faq, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleQuestion(faq)}
+                      className="w-full text-left text-xs text-gray-700 px-3 py-2 rounded-lg border transition-all duration-150 font-medium hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50"
+                      style={{ borderColor: 'rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.8)' }}
+                    >
+                      {faq.question}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <button
+                  onClick={handleReset}
+                  className="w-full text-xs font-semibold py-2 rounded-lg border transition-all hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 text-gray-600"
+                  style={{ borderColor: 'rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.8)' }}
+                >
+                  Ask another question
+                </button>
+                <button
+                  onClick={() => { onContactClick(); setIsOpen(false) }}
+                  className="w-full text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #1e40af, #2563eb)' }}
+                >
+                  Still need help? Contact us
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 function LandingPage() {
   const navigate = useNavigate()
   const homeRef = useRef(null)
@@ -41,7 +274,6 @@ function LandingPage() {
   const [contactLoading, setContactLoading] = useState(false)
   const [billingPeriod, setBillingPeriod] = useState('monthly')
 
-  // ── Dynamic website settings ───────────────────────────
   const [settings, setSettings] = useState({
     hero_title: 'Next Generation HR Management For Your Company',
     hero_subtitle: 'Best-rated HR management application for small to large scale business. Manage employees, attendance, leaves, payroll, and more — all in one place.',
@@ -57,24 +289,22 @@ function LandingPage() {
     axios.get('http://localhost:5000/api/v1/public/website-settings')
       .then(res => {
         if (res.data && res.data.data) {
-          // Merge — only override fields that have real values in DB
           const db = res.data.data
           setSettings(prev => ({
             ...prev,
-            ...(db.hero_title        && { hero_title: db.hero_title }),
-            ...(db.hero_subtitle     && { hero_subtitle: db.hero_subtitle }),
-            ...(db.cta_button_text   && { cta_button_text: db.cta_button_text }),
-            ...(db.cta_button_link   && { cta_button_link: db.cta_button_link }),
-            ...(db.contact_email     && { contact_email: db.contact_email }),
-            ...(db.contact_phone     && { contact_phone: db.contact_phone }),
-            ...(db.footer_text       && { footer_text: db.footer_text }),
-            ...(db.logo_url          && { logo_url: db.logo_url }),
+            ...(db.hero_title && { hero_title: db.hero_title }),
+            ...(db.hero_subtitle && { hero_subtitle: db.hero_subtitle }),
+            ...(db.cta_button_text && { cta_button_text: db.cta_button_text }),
+            ...(db.cta_button_link && { cta_button_link: db.cta_button_link }),
+            ...(db.contact_email && { contact_email: db.contact_email }),
+            ...(db.contact_phone && { contact_phone: db.contact_phone }),
+            ...(db.footer_text && { footer_text: db.footer_text }),
+            ...(db.logo_url && { logo_url: db.logo_url }),
           }))
         }
       })
-      .catch(() => {}) // silently use defaults
+      .catch(() => { })
   }, [])
-  // ────────────────────────────────────────────────────────
 
   const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: 'smooth' })
   const handleContactChange = (e) => setContactForm({ ...contactForm, [e.target.name]: e.target.value })
@@ -84,7 +314,7 @@ function LandingPage() {
     setContactLoading(true)
     try {
       await axios.post('http://localhost:5000/api/v1/public/contact', contactForm)
-    } catch (err) {}
+    } catch (err) { }
     finally {
       setContactSubmitted(true)
       setContactLoading(false)
@@ -332,6 +562,9 @@ function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* ── FAQ CHATBOT ─────────────────────────── */}
+      <FAQChatbot onContactClick={() => scrollTo(contactRef)} />
 
     </div>
   )
