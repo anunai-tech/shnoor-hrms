@@ -11,6 +11,7 @@ const managerNavItems = [
   { label: 'Expenses', path: '/manager/expenses' },
   { label: 'Salary Management', path: '/manager/salary' },
   { label: 'Offboarding', path: '/manager/offboarding' },
+  { label: 'Letters', path: '/manager/letters' },
   { label: 'Company Policies', path: '/manager/policies' },
   { label: 'Settings', path: '/manager/settings' },
 ]
@@ -22,9 +23,11 @@ const selfNavItems = [
   { label: 'Attendance', path: '/manager/self/attendance' },
   { label: 'Expenses', path: '/manager/self/expenses' },
   { label: 'Salary', path: '/manager/self/salary' },
+  { label: 'Letters', path: '/manager/self/letters' },
+  { label: 'Offboarding', path: '/manager/self/offboarding' },
   { label: 'Company Policies', path: '/manager/self/policies' },
   { label: 'Profile', path: '/manager/self/profile' },
-  
+
 ]
 
 function ManagerLayout({ children }) {

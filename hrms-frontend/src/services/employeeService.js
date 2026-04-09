@@ -22,3 +22,14 @@ export const getPolicies = () => api.get('/employee/policies')
 
 // Payslips
 export const getMyPayslips = () => api.get('/employee/payslips')
+
+// Letters
+export const getMyLetters = () => api.get('/employee/letters')
+
+// Offboarding
+export const getMyOffboarding = () => api.get('/employee/offboarding')
+export const submitResignation = (data) => api.post('/employee/offboarding/resign', data)
+
+// Complaints
+export const getMyComplaints = () => api.get('/employee/complaints')
+export const raiseComplaint = (data) => api.post('/employee/complaints', data)

@@ -8,6 +8,8 @@ const { clockIn, clockOut, getMyAttendance } = require('../controllers/attendanc
 const { getMyExpenses, submitExpense } = require('../controllers/expenseController')
 const { getMySalary, getMyPayslips } = require('../controllers/salaryController')
 const { getHolidays, getPolicies } = require('../controllers/managerController')
+const { getMyLetters } = require('../controllers/lettersController')
+const { submitResignation, getMyOffboarding, raiseComplaint, getMyComplaints } = require('../controllers/offboardingController')
 
 router.use(authenticate)
 router.use(authorize('employee'))
@@ -28,6 +30,18 @@ router.post('/expenses', submitExpense)
 // Salary
 router.get('/salary', getMySalary)
 router.get('/payslips', getMyPayslips)
+
+// Letters
+router.get('/letters', getMyLetters)
+
+// Offboarding
+router.get('/offboarding', getMyOffboarding)
+router.post('/offboarding/resign', submitResignation)
+
+// Complaints
+router.get('/complaints', getMyComplaints)
+router.post('/complaints', raiseComplaint)
+
 
 // Holidays + Policies (read only)
 router.get('/holidays', getHolidays)

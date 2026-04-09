@@ -146,3 +146,43 @@ CREATE TABLE IF NOT EXISTS password_resets (
   used BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Letters table
+CREATE TABLE IF NOT EXISTS letters (
+  id SERIAL PRIMARY KEY,
+  employee_id INTEGER REFERENCES users(id),
+  company_id INTEGER REFERENCES companies(id),
+  letter_type VARCHAR(100) NOT NULL,
+  title VARCHAR(255),
+  content TEXT NOT NULL,
+  generated_by INTEGER REFERENCES users(id),
+  generated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Offboarding requests table
+CREATE TABLE IF NOT EXISTS offboarding_requests (
+  id SERIAL PRIMARY KEY,
+  employee_id INTEGER REFERENCES users(id),
+  company_id INTEGER REFERENCES companies(id),
+  type VARCHAR(50) DEFAULT 'Resignation',
+  reason TEXT,
+  last_working_day DATE,
+  status VARCHAR(50) DEFAULT 'Pending',
+  manager_notes TEXT,
+  requested_by VARCHAR(20) DEFAULT 'employee',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Complaints table
+CREATE TABLE IF NOT EXISTS complaints (
+  id SERIAL PRIMARY KEY,
+  employee_id INTEGER REFERENCES users(id),
+  company_id INTEGER REFERENCES companies(id),
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  status VARCHAR(50) DEFAULT 'Open',
+  manager_response TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
