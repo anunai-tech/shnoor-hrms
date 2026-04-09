@@ -5,6 +5,7 @@ import { clockIn, clockOut, getMyAttendance, getMyLeaves } from '../../services/
 function SelfDashboard() {
   const { user } = useAuth()
   const [clockedIn, setClockedIn] = useState(false)
+  const [clockedOut, setClockedOut] = useState(false)
   const [clockInTime, setClockInTime] = useState(null)
   const [clockOutTime, setClockOutTime] = useState(null)
   const [recentAttendance, setRecentAttendance] = useState([])
@@ -15,22 +16,29 @@ function SelfDashboard() {
   ])
 
   useEffect(() => {
-    // Fetch attendance
     getMyAttendance()
       .then(res => {
         const records = res.data.data.slice(0, 5)
         setRecentAttendance(records)
-        const today = new Date().toISOString().split('T')[0]
-        const todayRecord = records.find(r => r.date?.startsWith(today))
+        const today = new Date().toLocaleDateString('en-CA')
+        const todayRecord = records.find(r => {
+          const recordDate = new Date(r.date).toLocaleDateString('en-CA')
+          return recordDate === today
+        })
         if (todayRecord) {
-          setClockedIn(!todayRecord.clock_out)
           setClockInTime(todayRecord.clock_in)
-          if (todayRecord.clock_out) setClockOutTime(todayRecord.clock_out)
+          if (todayRecord.clock_out) {
+            setClockOutTime(todayRecord.clock_out)
+            setClockedIn(false)
+            setClockedOut(true)
+          } else if (todayRecord.clock_in) {
+            setClockedIn(true)
+            setClockedOut(false)
+          }
         }
       })
       .catch(err => console.error(err))
 
-    // Fetch leaves and calculate real balance
     getMyLeaves()
       .then(res => {
         const leaves = res.data.data
@@ -52,6 +60,7 @@ function SelfDashboard() {
       const res = await clockIn()
       setClockInTime(res.data.data.clock_in)
       setClockedIn(true)
+      setClockedOut(false)
     } catch (err) {
       alert(err.response?.data?.message || 'Already clocked in today')
     }
@@ -62,6 +71,7 @@ function SelfDashboard() {
       const res = await clockOut()
       setClockOutTime(res.data.data.clock_out)
       setClockedIn(false)
+      setClockedOut(true)
     } catch (err) {
       alert(err.response?.data?.message || 'Error clocking out')
     }
@@ -78,9 +88,15 @@ function SelfDashboard() {
         <h2 className="text-base font-semibold text-gray-800 mb-4">Today's Attendance</h2>
         <div className="flex items-center gap-6">
           <button
-            onClick={clockedIn ? handleClockOut : handleClockIn}
-            className={`px-8 py-3 rounded-xl text-white font-semibold text-sm transition ${clockedIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}>
-            {clockedIn ? 'Clock Out' : 'Clock In'}
+            onClick={clockedOut ? undefined : clockedIn ? handleClockOut : handleClockIn}
+            disabled={clockedOut}
+            className={`px-8 py-3 rounded-xl text-white font-semibold text-sm transition
+              ${clockedOut
+                ? 'bg-gray-300 cursor-not-allowed'
+                : clockedIn
+                  ? 'bg-red-500 hover:bg-red-600'
+                  : 'bg-green-500 hover:bg-green-600'}`}>
+            {clockedOut ? 'Attendance Done ✓' : clockedIn ? 'Clock Out' : 'Clock In'}
           </button>
           <div className="flex gap-8">
             <div>

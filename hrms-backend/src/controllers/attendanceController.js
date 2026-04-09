@@ -26,7 +26,18 @@ const clockIn = async (req, res) => {
       [req.user.id, today]
     )
     if (existing.rows.length > 0) {
-      return res.status(400).json({ success: false, message: 'Already clocked in today' })
+      const record = existing.rows[0]
+      if (record.clock_out) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have already completed your attendance for today.'
+        })
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Already clocked in today. Please clock out first.'
+        })
+      }
     }
     const now = new Date().toTimeString().split(' ')[0]
     const result = await pool.query(
@@ -44,14 +55,27 @@ const clockIn = async (req, res) => {
 const clockOut = async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0]
+    const existing = await pool.query(
+      'SELECT * FROM attendance WHERE user_id=$1 AND date=$2',
+      [req.user.id, today]
+    )
+    if (existing.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have not clocked in today.'
+      })
+    }
+    if (existing.rows[0].clock_out) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already clocked out today.'
+      })
+    }
     const now = new Date().toTimeString().split(' ')[0]
     const result = await pool.query(
       `UPDATE attendance SET clock_out=$1 WHERE user_id=$2 AND date=$3 RETURNING *`,
       [now, req.user.id, today]
     )
-    if (result.rows.length === 0) {
-      return res.status(400).json({ success: false, message: 'No clock-in record found for today' })
-    }
     res.json({ success: true, data: result.rows[0] })
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' })
