@@ -45,3 +45,8 @@ export const submitExpense = (data) => api.post('/manager/self/expenses', data)
 export const getMySalary = () => api.get('/manager/self/salary')
 export const getManagerProfile = () => api.get('/manager/self/profile')
 export const updateManagerProfile = (data) => api.put('/manager/self/profile', data)
+
+// Payroll & Payslips
+export const runPayroll = (data) => api.post('/manager/payroll/run', data)
+export const getPayslipsByUser = (user_id) => api.get(`/manager/payslips/${user_id}`)
+export const getMyPayslips = () => api.get('/manager/self/payslips')
