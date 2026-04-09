@@ -9,6 +9,8 @@ const { getAttendance, clockIn, clockOut, getMyAttendance } = require('../contro
 const { getExpenses, updateExpenseStatus, getMyExpenses, submitExpense } = require('../controllers/expenseController')
 const { getSalaries, upsertSalary, getMySalary, runPayroll, getPayslipsByUser, getMyPayslips } = require('../controllers/salaryController')
 const { getHolidays, createHoliday, deleteHoliday, getPolicies, createPolicy, deletePolicy, getProfile, updateProfile, getDashboardStats } = require('../controllers/managerController')
+const { generateLetter, getLetters, getMyLetters } = require('../controllers/lettersController')
+const { getOffboardingRequests, updateOffboardingStatus, deactivateEmployee, getComplaints, respondToComplaint } = require('../controllers/offboardingController')
 
 router.use(authenticate)
 router.use(authorize('manager'))
@@ -52,6 +54,36 @@ router.get('/self/salary', getMySalary)
 router.post('/payroll/run', runPayroll)
 router.get('/payslips/:user_id', getPayslipsByUser)
 router.get('/self/payslips', getMyPayslips)
+
+// Letters
+router.get('/letters', getLetters)
+router.post('/letters', generateLetter)
+router.get('/self/letters', getMyLetters)
+
+// Offboarding requests
+router.get('/offboarding-requests', getOffboardingRequests)
+router.put('/offboarding-requests/:id', updateOffboardingStatus)
+router.put('/offboarding/deactivate/:employee_id', deactivateEmployee)
+
+// Manager-initiated offboarding request
+router.post('/offboarding-requests', async (req, res) => {
+  const pool = require('../config/db')
+  try {
+    const { employee_id, type, reason, last_working_day, manager_notes, requested_by, status } = req.body
+    const result = await pool.query(
+      `INSERT INTO offboarding_requests (employee_id, company_id, type, reason, last_working_day, manager_notes, requested_by, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [employee_id, req.user.company_id, type || 'Termination', reason, last_working_day || null, manager_notes, requested_by || 'manager', status || 'In Progress']
+    )
+    res.json({ success: true, data: result.rows[0] })
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+})
+
+// Complaints
+router.get('/complaints', getComplaints)
+router.put('/complaints/:id', respondToComplaint)
 
 // Holidays
 router.get('/holidays', getHolidays)

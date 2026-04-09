@@ -44,6 +44,10 @@ import Offboarding from '../pages/manager/Offboarding'
 import PrivacyPolicy from '../pages/PrivacyPolicy'
 import Terms from '../pages/Terms'
 import ForgotPassword from '../pages/ForgotPassword'
+import Letters from '../pages/manager/Letters'
+import EmployeeLetters from '../pages/employee/EmployeeLetters'
+import EmployeeOffboarding from '../pages/employee/EmployeeOffboarding'
+import SelfLetters from '../pages/self/SelfLetters'
 
 
 // ── Helper: wraps page with layout + protection ──────────
@@ -112,6 +116,7 @@ function AppRoutes() {
         <Route path="/manager/settings" element={<ManagerPage component={ManagerSettings} />} />
         <Route path="/manager/self/salary" element={<ManagerPage component={SelfSalary} />} />
         <Route path="/manager/offboarding" element={<ManagerPage component={Offboarding} />} />
+        <Route path="/manager/letters" element={<ManagerPage component={Letters} />} />
 
 
 
@@ -123,6 +128,7 @@ function AppRoutes() {
         <Route path="/manager/self/expenses" element={<ManagerPage component={SelfExpenses} />} />
         <Route path="/manager/self/policies" element={<ManagerPage component={SelfPolicies} />} />
         <Route path="/manager/self/profile" element={<ManagerPage component={SelfProfile} />} />
+        <Route path="/manager/self/letters" element={<ManagerPage component={SelfLetters} />} />
 
         {/* EMPLOYEE */}
         <Route path="/employee/dashboard" element={<EmployeePage component={EmployeeDashboard} />} />
@@ -136,6 +142,8 @@ function AppRoutes() {
         <Route path="/employee/salary" element={<EmployeePage component={EmployeeSalary} />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/employee/letters" element={<EmployeePage component={EmployeeLetters} />} />
+        <Route path="/employee/offboarding" element={<EmployeePage component={EmployeeOffboarding} />} />
 
         {/* CATCH ALL */}
         <Route path="*" element={<Navigate to="/" replace />} />

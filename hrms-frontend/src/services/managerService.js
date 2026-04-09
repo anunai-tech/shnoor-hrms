@@ -50,3 +50,18 @@ export const updateManagerProfile = (data) => api.put('/manager/self/profile', d
 export const runPayroll = (data) => api.post('/manager/payroll/run', data)
 export const getPayslipsByUser = (user_id) => api.get(`/manager/payslips/${user_id}`)
 export const getMyPayslips = () => api.get('/manager/self/payslips')
+
+// Letters
+export const generateLetter = (data) => api.post('/manager/letters', data)
+export const getLetters = () => api.get('/manager/letters')
+export const getMyLetters = () => api.get('/manager/self/letters')
+
+// Offboarding requests
+export const getOffboardingRequests = () => api.get('/manager/offboarding-requests')
+export const updateOffboardingStatus = (id, data) => api.put(`/manager/offboarding-requests/${id}`, data)
+export const deactivateEmployee = (employee_id) => api.put(`/manager/offboarding/deactivate/${employee_id}`)
+
+// Complaints
+export const getComplaints = () => api.get('/manager/complaints')
+export const respondToComplaint = (id, data) => api.put(`/manager/complaints/${id}`, data)
+

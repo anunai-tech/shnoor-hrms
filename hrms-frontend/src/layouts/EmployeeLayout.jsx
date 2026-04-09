@@ -8,8 +8,10 @@ const navItems = [
   { label: 'Holidays', path: '/employee/holidays' },
   { label: 'Attendance', path: '/employee/attendance' },
   { label: 'Expenses', path: '/employee/expenses' },
-  { label: 'Company Policies', path: '/employee/policies' },
   { label: 'Salary', path: '/employee/salary' },
+  { label: 'Letters', path: '/employee/letters' },
+  { label: 'Offboarding', path: '/employee/offboarding' },
+  { label: 'Company Policies', path: '/employee/policies' },
   { label: 'Profile', path: '/employee/profile' },
   { label: 'Settings', path: '/employee/settings' },
 ]

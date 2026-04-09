@@ -8,59 +8,65 @@ const MONTHS = [
   'July','August','September','October','November','December'
 ]
 
-// ─────────────────────────────────────────────────────────
-// PDF GENERATOR — builds a clean payslip PDF using jsPDF
-// jsPDF works by placing text at x,y coordinates on a page
-// Units are in 'mm' (millimetres). A4 page = 210mm x 297mm
-// ─────────────────────────────────────────────────────────
-function generatePayslipPDF(payslip, user) {
+// ── PDF GENERATOR — teal color + shnoor logo ──
+async function generatePayslipPDF(payslip, user) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const pageW = 210
   const margin = 20
   const contentW = pageW - margin * 2
 
-  // ── Header background ──
-  doc.setFillColor(37, 99, 235) // blue-600
+  // Load logo from public folder → convert to base64
+  let logoBase64 = null
+  try {
+    const blob = await fetch('/shnoor-logo.png').then(r => r.blob())
+    logoBase64 = await new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.readAsDataURL(blob)
+    })
+  } catch (e) { /* logo is optional, continues without it */ }
+
+  // Header — deep teal (15, 118, 110)
+  doc.setFillColor(15, 118, 110)
   doc.rect(0, 0, pageW, 35, 'F')
 
-  // ── Company name ──
-  doc.setTextColor(255, 255, 255)
-  doc.setFontSize(18)
-  doc.setFont('helvetica', 'bold')
-  doc.text('SHNOOR INTERNATIONAL LLC', margin, 15)
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.text('Salary Slip', margin, 23)
-  doc.text(`Period: ${MONTHS[payslip.month - 1]} ${payslip.year}`, margin, 29)
+  if (logoBase64) doc.addImage(logoBase64, 'PNG', margin, 7, 20, 20)
 
-  // ── Employee info box ──
-  doc.setFillColor(248, 250, 252) // gray-50
-  doc.setDrawColor(226, 232, 240) // gray-200
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(16)
+  doc.setFont('helvetica', 'bold')
+  doc.text('SHNOOR INTERNATIONAL LLC', logoBase64 ? margin + 25 : margin, 14)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Salary Slip', logoBase64 ? margin + 25 : margin, 21)
+  doc.text(`Period: ${MONTHS[payslip.month - 1]} ${payslip.year}`, logoBase64 ? margin + 25 : margin, 27)
+
+  // Employee info box — teal tinted background
+  doc.setFillColor(240, 253, 250)
+  doc.setDrawColor(167, 243, 208)
   doc.rect(margin, 45, contentW, 30, 'FD')
 
-  doc.setTextColor(100, 116, 139) // gray-500
+  doc.setTextColor(100, 116, 139)
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.text('EMPLOYEE NAME', margin + 5, 54)
   doc.text('DESIGNATION', margin + 70, 54)
   doc.text('DEPARTMENT', margin + 130, 54)
 
-  doc.setTextColor(15, 23, 42) // gray-900
+  doc.setTextColor(15, 23, 42)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
   doc.text(`${user.first_name} ${user.last_name}`, margin + 5, 62)
   doc.text(user.designation || '—', margin + 70, 62)
   doc.text(user.department || '—', margin + 130, 62)
 
-  // ── Earnings section ──
+  // Earnings section
   let y = 90
-  doc.setTextColor(37, 99, 235)
+  doc.setTextColor(15, 118, 110)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
   doc.text('EARNINGS', margin, y)
-
-  // Divider line
-  doc.setDrawColor(226, 232, 240)
+  doc.setDrawColor(167, 243, 208)
   doc.line(margin, y + 3, margin + contentW, y + 3)
   y += 10
 
@@ -80,7 +86,6 @@ function generatePayslipPDF(payslip, user) {
     y += 8
   }
 
-  // Gross salary row
   y += 2
   doc.setDrawColor(226, 232, 240)
   doc.line(margin, y, margin + contentW, y)
@@ -92,9 +97,9 @@ function generatePayslipPDF(payslip, user) {
   doc.text('Gross Salary', margin + 5, y)
   doc.text(`Rs. ${Number(gross).toLocaleString('en-IN')}`, margin + contentW - 5, y, { align: 'right' })
 
-  // ── Deductions section ──
+  // Deductions section
   y += 14
-  doc.setTextColor(220, 38, 38) // red-600
+  doc.setTextColor(220, 38, 38)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
   doc.text('DEDUCTIONS', margin, y)
@@ -108,9 +113,9 @@ function generatePayslipPDF(payslip, user) {
   doc.text('Total Deductions', margin + 5, y)
   doc.text(`- Rs. ${Number(payslip.deductions || 0).toLocaleString('en-IN')}`, margin + contentW - 5, y, { align: 'right' })
 
-  // ── Net Pay box ──
+  // Net Pay box — teal
   y += 14
-  doc.setFillColor(37, 99, 235)
+  doc.setFillColor(15, 118, 110)
   doc.rect(margin, y, contentW, 16, 'F')
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(12)
@@ -118,7 +123,7 @@ function generatePayslipPDF(payslip, user) {
   doc.text('NET PAY', margin + 5, y + 10)
   doc.text(`Rs. ${Number(payslip.net_pay || 0).toLocaleString('en-IN')}`, margin + contentW - 5, y + 10, { align: 'right' })
 
-  // ── Footer ──
+  // Footer
   y += 35
   doc.setTextColor(148, 163, 184)
   doc.setFontSize(8)
@@ -126,7 +131,6 @@ function generatePayslipPDF(payslip, user) {
   doc.text('This is a computer-generated payslip and does not require a signature.', pageW / 2, y, { align: 'center' })
   doc.text('© SHNOOR International LLC', pageW / 2, y + 6, { align: 'center' })
 
-  // Save the PDF — filename: Payslip_Name_Month_Year.pdf
   const filename = `Payslip_${user.first_name}_${user.last_name}_${MONTHS[payslip.month - 1]}_${payslip.year}.pdf`
   doc.save(filename)
 }
@@ -183,9 +187,9 @@ function EmployeeSalary() {
               <span className="text-sm text-red-500">Deductions</span>
               <span className="text-sm font-medium text-red-500">- ₹{Number(salary.deductions || 0).toLocaleString('en-IN')}</span>
             </div>
-            <div className="flex justify-between items-center py-3 bg-blue-50 rounded-lg px-4 mt-2">
-              <span className="text-base font-bold text-blue-700">Net Pay</span>
-              <span className="text-2xl font-bold text-blue-700">₹{Number(salary.net_pay || 0).toLocaleString('en-IN')}</span>
+            <div className="flex justify-between items-center py-3 bg-teal-50 rounded-lg px-4 mt-2">
+              <span className="text-base font-bold text-teal-700">Net Pay</span>
+              <span className="text-2xl font-bold text-teal-700">₹{Number(salary.net_pay || 0).toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>
@@ -216,16 +220,14 @@ function EmployeeSalary() {
               <tbody>
                 {payslips.map(p => (
                   <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                      {MONTHS[p.month - 1]} {p.year}
-                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{MONTHS[p.month - 1]} {p.year}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">₹{Number(p.basic || 0).toLocaleString('en-IN')}</td>
                     <td className="px-6 py-4 text-sm text-red-500">- ₹{Number(p.deductions || 0).toLocaleString('en-IN')}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-blue-600">₹{Number(p.net_pay || 0).toLocaleString('en-IN')}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-teal-600">₹{Number(p.net_pay || 0).toLocaleString('en-IN')}</td>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => generatePayslipPDF(p, user)}
-                        className="text-xs bg-blue-500 hover:bg-blue-600 text-white font-semibold px-3 py-1.5 rounded-lg transition"
+                        className="text-xs bg-teal-600 hover:bg-teal-700 text-white font-semibold px-3 py-1.5 rounded-lg transition"
                       >
                         Download PDF
                       </button>
@@ -237,7 +239,6 @@ function EmployeeSalary() {
           </div>
         )}
       </div>
-
     </div>
   )
 }
