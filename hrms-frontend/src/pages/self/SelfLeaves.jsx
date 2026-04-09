@@ -53,10 +53,18 @@ function SelfLeaves() {
     }
   }
 
-  const leaveBalance = [
-    { type: 'Paid Leaves', total: 12, used: leaves.filter(l => l.leave_type === 'Paid Leave' && l.status === 'Approved').reduce((s, l) => s + l.days, 0) },
-    { type: 'Sick Leaves', total: 6, used: leaves.filter(l => l.leave_type === 'Sick Leave' && l.status === 'Approved').reduce((s, l) => s + l.days, 0) },
-    { type: 'Casual Leaves', total: 6, used: leaves.filter(l => l.leave_type === 'Casual Leave' && l.status === 'Approved').reduce((s, l) => s + l.days, 0) },
+  // Compute from already-fetched leaves — zero extra API calls
+  const approved = leaves.filter(l => l.status === 'Approved')
+  const paidUsed   = approved.filter(l => l.leave_type === 'Paid Leave').reduce((s, l) => s + Number(l.days), 0)
+  const sickUsed   = approved.filter(l => l.leave_type === 'Sick Leave').reduce((s, l) => s + Number(l.days), 0)
+  const casualUsed = approved.filter(l => l.leave_type === 'Casual Leave').reduce((s, l) => s + Number(l.days), 0)
+  const unpaidUsed = approved.filter(l => l.leave_type === 'Unpaid Leave').reduce((s, l) => s + Number(l.days), 0)
+
+  const leaveCards = [
+    { type: 'Paid Leaves',   total: 12,   used: paidUsed,   isUnpaid: false },
+    { type: 'Sick Leaves',   total: 6,    used: sickUsed,   isUnpaid: false },
+    { type: 'Casual Leaves', total: 6,    used: casualUsed, isUnpaid: false },
+    { type: 'Unpaid Leaves', total: null, used: unpaidUsed, isUnpaid: true  },
   ]
 
   const applyForm = (
@@ -107,16 +115,22 @@ function SelfLeaves() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {leaveBalance.map(lb => (
-          <div key={lb.type} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-500 font-medium">{lb.type}</p>
-            <p className="text-3xl font-bold text-gray-800 mt-2">{lb.total - lb.used}</p>
-            <p className="text-xs text-gray-400 mt-1">{lb.used} used of {lb.total}</p>
+      {/* Leave Balance Cards — 4 cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {leaveCards.map(lb => (
+          <div key={lb.type} className={`rounded-xl p-5 shadow-sm border ${lb.isUnpaid ? 'bg-orange-50 border-orange-100' : 'bg-white border-gray-100'}`}>
+            <p className={`text-sm font-medium ${lb.isUnpaid ? 'text-orange-500' : 'text-gray-500'}`}>{lb.type}</p>
+            <p className={`text-3xl font-bold mt-2 ${lb.isUnpaid ? 'text-orange-600' : 'text-gray-800'}`}>
+              {lb.isUnpaid ? lb.used : Math.max(0, lb.total - lb.used)}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {lb.isUnpaid ? 'days taken (approved)' : `${lb.used} used of ${lb.total}`}
+            </p>
           </div>
         ))}
       </div>
 
+      {/* Leave History */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-800">Leave History</h2>

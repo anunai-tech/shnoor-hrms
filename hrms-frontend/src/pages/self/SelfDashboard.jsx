@@ -10,9 +10,10 @@ function SelfDashboard() {
   const [clockOutTime, setClockOutTime] = useState(null)
   const [recentAttendance, setRecentAttendance] = useState([])
   const [leaveBalance, setLeaveBalance] = useState([
-    { type: 'Paid Leaves', total: 12, used: 0, remaining: 12 },
-    { type: 'Sick Leaves', total: 6, used: 0, remaining: 6 },
-    { type: 'Casual Leaves', total: 6, used: 0, remaining: 6 },
+    { type: 'Paid Leaves',   total: 12,   used: 0, remaining: 12, isUnpaid: false },
+    { type: 'Sick Leaves',   total: 6,    used: 0, remaining: 6,  isUnpaid: false },
+    { type: 'Casual Leaves', total: 6,    used: 0, remaining: 6,  isUnpaid: false },
+    { type: 'Unpaid Leaves', total: null, used: 0, remaining: null, isUnpaid: true },
   ])
 
   useEffect(() => {
@@ -21,10 +22,7 @@ function SelfDashboard() {
         const records = res.data.data.slice(0, 5)
         setRecentAttendance(records)
         const today = new Date().toLocaleDateString('en-CA')
-        const todayRecord = records.find(r => {
-          const recordDate = new Date(r.date).toLocaleDateString('en-CA')
-          return recordDate === today
-        })
+        const todayRecord = records.find(r => new Date(r.date).toLocaleDateString('en-CA') === today)
         if (todayRecord) {
           setClockInTime(todayRecord.clock_in)
           if (todayRecord.clock_out) {
@@ -42,14 +40,16 @@ function SelfDashboard() {
     getMyLeaves()
       .then(res => {
         const leaves = res.data.data
-        const approvedLeaves = leaves.filter(l => l.status === 'Approved')
-        const paidUsed = approvedLeaves.filter(l => l.leave_type === 'Paid Leave').reduce((sum, l) => sum + Number(l.days), 0)
-        const sickUsed = approvedLeaves.filter(l => l.leave_type === 'Sick Leave').reduce((sum, l) => sum + Number(l.days), 0)
-        const casualUsed = approvedLeaves.filter(l => l.leave_type === 'Casual Leave').reduce((sum, l) => sum + Number(l.days), 0)
+        const approved = leaves.filter(l => l.status === 'Approved')
+        const paidUsed   = approved.filter(l => l.leave_type === 'Paid Leave').reduce((s, l) => s + Number(l.days), 0)
+        const sickUsed   = approved.filter(l => l.leave_type === 'Sick Leave').reduce((s, l) => s + Number(l.days), 0)
+        const casualUsed = approved.filter(l => l.leave_type === 'Casual Leave').reduce((s, l) => s + Number(l.days), 0)
+        const unpaidUsed = approved.filter(l => l.leave_type === 'Unpaid Leave').reduce((s, l) => s + Number(l.days), 0)
         setLeaveBalance([
-          { type: 'Paid Leaves', total: 12, used: paidUsed, remaining: Math.max(0, 12 - paidUsed) },
-          { type: 'Sick Leaves', total: 6, used: sickUsed, remaining: Math.max(0, 6 - sickUsed) },
-          { type: 'Casual Leaves', total: 6, used: casualUsed, remaining: Math.max(0, 6 - casualUsed) },
+          { type: 'Paid Leaves',   total: 12,   used: paidUsed,   remaining: Math.max(0, 12 - paidUsed),   isUnpaid: false },
+          { type: 'Sick Leaves',   total: 6,    used: sickUsed,   remaining: Math.max(0, 6 - sickUsed),    isUnpaid: false },
+          { type: 'Casual Leaves', total: 6,    used: casualUsed, remaining: Math.max(0, 6 - casualUsed),  isUnpaid: false },
+          { type: 'Unpaid Leaves', total: null, used: unpaidUsed, remaining: null,                          isUnpaid: true  },
         ])
       })
       .catch(err => console.error(err))
@@ -84,6 +84,7 @@ function SelfDashboard() {
         <p className="text-sm text-gray-400 mt-1">Welcome back, {user?.first_name}!</p>
       </div>
 
+      {/* Attendance */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-base font-semibold text-gray-800 mb-4">Today's Attendance</h2>
         <div className="flex items-center gap-6">
@@ -91,11 +92,7 @@ function SelfDashboard() {
             onClick={clockedOut ? undefined : clockedIn ? handleClockOut : handleClockIn}
             disabled={clockedOut}
             className={`px-8 py-3 rounded-xl text-white font-semibold text-sm transition
-              ${clockedOut
-                ? 'bg-gray-300 cursor-not-allowed'
-                : clockedIn
-                  ? 'bg-red-500 hover:bg-red-600'
-                  : 'bg-green-500 hover:bg-green-600'}`}>
+              ${clockedOut ? 'bg-gray-300 cursor-not-allowed' : clockedIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}>
             {clockedOut ? 'Attendance Done ✓' : clockedIn ? 'Clock Out' : 'Clock In'}
           </button>
           <div className="flex gap-8">
@@ -111,16 +108,22 @@ function SelfDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Leave Balance Cards — 4 cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {leaveBalance.map(lb => (
-          <div key={lb.type} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-500 font-medium">{lb.type}</p>
-            <p className="text-3xl font-bold text-gray-800 mt-2">{lb.remaining}</p>
-            <p className="text-xs text-gray-400 mt-1">{lb.used} used of {lb.total}</p>
+          <div key={lb.type} className={`rounded-xl p-5 shadow-sm border ${lb.isUnpaid ? 'bg-orange-50 border-orange-100' : 'bg-white border-gray-100'}`}>
+            <p className={`text-sm font-medium ${lb.isUnpaid ? 'text-orange-500' : 'text-gray-500'}`}>{lb.type}</p>
+            <p className={`text-3xl font-bold mt-2 ${lb.isUnpaid ? 'text-orange-600' : 'text-gray-800'}`}>
+              {lb.isUnpaid ? lb.used : lb.remaining}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {lb.isUnpaid ? 'days taken (approved)' : `${lb.used} used of ${lb.total}`}
+            </p>
           </div>
         ))}
       </div>
 
+      {/* Recent Attendance */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-800">Recent Attendance</h2>
