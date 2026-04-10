@@ -31,7 +31,7 @@ function Employees() {
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     first_name: '', last_name: '', email: '', phone: '',
-    department: '', designation: '', joining_date: '', password: ''
+    department: '', designation: '', joining_date: '', date_of_birth: '', password: ''
   })
 
   useEffect(() => { fetchEmployees() }, [])
@@ -125,6 +125,11 @@ function Employees() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Joining Date</label>
         <input name="joining_date" type="date" value={formData.joining_date} onChange={handleFormChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+        <input name="date_of_birth" type="date" value={formData.date_of_birth} onChange={handleFormChange}
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
       </div>
       <div>
@@ -242,7 +247,7 @@ function Employees() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {[['Email', selectedEmployee.email], ['Phone', selectedEmployee.phone], ['Department', selectedEmployee.department], ['Designation', selectedEmployee.designation]].map(([label, value]) => (
+              {[['Email', selectedEmployee.email], ['Phone', selectedEmployee.phone], ['Department', selectedEmployee.department], ['Designation', selectedEmployee.designation], ['Date of Birth', selectedEmployee.date_of_birth ? new Date(selectedEmployee.date_of_birth).toLocaleDateString('en-GB') : '—']].map(([label, value]) => (
                 <div key={label}>
                   <p className="text-xs text-gray-400 font-medium mb-1">{label}</p>
                   <p className="text-sm text-gray-700">{value || '—'}</p>

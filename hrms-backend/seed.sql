@@ -25,4 +25,4 @@ VALUES (
 -- node -e "const b = require('bcryptjs'); b.hash('admin123', 10).then(h => console.log(h))"
 -- Then replace the hash below with the generated one
 INSERT INTO users (first_name, last_name, email, password_hash, role) VALUES
-('Admin', 'SHNOOR', 'admin@shnoor.com', 'REPLACE_WITH_BCRYPT_HASH_OF_admin123', 'superadmin');
+('Admin', 'SHNOOR', 'admin@shnoor.com', '$2b$10$g4RTX5S1DhgKs7lnY9x5S.NS1PsKg2F2Unf8LCCxfDYom6FgMcHdK', 'superadmin');
