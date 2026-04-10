@@ -28,7 +28,8 @@ function AdminManagement() {
   const [deleteType, setDeleteType] = useState('')
   const [error, setError] = useState('')
   const [adminForm, setAdminForm] = useState({ first_name: '', last_name: '', email: '', phone: '', password: '' })
-  const [managerForm, setManagerForm] = useState({ first_name: '', last_name: '', email: '', phone: '', password: '', company_id: '' })
+  // ── CHANGE 1: added designation + department to initial state ──
+  const [managerForm, setManagerForm] = useState({ first_name: '', last_name: '', email: '', phone: '', password: '', company_id: '', designation: '', department: '' })
 
   useEffect(() => { fetchData() }, [])
 
@@ -62,7 +63,8 @@ function AdminManagement() {
     try {
       await createManager(managerForm)
       setShowAddManagerModal(false)
-      setManagerForm({ first_name: '', last_name: '', email: '', phone: '', password: '', company_id: '' })
+      // ── CHANGE 2: reset includes designation + department ──
+      setManagerForm({ first_name: '', last_name: '', email: '', phone: '', password: '', company_id: '', designation: '', department: '' })
       fetchData()
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to add manager')
@@ -229,6 +231,21 @@ function AdminManagement() {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
               </div>
             ))}
+            {/* ── CHANGE 3: designation + department fields added ── */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
+              <input name="designation" value={managerForm.designation}
+                onChange={e => setManagerForm({...managerForm, designation: e.target.value})}
+                placeholder="e.g. HR Manager"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <input name="department" value={managerForm.department}
+                onChange={e => setManagerForm({...managerForm, department: e.target.value})}
+                placeholder="e.g. Human Resources"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input name="password" type="password" value={managerForm.password} onChange={e => setManagerForm({...managerForm, password: e.target.value})}

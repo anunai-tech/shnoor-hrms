@@ -89,11 +89,11 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { first_name, last_name, phone, address } = req.body
+    const { first_name, last_name, phone, address, designation, department } = req.body
     const result = await pool.query(
-      `UPDATE users SET first_name=$1, last_name=$2, phone=$3, address=$4
-       WHERE id=$5 RETURNING id, first_name, last_name, email, phone, address`,
-      [first_name, last_name, phone, address, req.user.id]
+      `UPDATE users SET first_name=$1, last_name=$2, phone=$3, address=$4, designation=$5, department=$6
+       WHERE id=$7 RETURNING id, first_name, last_name, email, phone, address, designation, department`,
+      [first_name, last_name, phone, address, designation || null, department || null, req.user.id]
     )
     res.json({ success: true, data: result.rows[0] })
   } catch (err) {
