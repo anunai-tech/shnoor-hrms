@@ -64,11 +64,22 @@ function LoginPage() {
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
 
         {/* Logo Section */}
+        {/* Logo Section */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <img src="/shnoor-logo.png" alt="SHNOOR" className="h-16 w-auto object-contain" />
+            <img
+              src="/shnoor-logo.png"
+              alt="SHNOOR"
+              className="h-16 w-auto object-contain cursor-pointer hover:opacity-80 transition"
+              onClick={() => navigate('/')}
+            />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">SHNOOR HRMS</h1>
+          <h1
+            className="text-2xl font-bold text-gray-800 cursor-pointer hover:text-blue-600 transition"
+            onClick={() => navigate('/')}
+          >
+            SHNOOR HRMS
+          </h1>
           <p className="text-gray-500 text-sm mt-1">Login to your account</p>
         </div>
 
