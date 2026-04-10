@@ -6,6 +6,7 @@ const {
   getChatList,
   getConversation,
   sendMessage,
+  editMessage,
   markConversationSeen,
   getUnreadMessageCount,
   getPredefinedQuestions
@@ -18,6 +19,7 @@ router.get('/chat-list', getChatList)
 router.get('/conversation', getConversation)
 router.post('/', sendMessage)
 router.put('/seen', markConversationSeen)
+router.put('/:id', editMessage)
 router.get('/unread-count', getUnreadMessageCount)
 router.get('/predefined-questions', getPredefinedQuestions)
 

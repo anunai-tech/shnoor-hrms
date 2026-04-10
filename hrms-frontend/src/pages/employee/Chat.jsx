@@ -19,6 +19,7 @@ function EmployeeChat() {
     selectConversation,
     sendCurrentMessage,
     sendQuickQuestion,
+    editCurrentMessage,
     refreshWorkspace
   } = useMessagingWorkspace({
     withQuickQuestions: true,
@@ -82,6 +83,7 @@ function EmployeeChat() {
             loading={conversationLoading}
             quickQuestions={quickQuestions}
             onQuickQuestion={sendQuickQuestion}
+            onEditMessage={editCurrentMessage}
           />
           <MessageInput
             onSend={sendCurrentMessage}

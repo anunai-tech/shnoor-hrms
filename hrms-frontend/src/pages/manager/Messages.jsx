@@ -17,6 +17,7 @@ function ManagerMessages() {
     error,
     selectConversation,
     sendCurrentMessage,
+    editCurrentMessage,
     refreshWorkspace
   } = useMessagingWorkspace({
     withQuickQuestions: false,
@@ -79,6 +80,7 @@ function ManagerMessages() {
             messages={messages}
             currentUserId={user?.id}
             loading={conversationLoading}
+            onEditMessage={editCurrentMessage}
           />
           <MessageInput
             onSend={sendCurrentMessage}

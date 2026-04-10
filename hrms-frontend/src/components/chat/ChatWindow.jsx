@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   formatMessageTimestamp,
   getUserInitials,
@@ -12,9 +12,26 @@ function ChatWindow({
   currentUserId,
   loading,
   quickQuestions = [],
-  onQuickQuestion
+  onQuickQuestion,
+  onEditMessage
 }) {
   const bottomRef = useRef(null)
+  const [editingMessageId, setEditingMessageId] = useState(null)
+  const [editInputValue, setEditInputValue] = useState('')
+
+  const handleEditInit = (msg) => {
+    setEditingMessageId(msg.id)
+    setEditInputValue(msg.message)
+  }
+
+  const handleEditSave = async (msgId) => {
+    if (!editInputValue.trim()) return
+    if (onEditMessage) {
+      await onEditMessage(msgId, editInputValue)
+    }
+    setEditingMessageId(null)
+    setEditInputValue('')
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -98,16 +115,43 @@ function ChatWindow({
               const isOwnMessage = Number(message.sender_id) === Number(currentUserId)
               const attachmentUrl = resolveMessageFileUrl(message.file_url)
               const hasImageAttachment = isImageAttachment(message.file_type)
+              const isEditing = editingMessageId === message.id
 
               return (
                 <div key={message.id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
                   <div
-                    className={`max-w-[85%] rounded-[28px] px-4 py-3 shadow-sm sm:max-w-[75%] border border-slate-200 bg-white text-slate-800 ${
+                    className={`group relative max-w-[85%] rounded-[28px] px-4 py-3 shadow-sm sm:max-w-[75%] border border-slate-200 bg-white text-slate-800 ${
                       isOwnMessage ? 'rounded-tr-none' : 'rounded-tl-none'
                     }`}
                   >
-                    {message.message && (
-                      <p className="whitespace-pre-wrap text-sm leading-6">{message.message}</p>
+                    {!isEditing && isOwnMessage && message.message && (
+                      <button
+                        onClick={() => handleEditInit(message)}
+                        className="absolute top-2 -left-8 rounded-full p-1.5 text-slate-400 opacity-0 bg-white shadow-sm border border-slate-200 hover:text-blue-600 focus:opacity-100 group-hover:opacity-100 transition"
+                        title="Edit Message"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                      </button>
+                    )}
+
+                    {isEditing ? (
+                      <div className="flex flex-col gap-2 min-w-[200px]">
+                        <textarea
+                          value={editInputValue}
+                          onChange={(e) => setEditInputValue(e.target.value)}
+                          className="w-full text-sm border border-blue-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none bg-slate-50"
+                          rows={3}
+                          autoFocus
+                        />
+                        <div className="flex gap-2 justify-end mt-1">
+                          <button onClick={() => setEditingMessageId(null)} className="text-xs text-slate-500 hover:text-slate-700 font-medium px-2 py-1">Cancel</button>
+                          <button onClick={() => handleEditSave(message.id)} className="text-xs bg-blue-600 text-white rounded-lg px-3 py-1.5 font-semibold hover:bg-blue-700 transition">Save Changes</button>
+                        </div>
+                      </div>
+                    ) : (
+                      message.message && (
+                        <p className="whitespace-pre-wrap text-sm leading-6">{message.message}</p>
+                      )
                     )}
 
                     {attachmentUrl && hasImageAttachment && (
@@ -133,6 +177,7 @@ function ChatWindow({
 
                     <div className={`mt-3 flex items-center gap-2 text-[11px] text-slate-400`}>
                       <span>{formatMessageTimestamp(message.created_at)}</span>
+                      {message.is_edited && <span className="italic">(edited)</span>}
                       {isOwnMessage && (
                         <span className="font-semibold text-slate-500">
                           {message.seen_status ? 'Seen' : 'Unseen'}

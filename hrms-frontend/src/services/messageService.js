@@ -14,6 +14,8 @@ export const getConversation = (userId) => {
 
 export const sendMessage = (data) => api.post('/messages', data)
 
+export const editMessage = (id, new_message) => api.put(`/messages/${id}`, { new_message })
+
 export const markConversationSeen = (userId) => api.put('/messages/seen', userId ? { userId } : {})
 
 export const getUnreadMessageCount = () => api.get('/messages/unread-count')

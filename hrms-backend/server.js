@@ -18,6 +18,7 @@ const initDB = async () => {
         file_name VARCHAR(255),
         file_type VARCHAR(150),
         seen_status BOOLEAN DEFAULT false,
+        is_edited BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT NOW(),
         CHECK (sender_id <> receiver_id),
         CHECK (message IS NOT NULL OR file_url IS NOT NULL)
@@ -31,6 +32,8 @@ const initDB = async () => {
 
       CREATE INDEX IF NOT EXISTS idx_messages_company_users
       ON messages (company_id, sender_id, receiver_id);
+
+      ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_edited BOOLEAN DEFAULT false;
     `;
     await pool.query(createTableQuery);
     console.log('Successfully confirmed messages table exists in DB.');

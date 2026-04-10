@@ -159,21 +159,6 @@ function ManagerLayout({ children }) {
 
           <div className="flex items-center gap-4">
             <ThemeSwitcher />
-            <NavLink
-              to="/manager/messages"
-              className={({ isActive }) => `relative inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${
-                isActive
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              Messages
-              {unreadCount > 0 && (
-                <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-semibold text-white">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </NavLink>
 
             <div className="text-right">
               <p className="text-sm font-semibold text-gray-800">

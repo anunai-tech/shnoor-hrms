@@ -5,6 +5,7 @@ import {
   getChatList,
   getConversation,
   sendMessage,
+  editMessage,
   markConversationSeen,
   getPredefinedQuestions
 } from '../services/messageService'
@@ -186,6 +187,16 @@ export function useMessagingWorkspace({ withQuickQuestions = false, autoSelect =
     await sendCurrentMessage({ message: questionText })
   }
 
+  const editCurrentMessage = async (messageId, newContent) => {
+    if (!activeConversation?.user_id) return
+    await editMessage(messageId, newContent)
+    try {
+      await syncConversation(activeConversation, { markSeen: false, silent: true })
+    } catch (err) {
+      console.error('Post-edit sync error:', err)
+    }
+  }
+
   useEffect(() => {
     refreshWorkspace()
   }, [])
@@ -220,6 +231,7 @@ export function useMessagingWorkspace({ withQuickQuestions = false, autoSelect =
     selectConversation,
     sendCurrentMessage,
     sendQuickQuestion,
+    editCurrentMessage,
     refreshWorkspace
   }
 }

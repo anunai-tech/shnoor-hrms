@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS messages (
   file_name VARCHAR(255),
   file_type VARCHAR(150),
   seen_status BOOLEAN DEFAULT false,
+  is_edited BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW(),
   CHECK (sender_id <> receiver_id),
   CHECK (message IS NOT NULL OR file_url IS NOT NULL)

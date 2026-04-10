@@ -184,7 +184,7 @@ const resolveConversationUser = async (req, requestedUserId) => {
 const fetchConversationMessages = async (companyId, conversationKey) => {
   const result = await pool.query(
     `SELECT m.id, m.sender_id, m.receiver_id, m.message, m.file_url, m.file_name, m.file_type,
-            m.created_at, m.seen_status,
+            m.created_at, m.seen_status, m.is_edited,
             sender.first_name AS sender_first_name,
             sender.last_name AS sender_last_name
      FROM messages m
@@ -417,10 +417,40 @@ const getPredefinedQuestions = async (req, res) => {
   res.json({ success: true, data: QUICK_QUESTIONS })
 }
 
+const editMessage = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { new_message } = req.body
+
+    const trimmed = typeof new_message === 'string' ? new_message.trim() : ''
+    if (!trimmed) {
+      return res.status(400).json({ success: false, message: 'Message content cannot be empty' })
+    }
+
+    const result = await pool.query(
+      `UPDATE messages
+       SET message = $1, is_edited = true
+       WHERE id = $2 AND sender_id = $3 AND company_id = $4
+       RETURNING id, sender_id, receiver_id, message, file_url, file_name, file_type, created_at, seen_status, is_edited`,
+      [trimmed, id, req.user.id, req.user.company_id]
+    )
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: 'Message not found or you are not the sender' })
+    }
+
+    res.json({ success: true, data: result.rows[0] })
+  } catch (err) {
+    console.error('Edit message error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
 module.exports = {
   getChatList,
   getConversation,
   sendMessage,
+  editMessage,
   markConversationSeen,
   getUnreadMessageCount,
   getPredefinedQuestions
