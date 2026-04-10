@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getEmployees, generateLetter, getLetters } from '../../services/managerService'
-import { getMySalary } from '../../services/managerService'
+import { useAuth } from '../../context/AuthContext'
+import { getEmployees, generateLetter, getLetters, getSalaries, getManagerProfile } from '../../services/managerService'
 import { jsPDF } from 'jspdf'
 
 const LETTER_TYPES = [
@@ -14,9 +14,8 @@ const LETTER_TYPES = [
   'Relieving Letter',
 ]
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
-// Generates letter template based on type and employee data
 function getTemplate(type, emp, salary, extra = {}) {
   const name = `${emp.first_name} ${emp.last_name}`
   const designation = emp.designation || '[Designation]'
@@ -63,14 +62,12 @@ function getTemplate(type, emp, salary, extra = {}) {
   return templates[type] || { title: type, content: '' }
 }
 
-// PDF generator with teal color + logo
 async function generateLetterPDF(letter, employeeName) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const pageW = 210
   const margin = 20
   const contentW = pageW - margin * 2
 
-  // Load logo
   let logoBase64 = null
   try {
     const resp = await fetch('/shnoor-logo.png')
@@ -80,16 +77,11 @@ async function generateLetterPDF(letter, employeeName) {
       reader.onload = () => resolve(reader.result)
       reader.readAsDataURL(blob)
     })
-  } catch (e) { /* logo optional */ }
+  } catch (e) { }
 
-  // Header — deep teal
   doc.setFillColor(15, 118, 110)
   doc.rect(0, 0, pageW, 38, 'F')
-
-  if (logoBase64) {
-    doc.addImage(logoBase64, 'PNG', margin, 8, 22, 22)
-  }
-
+  if (logoBase64) doc.addImage(logoBase64, 'PNG', margin, 8, 22, 22)
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
@@ -99,30 +91,24 @@ async function generateLetterPDF(letter, employeeName) {
   doc.text('HR Management System', logoBase64 ? margin + 27 : margin, 25)
   doc.text(new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }), pageW - margin, 25, { align: 'right' })
 
-  // Letter title bar
-  doc.setFillColor(240, 253, 250) // teal-50
+  doc.setFillColor(240, 253, 250)
   doc.rect(margin, 48, contentW, 12, 'F')
   doc.setTextColor(15, 118, 110)
   doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.text(letter.title || letter.letter_type, margin + 5, 57)
 
-  // Letter content
   doc.setTextColor(51, 65, 85)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   const lines = doc.splitTextToSize(letter.content, contentW)
   let y = 72
   for (const line of lines) {
-    if (y > 270) {
-      doc.addPage()
-      y = 20
-    }
+    if (y > 270) { doc.addPage(); y = 20 }
     doc.text(line, margin, y)
     y += 6
   }
 
-  // Footer
   doc.setDrawColor(15, 118, 110)
   doc.line(margin, 282, pageW - margin, 282)
   doc.setTextColor(148, 163, 184)
@@ -148,6 +134,9 @@ function Modal({ title, onClose, children }) {
 }
 
 function Letters() {
+  // ── KEY CHANGE: get logged-in manager's data ──
+  const { user } = useAuth()
+
   const [employees, setEmployees] = useState([])
   const [letters, setLetters] = useState([])
   const [loading, setLoading] = useState(true)
@@ -162,33 +151,35 @@ function Letters() {
   const [activeTab, setActiveTab] = useState('generate')
 
   useEffect(() => {
-    Promise.all([
-      import('../../services/managerService').then(m => m.getEmployees()),
-      import('../../services/managerService').then(m => m.getLetters()),
-    ]).then(([empRes, letRes]) => {
-      setEmployees(empRes.data.data || [])
-      setLetters(letRes.data.data || [])
-    }).catch(console.error).finally(() => setLoading(false))
+    Promise.all([getEmployees(), getLetters(), getManagerProfile()])
+      .then(([empRes, letRes, profileRes]) => {
+        const empList = empRes.data.data || []
+        const profile = profileRes.data.data || {}
+        // selfCard now has full profile data including designation + department
+        const selfCard = { ...user, ...profile, is_active: true, isSelf: true }
+        setEmployees([selfCard, ...empList])
+        setLetters(letRes.data.data || [])
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
   }, [])
-
   const fetchLetters = async () => {
-    const res = await import('../../services/managerService').then(m => m.getLetters())
+    const res = await getLetters()
     setLetters(res.data.data || [])
   }
 
   const filteredEmps = employees.filter(e =>
     e.is_active &&
     (`${e.first_name} ${e.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-    (e.department || '').toLowerCase().includes(search.toLowerCase()))
+      (e.department || '').toLowerCase().includes(search.toLowerCase()))
   )
 
   const openModal = async (emp) => {
     setSelectedEmp(emp)
     setExtraFields({})
     setLetterType(LETTER_TYPES[0])
-    // fetch employee salary from manager salary list
     try {
-      const res = await import('../../services/managerService').then(m => m.getSalaries())
+      const res = await getSalaries()
       const sal = res.data.data.find(s => s.user_id === emp.id)
       setEmpSalary(sal || null)
     } catch { setEmpSalary(null) }
@@ -239,7 +230,6 @@ function Letters() {
         <p className="text-sm text-gray-400 mt-1">Generate and manage employee letters</p>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
         {[['generate', 'Generate Letter'], ['history', 'Letters History']].map(([key, label]) => (
           <button key={key} onClick={() => setActiveTab(key)}
@@ -266,7 +256,13 @@ function Letters() {
                       <span className="text-teal-700 font-bold text-sm">{emp.first_name?.charAt(0)}</span>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">{emp.first_name} {emp.last_name}</p>
+                      {/* ── KEY CHANGE: show "You" badge for manager self card ── */}
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-800">{emp.first_name} {emp.last_name}</p>
+                        {emp.isSelf && (
+                          <span className="text-xs bg-teal-50 text-teal-600 font-semibold px-2 py-0.5 rounded-full">You</span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-400">{emp.designation || '—'} · {emp.department || '—'}</p>
                     </div>
                   </div>
@@ -324,9 +320,8 @@ function Letters() {
         </div>
       )}
 
-      {/* Generate Letter Modal */}
       {showModal && selectedEmp && (
-        <Modal title={`Generate Letter — ${selectedEmp.first_name} ${selectedEmp.last_name}`} onClose={() => setShowModal(false)}>
+        <Modal title={`Generate Letter — ${selectedEmp.first_name} ${selectedEmp.last_name}${selectedEmp.isSelf ? ' (You)' : ''}`} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Letter Type</label>
@@ -336,7 +331,6 @@ function Letters() {
               </select>
             </div>
 
-            {/* Extra fields depending on letter type */}
             {letterType === 'Salary Increment Letter' && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
