@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useMessaging } from '../context/MessagingContext'
 
 const managerNavItems = [
   { label: 'Dashboard', path: '/manager/dashboard' },
+  { label: 'Messages', path: '/manager/messages' },
   { label: 'Employees', path: '/manager/employees' },
   { label: 'Holidays', path: '/manager/holidays' },
   { label: 'Leaves', path: '/manager/leaves' },
@@ -35,6 +37,7 @@ function ManagerLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeTab, setActiveTab] = useState('manager')
   const { user, logout } = useAuth()
+  const { unreadCount } = useMessaging()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -116,7 +119,12 @@ function ManagerLayout({ children }) {
                 }
               `}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {item.path === '/manager/messages' && unreadCount > 0 && (
+                <span className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -149,6 +157,22 @@ function ManagerLayout({ children }) {
           </button>
 
           <div className="flex items-center gap-3">
+            <NavLink
+              to="/manager/messages"
+              className={({ isActive }) => `relative inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Messages
+              {unreadCount > 0 && (
+                <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </NavLink>
+
             <div className="text-right">
               <p className="text-sm font-semibold text-gray-800">
                 {user?.first_name} {user?.last_name}

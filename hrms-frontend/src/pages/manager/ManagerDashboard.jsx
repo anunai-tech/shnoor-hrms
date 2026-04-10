@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { getManagerDashboard, getLeaves, getExpenses } from '../../services/managerService'
+import { Link } from 'react-router-dom'
+import { useMessaging } from '../../context/MessagingContext'
 
 function StatCard({ label, value }) {
   return (
@@ -26,6 +28,7 @@ function Badge({ status }) {
 
 function ManagerDashboard() {
   const { user } = useAuth()
+  const { unreadCount } = useMessaging()
   const [stats, setStats] = useState({ total_employees: 0, active_employees: 0, pending_leaves: 0, pending_expenses: 0 })
   const [pendingLeaves, setPendingLeaves] = useState([])
   const [pendingExpenses, setPendingExpenses] = useState([])
@@ -66,6 +69,7 @@ function ManagerDashboard() {
         <StatCard label="Pending Leaves" value={stats.pending_leaves} />
         <StatCard label="Pending Expenses" value={stats.pending_expenses} />
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
