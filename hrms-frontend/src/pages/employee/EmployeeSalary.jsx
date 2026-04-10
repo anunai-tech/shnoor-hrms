@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getMySalary, getMyPayslips } from '../../services/employeeService'
 import { useAuth } from '../../context/AuthContext'
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 
 const MONTHS = [
   'January','February','March','April','May','June',

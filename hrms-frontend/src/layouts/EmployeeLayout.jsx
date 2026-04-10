@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useMessaging } from '../context/MessagingContext'
+import ThemeSwitcher from '../components/ThemeSwitcher'
 
 const navItems = [
   { label: 'Dashboard', path: '/employee/dashboard' },
@@ -109,7 +110,8 @@ function EmployeeLayout({ children }) {
             <div className="w-5 h-0.5 bg-gray-600"></div>
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <ThemeSwitcher />
             <NavLink
               to="/employee/chat"
               className={({ isActive }) => `relative inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${

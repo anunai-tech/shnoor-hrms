@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import ThemeSwitcher from '../components/ThemeSwitcher'
 
 const navItems = [
   { label: 'Dashboard', path: '/superadmin/dashboard' },
@@ -101,7 +102,8 @@ function SuperAdminLayout({ children }) {
           </button>
 
           {/* User Info */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <ThemeSwitcher />
             <div className="text-right">
               <p className="text-sm font-semibold text-gray-800">
                 {user?.first_name} {user?.last_name}
