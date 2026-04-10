@@ -8,13 +8,13 @@ function SelfProfile() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [profilePhoto, setProfilePhoto] = useState(null)
-  const [formData, setFormData] = useState({ first_name: '', last_name: '', phone: '', address: '' })
+  const [formData, setFormData] = useState({ first_name: '', last_name: '', phone: '', address: '', designation: '', department: '' })
 
   useEffect(() => {
     getManagerProfile()
       .then(res => {
         const d = res.data.data
-        setFormData({ first_name: d.first_name || '', last_name: d.last_name || '', phone: d.phone || '', address: d.address || '' })
+        setFormData({ first_name: d.first_name || '', last_name: d.last_name || '', phone: d.phone || '', address: d.address || '', designation: d.designation || '', department: d.department || '' })
       })
       .catch(err => console.error(err))
   }, [])
@@ -96,7 +96,7 @@ function SelfProfile() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {[['first_name','First Name'],['last_name','Last Name'],['phone','Phone'],['address','Address']].map(([name, label]) => (
+          {[['first_name','First Name'],['last_name','Last Name'],['phone','Phone'],['address','Address'],['designation','Designation'],['department','Department']].map(([name, label]) => (
             <div key={name}>
               <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
               {isEditing ? (
