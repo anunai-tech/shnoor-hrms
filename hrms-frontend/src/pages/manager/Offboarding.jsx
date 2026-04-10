@@ -18,15 +18,15 @@ function Modal({ title, onClose, children }) {
 }
 
 const STATUS_COLORS = {
-  'Pending':     'bg-yellow-50 text-yellow-600',
-  'Approved':    'bg-green-50 text-green-600',
-  'Rejected':    'bg-red-50 text-red-500',
+  'Pending': 'bg-yellow-50 text-yellow-600',
+  'Approved': 'bg-green-50 text-green-600',
+  'Rejected': 'bg-red-50 text-red-500',
   'In Progress': 'bg-blue-50 text-blue-600',
-  'Completed':   'bg-gray-100 text-gray-500',
-  'Open':        'bg-yellow-50 text-yellow-600',
-  'Under Review':'bg-blue-50 text-blue-600',
-  'Resolved':    'bg-green-50 text-green-600',
-  'Closed':      'bg-gray-100 text-gray-500',
+  'Completed': 'bg-gray-100 text-gray-500',
+  'Open': 'bg-yellow-50 text-yellow-600',
+  'Under Review': 'bg-blue-50 text-blue-600',
+  'Resolved': 'bg-green-50 text-green-600',
+  'Closed': 'bg-gray-100 text-gray-500',
 }
 
 async function downloadLetterPDF(letter, empName) {
@@ -36,7 +36,7 @@ async function downloadLetterPDF(letter, empName) {
   try {
     const blob = await fetch('/shnoor-logo.png').then(r => r.blob())
     logoBase64 = await new Promise(resolve => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(blob) })
-  } catch (e) {}
+  } catch (e) { }
   doc.setFillColor(15, 118, 110); doc.rect(0, 0, pageW, 38, 'F')
   if (logoBase64) doc.addImage(logoBase64, 'PNG', margin, 8, 22, 22)
   doc.setTextColor(255, 255, 255); doc.setFontSize(16); doc.setFont('helvetica', 'bold')
@@ -50,7 +50,7 @@ async function downloadLetterPDF(letter, empName) {
   const lines = doc.splitTextToSize(letter.content, contentW)
   let y = 72
   for (const line of lines) { if (y > 270) { doc.addPage(); y = 20 } doc.text(line, margin, y); y += 6 }
-  doc.save(`${(letter.letter_type || 'Letter').replace(/ /g,'_')}_${empName}.pdf`)
+  doc.save(`${(letter.letter_type || 'Letter').replace(/ /g, '_')}_${empName}.pdf`)
 }
 
 function Offboarding() {
@@ -60,23 +60,19 @@ function Offboarding() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('active')
 
-  // Warning modal
   const [showWarnModal, setShowWarnModal] = useState(false)
   const [warnTarget, setWarnTarget] = useState(null)
   const [warnReason, setWarnReason] = useState('')
   const [warnSaving, setWarnSaving] = useState(false)
 
-  // Offboard initiate modal
   const [showOffboardModal, setShowOffboardModal] = useState(false)
   const [offboardTarget, setOffboardTarget] = useState(null)
   const [offboardForm, setOffboardForm] = useState({ reason: '', last_working_day: '', manager_notes: '' })
 
-  // Resignation action modal
   const [showResignModal, setShowResignModal] = useState(false)
   const [resignTarget, setResignTarget] = useState(null)
   const [resignAction, setResignAction] = useState({ status: 'Approved', manager_notes: '', last_working_day: '' })
 
-  // Complaint response modal
   const [showComplaintModal, setShowComplaintModal] = useState(false)
   const [complaintTarget, setComplaintTarget] = useState(null)
   const [complaintResponse, setComplaintResponse] = useState({ manager_response: '', status: 'Under Review' })
@@ -120,9 +116,7 @@ function Offboarding() {
 
   const handleInitiateOffboard = async () => {
     try {
-      const { createOffboardingRequest } = await import('../../services/managerService').catch(() => ({}))
-      // Insert offboarding_request for manager-initiated offboarding
-      const pool_direct = await fetch('http://localhost:5000/api/v1/manager/offboarding-requests', {
+      await fetch('http://localhost:5000/api/v1/manager/offboarding-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ employee_id: offboardTarget.id, type: 'Termination', ...offboardForm, requested_by: 'manager', status: 'In Progress' })
@@ -135,7 +129,6 @@ function Offboarding() {
   const handleResignAction = async () => {
     try {
       await updateOffboardingStatus(resignTarget.id, resignAction)
-      // If approved, auto-generate acceptance letter
       if (resignAction.status === 'Approved') {
         const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
         const lwd = resignAction.last_working_day ? new Date(resignAction.last_working_day).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '[Last Working Day]'
@@ -149,6 +142,23 @@ function Offboarding() {
       setShowResignModal(false)
       fetchAll()
     } catch (err) { alert('Failed to update resignation.') }
+  }
+
+  // ── CHANGE 1: new handler for manager-initiated termination letter ──
+  const handleGenerateTerminationLetter = async (o) => {
+    try {
+      const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+      const lwd = o.last_working_day ? new Date(o.last_working_day).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '[Last Working Day]'
+      await generateLetter({
+        employee_id: o.employee_id,
+        letter_type: 'Termination Letter',
+        title: 'Termination Letter',
+        content: `Date: ${today}\n\nDear ${o.first_name} ${o.last_name},\n\nThis letter is to inform you that your employment with SHNOOR INTERNATIONAL LLC as ${o.designation || 'employee'} is terminated effective ${lwd}.\n\nReason: ${o.reason || '[Reason]'}\n\n${o.manager_notes ? `Notes: ${o.manager_notes}\n\n` : ''}Please ensure all company property is returned before your last working day.\n\nHR Management\nSHNOOR INTERNATIONAL LLC`
+      })
+      alert(`Termination letter generated for ${o.first_name} ${o.last_name}. They can now view it in their Letters section.`)
+    } catch (err) {
+      alert('Failed to generate letter.')
+    }
   }
 
   const handleComplaintResponse = async () => {
@@ -183,7 +193,6 @@ function Offboarding() {
         <p className="text-sm text-gray-400 mt-1">Manage employee exit processes, warnings and complaints</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
           ['Active Employees', activeEmployees.length, 'text-green-600'],
@@ -198,7 +207,6 @@ function Offboarding() {
         ))}
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit flex-wrap">
         {[
           ['active', 'Active Employees'],
@@ -213,7 +221,6 @@ function Offboarding() {
         ))}
       </div>
 
-      {/* Active Employees Tab */}
       {activeTab === 'active' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100">
@@ -260,7 +267,6 @@ function Offboarding() {
         </div>
       )}
 
-      {/* Resignations Tab */}
       {activeTab === 'resignations' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100">
@@ -288,15 +294,26 @@ function Offboarding() {
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{o.reason || '—'}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{o.last_working_day ? new Date(o.last_working_day).toLocaleDateString('en-GB') : '—'}</td>
                     <td className="px-6 py-4"><span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_COLORS[o.status]}`}>{o.status}</span></td>
+
+                    {/* ── CHANGE 2: updated actions column with all 3 button conditions ── */}
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        {o.status === 'Pending' && (
+                      <div className="flex gap-2 flex-wrap">
+                        {/* Employee-submitted resignation pending review */}
+                        {o.status === 'Pending' && o.requested_by === 'employee' && (
                           <button onClick={() => { setResignTarget(o); setResignAction({ status: 'Approved', manager_notes: '', last_working_day: o.last_working_day || '' }); setShowResignModal(true) }}
                             className="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium px-3 py-1.5 rounded-lg transition">
                             Review
                           </button>
                         )}
-                        {o.status === 'Approved' && (
+                        {/* Manager-initiated termination — generate letter */}
+                        {o.requested_by === 'manager' && o.status === 'In Progress' && (
+                          <button onClick={() => handleGenerateTerminationLetter(o)}
+                            className="text-xs bg-teal-50 text-teal-600 hover:bg-teal-100 font-medium px-3 py-1.5 rounded-lg transition">
+                            Generate Letter
+                          </button>
+                        )}
+                        {/* Final step — deactivate account */}
+                        {(o.status === 'Approved' || o.status === 'In Progress') && (
                           <button onClick={() => handleDeactivate({ id: o.employee_id, first_name: o.first_name, last_name: o.last_name })}
                             className="text-xs bg-red-50 text-red-500 hover:bg-red-100 font-medium px-3 py-1.5 rounded-lg transition">
                             Deactivate Account
@@ -312,7 +329,6 @@ function Offboarding() {
         </div>
       )}
 
-      {/* Complaints Tab */}
       {activeTab === 'complaints' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100">
@@ -350,7 +366,6 @@ function Offboarding() {
         </div>
       )}
 
-      {/* History Tab */}
       {activeTab === 'history' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100">
@@ -388,7 +403,6 @@ function Offboarding() {
         </div>
       )}
 
-      {/* Warning Modal */}
       {showWarnModal && warnTarget && (
         <Modal title={`Send Warning — ${warnTarget.first_name} ${warnTarget.last_name}`} onClose={() => setShowWarnModal(false)}>
           <div className="space-y-4">
@@ -413,24 +427,23 @@ function Offboarding() {
         </Modal>
       )}
 
-      {/* Offboard Initiate Modal */}
       {showOffboardModal && offboardTarget && (
         <Modal title={`Initiate Offboarding — ${offboardTarget.first_name} ${offboardTarget.last_name}`} onClose={() => setShowOffboardModal(false)}>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-              <textarea value={offboardForm.reason} onChange={e => setOffboardForm({...offboardForm, reason: e.target.value})}
+              <textarea value={offboardForm.reason} onChange={e => setOffboardForm({ ...offboardForm, reason: e.target.value })}
                 rows={3} placeholder="Reason for offboarding..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Last Working Day</label>
-              <input type="date" value={offboardForm.last_working_day} onChange={e => setOffboardForm({...offboardForm, last_working_day: e.target.value})}
+              <input type="date" value={offboardForm.last_working_day} onChange={e => setOffboardForm({ ...offboardForm, last_working_day: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Manager Notes (visible to employee)</label>
-              <textarea value={offboardForm.manager_notes} onChange={e => setOffboardForm({...offboardForm, manager_notes: e.target.value})}
+              <textarea value={offboardForm.manager_notes} onChange={e => setOffboardForm({ ...offboardForm, manager_notes: e.target.value })}
                 rows={2} placeholder="Any notes for employee..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
@@ -446,7 +459,6 @@ function Offboarding() {
         </Modal>
       )}
 
-      {/* Resignation Review Modal */}
       {showResignModal && resignTarget && (
         <Modal title={`Review Resignation — ${resignTarget.first_name} ${resignTarget.last_name}`} onClose={() => setShowResignModal(false)}>
           <div className="space-y-4">
@@ -456,7 +468,7 @@ function Offboarding() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Decision</label>
-              <select value={resignAction.status} onChange={e => setResignAction({...resignAction, status: e.target.value})}
+              <select value={resignAction.status} onChange={e => setResignAction({ ...resignAction, status: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="Approved">Approve Resignation</option>
                 <option value="Rejected">Reject Resignation</option>
@@ -465,13 +477,13 @@ function Offboarding() {
             {resignAction.status === 'Approved' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Confirmed Last Working Day</label>
-                <input type="date" value={resignAction.last_working_day} onChange={e => setResignAction({...resignAction, last_working_day: e.target.value})}
+                <input type="date" value={resignAction.last_working_day} onChange={e => setResignAction({ ...resignAction, last_working_day: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notes (visible to employee)</label>
-              <textarea value={resignAction.manager_notes} onChange={e => setResignAction({...resignAction, manager_notes: e.target.value})}
+              <textarea value={resignAction.manager_notes} onChange={e => setResignAction({ ...resignAction, manager_notes: e.target.value })}
                 rows={2} placeholder="Optional notes..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
@@ -490,7 +502,6 @@ function Offboarding() {
         </Modal>
       )}
 
-      {/* Complaint Response Modal */}
       {showComplaintModal && complaintTarget && (
         <Modal title="Respond to Complaint" onClose={() => setShowComplaintModal(false)}>
           <div className="space-y-4">
@@ -501,13 +512,13 @@ function Offboarding() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Your Response</label>
-              <textarea value={complaintResponse.manager_response} onChange={e => setComplaintResponse({...complaintResponse, manager_response: e.target.value})}
+              <textarea value={complaintResponse.manager_response} onChange={e => setComplaintResponse({ ...complaintResponse, manager_response: e.target.value })}
                 rows={4} placeholder="Write your response..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Update Status</label>
-              <select value={complaintResponse.status} onChange={e => setComplaintResponse({...complaintResponse, status: e.target.value})}
+              <select value={complaintResponse.status} onChange={e => setComplaintResponse({ ...complaintResponse, status: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option>Under Review</option>
                 <option>Resolved</option>
