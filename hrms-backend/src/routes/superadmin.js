@@ -1,7 +1,9 @@
+// src/routes/superadmin.js
 const express = require('express')
 const router = express.Router()
 const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
+const { uploadSingle } = require('../middleware/upload')
 
 const { getCompanies, createCompany, updateCompany, deleteCompany } = require('../controllers/companyController')
 const {
@@ -12,6 +14,11 @@ const {
   getWebsiteSettings, updateWebsiteSettings,
   getProfile, updateProfile, changePassword
 } = require('../controllers/superadminController')
+const {
+  getProfilePicture,
+  uploadProfilePicture,
+  deleteProfilePicture
+} = require('../controllers/profilePictureController')
 
 router.use(authenticate)
 router.use(authorize('superadmin'))
@@ -50,5 +57,10 @@ router.put('/website-settings', updateWebsiteSettings)
 router.get('/profile', getProfile)
 router.put('/profile', updateProfile)
 router.put('/change-password', changePassword)
+
+// Profile Picture
+router.get('/profile-picture', getProfilePicture)
+router.post('/profile-picture', uploadSingle, uploadProfilePicture)
+router.delete('/profile-picture', deleteProfilePicture)
 
 module.exports = router

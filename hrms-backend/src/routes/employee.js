@@ -1,7 +1,9 @@
+// src/routes/employee.js
 const express = require('express')
 const router = express.Router()
 const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
+const { uploadSingle } = require('../middleware/upload')
 
 const { getMyLeaves, applyLeave } = require('../controllers/leaveController')
 const { clockIn, clockOut, getMyAttendance } = require('../controllers/attendanceController')
@@ -10,6 +12,11 @@ const { getMySalary, getMyPayslips } = require('../controllers/salaryController'
 const { getHolidays, getPolicies } = require('../controllers/managerController')
 const { getMyLetters } = require('../controllers/lettersController')
 const { submitResignation, getMyOffboarding, raiseComplaint, getMyComplaints } = require('../controllers/offboardingController')
+const {
+  getProfilePicture,
+  uploadProfilePicture,
+  deleteProfilePicture
+} = require('../controllers/profilePictureController')
 
 router.use(authenticate)
 router.use(authorize('employee'))
@@ -41,7 +48,6 @@ router.post('/offboarding/resign', submitResignation)
 // Complaints
 router.get('/complaints', getMyComplaints)
 router.post('/complaints', raiseComplaint)
-
 
 // Holidays + Policies (read only)
 router.get('/holidays', getHolidays)
@@ -90,4 +96,10 @@ router.put('/change-password', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' })
   }
 })
+
+// Profile Picture
+router.get('/profile-picture', getProfilePicture)
+router.post('/profile-picture', uploadSingle, uploadProfilePicture)
+router.delete('/profile-picture', deleteProfilePicture)
+
 module.exports = router

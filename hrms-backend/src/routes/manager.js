@@ -1,7 +1,9 @@
+// src/routes/manager.js
 const express = require('express')
 const router = express.Router()
 const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
+const { uploadSingle } = require('../middleware/upload')
 
 const { getEmployees, getEmployee, createEmployee, updateEmployee, deleteEmployee } = require('../controllers/employeeController')
 const { getLeaves, updateLeaveStatus, getMyLeaves, applyLeave } = require('../controllers/leaveController')
@@ -11,6 +13,12 @@ const { getSalaries, upsertSalary, getMySalary, runPayroll, getPayslipsByUser, g
 const { getHolidays, createHoliday, deleteHoliday, getPolicies, createPolicy, deletePolicy, getProfile, updateProfile, getDashboardStats } = require('../controllers/managerController')
 const { generateLetter, getLetters, getMyLetters } = require('../controllers/lettersController')
 const { getOffboardingRequests, updateOffboardingStatus, deactivateEmployee, getComplaints, respondToComplaint } = require('../controllers/offboardingController')
+const {
+  getProfilePicture,
+  uploadProfilePicture,
+  deleteProfilePicture,
+  getProfilePictureByUserId
+} = require('../controllers/profilePictureController')
 
 router.use(authenticate)
 router.use(authorize('manager'))
@@ -150,5 +158,13 @@ router.put('/attendance/:id', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' })
   }
 })
+
+// Profile Picture (self)
+router.get('/self/profile-picture', getProfilePicture)
+router.post('/self/profile-picture', uploadSingle, uploadProfilePicture)
+router.delete('/self/profile-picture', deleteProfilePicture)
+
+// Profile Picture (view employee's picture)
+router.get('/employees/:userId/profile-picture', getProfilePictureByUserId)
 
 module.exports = router

@@ -1,0 +1,18 @@
+# Environment files
+.env
+hrms-backend/.env
+
+# Uploads
+hrms-backend/uploads/
+
+# Node modules (if not already ignored)
+node_modules/
+hrms-backend/node_modules/
+hrms-frontend/node_modules/
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db

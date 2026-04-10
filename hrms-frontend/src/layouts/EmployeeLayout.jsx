@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import api from '../services/api'
 
 const navItems = [
   { label: 'Dashboard', path: '/employee/dashboard' },
@@ -19,8 +20,25 @@ const navItems = [
 function EmployeeLayout({ children }) {
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [avatarUrl, setAvatarUrl] = useState(null)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    api.get('/employee/profile-picture')
+      .then(res => { if (res.data.data?.url) setAvatarUrl(res.data.data.url) })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const handler = () => {
+      api.get('/employee/profile-picture')
+        .then(res => { if (res.data.data?.url) setAvatarUrl(res.data.data.url + '?t=' + Date.now()) })
+        .catch(() => {})
+    }
+    window.addEventListener('profile-picture-updated', handler)
+    return () => window.removeEventListener('profile-picture-updated', handler)
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -108,10 +126,14 @@ function EmployeeLayout({ children }) {
               </p>
               <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
             </div>
-            <div className="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">
-                {user?.first_name?.charAt(0) || 'E'}
-              </span>
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-blue-500 flex items-center justify-center flex-shrink-0">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white font-bold text-sm">
+                  {user?.first_name?.charAt(0) || 'E'}
+                </span>
+              )}
             </div>
           </div>
 

@@ -186,3 +186,17 @@ CREATE TABLE IF NOT EXISTS complaints (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS user_profile_pictures (
+  id          SERIAL PRIMARY KEY,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  file_path   VARCHAR(500) NOT NULL,        -- relative path stored in DB, e.g. "uploads/profiles/123-abc.jpg"
+  mime_type   VARCHAR(100),                 -- e.g. "image/jpeg"
+  original_name VARCHAR(255),              -- original filename from client
+  created_at  TIMESTAMP DEFAULT NOW(),
+  updated_at  TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id)                           -- one active picture per user
+);
+
+-- Index for fast look-up by user
+CREATE INDEX IF NOT EXISTS idx_profile_pictures_user_id ON user_profile_pictures(user_id);
