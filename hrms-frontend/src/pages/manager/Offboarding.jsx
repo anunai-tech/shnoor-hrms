@@ -193,7 +193,7 @@ function Offboarding() {
         <p className="text-sm text-gray-400 mt-1">Manage employee exit processes, warnings and complaints</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           ['Active Employees', activeEmployees.length, 'text-green-600'],
           ['Pending Resignations', pendingResignations.length, 'text-yellow-600'],
