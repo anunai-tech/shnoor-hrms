@@ -48,7 +48,7 @@ import Letters from '../pages/manager/Letters'
 import EmployeeLetters from '../pages/employee/EmployeeLetters'
 import EmployeeOffboarding from '../pages/employee/EmployeeOffboarding'
 import SelfLetters from '../pages/self/SelfLetters'
-
+import SelfOffboarding from '../pages/self/SelfOffboarding'
 import ManagerMessages from '../pages/manager/Messages'
 import EmployeeChat from '../pages/employee/Chat'
 
@@ -133,7 +133,7 @@ function AppRoutes() {
         <Route path="/manager/self/policies" element={<ManagerPage component={SelfPolicies} />} />
         <Route path="/manager/self/profile" element={<ManagerPage component={SelfProfile} />} />
         <Route path="/manager/self/letters" element={<ManagerPage component={SelfLetters} />} />
-        <Route path="/manager/self/offboarding" element={<ManagerPage component={EmployeeOffboarding} />} />
+        <Route path="/manager/self/offboarding" element={<ManagerPage component={SelfOffboarding} />} />
 
         {/* EMPLOYEE */}
         <Route path="/employee/dashboard" element={<EmployeePage component={EmployeeDashboard} />} />
