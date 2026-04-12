@@ -49,9 +49,12 @@ import EmployeeLetters from '../pages/employee/EmployeeLetters'
 import EmployeeOffboarding from '../pages/employee/EmployeeOffboarding'
 import SelfLetters from '../pages/self/SelfLetters'
 
+import ManagerMessages from '../pages/manager/Messages'
+import EmployeeChat from '../pages/employee/Chat'
+
 
 // ── Helper: wraps page with layout + protection ──────────
-function SuperAdminPage({ component: Component }) {
+function SuperAdminPage({ component: Component }) { // eslint-disable-line no-unused-vars
   return (
     <ProtectedRoute allowedRoles={['superadmin']}>
       <SuperAdminLayout>
@@ -61,7 +64,7 @@ function SuperAdminPage({ component: Component }) {
   )
 }
 
-function ManagerPage({ component: Component }) {
+function ManagerPage({ component: Component }) { // eslint-disable-line no-unused-vars
   return (
     <ProtectedRoute allowedRoles={['manager']}>
       <ManagerLayout>
@@ -71,7 +74,7 @@ function ManagerPage({ component: Component }) {
   )
 }
 
-function EmployeePage({ component: Component }) {
+function EmployeePage({ component: Component }) { // eslint-disable-line no-unused-vars
   return (
     <ProtectedRoute allowedRoles={['employee']}>
       <EmployeeLayout>
@@ -112,6 +115,7 @@ function AppRoutes() {
         <Route path="/manager/attendance" element={<ManagerPage component={ManagerAttendance} />} />
         <Route path="/manager/expenses" element={<ManagerPage component={ManagerExpenses} />} />
         <Route path="/manager/salary" element={<ManagerPage component={SalaryManagement} />} />
+        <Route path="/manager/messages" element={<ManagerPage component={ManagerMessages} />} />
         <Route path="/manager/policies" element={<ManagerPage component={ManagerPolicies} />} />
         <Route path="/manager/settings" element={<ManagerPage component={ManagerSettings} />} />
         <Route path="/manager/self/salary" element={<ManagerPage component={SelfSalary} />} />
@@ -138,6 +142,7 @@ function AppRoutes() {
         <Route path="/employee/attendance" element={<EmployeePage component={EmployeeAttendance} />} />
         <Route path="/employee/expenses" element={<EmployeePage component={EmployeeExpenses} />} />
         <Route path="/employee/policies" element={<EmployeePage component={EmployeePolicies} />} />
+        <Route path="/employee/chat" element={<EmployeePage component={EmployeeChat} />} />
         <Route path="/employee/profile" element={<EmployeePage component={EmployeeProfile} />} />
         <Route path="/employee/settings" element={<EmployeePage component={EmployeeSettings} />} />
         <Route path="/employee/salary" element={<EmployeePage component={EmployeeSalary} />} />

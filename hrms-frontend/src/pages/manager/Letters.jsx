@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import jsPDF from 'jspdf'
 import { getEmployees, generateLetter, getLetters, getSalaries, getManagerProfile } from '../../services/managerService'
-
+import { jsPDF } from 'jspdf'
 
 const LETTER_TYPES = [
   'Offer Letter',

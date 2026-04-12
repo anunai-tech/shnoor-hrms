@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { clockIn, clockOut, getMyAttendance, getMyLeaves } from '../../services/employeeService'
+import { Link } from 'react-router-dom'
+import { useMessaging } from '../../context/MessagingContext'
 
 function EmployeeDashboard() {
   const { user } = useAuth()
+  const { unreadCount } = useMessaging()
   const [clockedIn, setClockedIn] = useState(false)
   const [clockedOut, setClockedOut] = useState(false)
   const [clockInTime, setClockInTime] = useState(null)

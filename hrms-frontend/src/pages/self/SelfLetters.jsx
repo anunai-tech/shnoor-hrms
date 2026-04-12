@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getMyLetters } from '../../services/managerService'
 import { useAuth } from '../../context/AuthContext'
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 
 async function generateLetterPDF(letter, user) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })

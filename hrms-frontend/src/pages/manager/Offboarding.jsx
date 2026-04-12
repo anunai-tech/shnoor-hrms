@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getEmployees, updateEmployee } from '../../services/managerService'
 import { getOffboardingRequests, updateOffboardingStatus, deactivateEmployee, getComplaints, respondToComplaint, generateLetter } from '../../services/managerService'
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 
 function Modal({ title, onClose, children }) {
   return (

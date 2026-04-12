@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import ThemeSwitcher from '../components/ThemeSwitcher'
 
 const features = [
   { title: 'Employee Management', description: 'Manage your entire workforce in one place. Add employees, track departments, and maintain complete profiles effortlessly.' },
@@ -341,6 +342,7 @@ function LandingPage() {
             ))}
           </div>
           <div className="flex items-center gap-3">
+            <ThemeSwitcher />
             <button onClick={() => navigate('/login')}
               className="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-4 py-2">
               Login

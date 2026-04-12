@@ -1,1 +1,59 @@
 @import 'tailwindcss';
+
+@layer base {
+  /* DARK THEME */
+  [data-theme="dark"] {
+    --color-white: #1f2937;
+    --color-gray-50: #111827;
+    --color-gray-100: #111827;
+    --color-gray-200: #374151;
+    --color-gray-300: #4b5563;
+    --color-gray-400: #9ca3af;
+    --color-gray-500: #d1d5db;
+    --color-gray-600: #e5e7eb;
+    --color-gray-700: #f3f4f6;
+    --color-gray-800: #f9fafb;
+    --color-gray-900: #ffffff;
+    
+    /* Slightly tone down blues for true dark aesthetic */
+    --color-blue-50: rgba(59, 130, 246, 0.15);
+  }
+
+  /* BLUE THEME */
+  [data-theme="blue"] {
+    --color-white: #0f172a; 
+    --color-gray-50: #020617; 
+    --color-gray-100: #020617; 
+    --color-gray-200: #1e293b; 
+    --color-gray-300: #334155; 
+    --color-gray-400: #94a3b8; 
+    --color-gray-500: #cbd5e1; 
+    --color-gray-600: #e2e8f0; 
+    --color-gray-700: #f1f5f9; 
+    --color-gray-800: #f8fafc; 
+    --color-gray-900: #ffffff;
+
+    --color-blue-50: rgba(14, 165, 233, 0.15);
+    --color-blue-500: #0ea5e9;
+    --color-blue-600: #0ea5e9;
+  }
+
+  /* GREEN THEME */
+  [data-theme="green"] {
+    --color-white: #064e3b; 
+    --color-gray-50: #022c22; 
+    --color-gray-100: #022c22; 
+    --color-gray-200: #065f46; 
+    --color-gray-300: #047857; 
+    --color-gray-400: #34d399; 
+    --color-gray-500: #6ee7b7; 
+    --color-gray-600: #a7f3d0; 
+    --color-gray-700: #d1fae5; 
+    --color-gray-800: #ecfdf5; 
+    --color-gray-900: #ffffff;
+
+    --color-blue-50: rgba(16, 185, 129, 0.15);
+    --color-blue-500: #10b981;
+    --color-blue-600: #10b981;
+  }
+}
