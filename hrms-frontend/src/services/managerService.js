@@ -65,3 +65,8 @@ export const deactivateEmployee = (employee_id) => api.put(`/manager/offboarding
 export const getComplaints = () => api.get('/manager/complaints')
 export const respondToComplaint = (id, data) => api.put(`/manager/complaints/${id}`, data)
 
+// Self Offboarding
+export const getMyOffboarding = () => api.get('/manager/self/offboarding')
+export const submitResignation = (data) => api.post('/manager/self/offboarding/resign', data)
+export const getMyComplaints = () => api.get('/manager/self/complaints')
+export const raiseComplaint = (data) => api.post('/manager/self/complaints', data)

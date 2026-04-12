@@ -42,7 +42,6 @@ router.post('/offboarding/resign', submitResignation)
 router.get('/complaints', getMyComplaints)
 router.post('/complaints', raiseComplaint)
 
-
 // Holidays + Policies (read only)
 router.get('/holidays', getHolidays)
 router.get('/policies', getPolicies)
@@ -90,4 +89,5 @@ router.put('/change-password', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' })
   }
 })
+
 module.exports = router
