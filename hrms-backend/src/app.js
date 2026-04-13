@@ -9,7 +9,6 @@ const managerRoutes = require('./routes/manager')
 const employeeRoutes = require('./routes/employee')
 const messageRoutes = require('./routes/messages')
 const publicRoutes = require('./routes/public')
-const profilePictureRoutes = require('./routes/profilePicture')
 
 const app = express()
 
@@ -24,7 +23,6 @@ app.use('/api/v1/manager', managerRoutes)
 app.use('/api/v1/employee', employeeRoutes)
 app.use('/api/v1/messages', messageRoutes)
 app.use('/api/v1/public', publicRoutes)
-app.use('/api/v1/profile-picture', profilePictureRoutes)
 
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'SHNOOR HRMS API is running' })

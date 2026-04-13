@@ -51,7 +51,7 @@ router.get('/profile', async (req, res) => {
   const pool = require('../config/db')
   try {
     const result = await pool.query(
-      'SELECT id, first_name, last_name, email, phone, address, department, designation FROM users WHERE id=$1',
+      'SELECT id, first_name, last_name, email, phone, address, department, designation, profile_photo FROM users WHERE id=$1',
       [req.user.id]
     )
     res.json({ success: true, data: result.rows[0] })
@@ -63,10 +63,10 @@ router.get('/profile', async (req, res) => {
 router.put('/profile', async (req, res) => {
   const pool = require('../config/db')
   try {
-    const { first_name, last_name, phone, address } = req.body
+    const { first_name, last_name, phone, address, profile_photo } = req.body
     const result = await pool.query(
-      'UPDATE users SET first_name=$1, last_name=$2, phone=$3, address=$4 WHERE id=$5 RETURNING id, first_name, last_name, email, phone, address',
-      [first_name, last_name, phone, address, req.user.id]
+      'UPDATE users SET first_name=$1, last_name=$2, phone=$3, address=$4, profile_photo=$5 WHERE id=$6 RETURNING id, first_name, last_name, email, phone, address, profile_photo',
+      [first_name, last_name, phone, address, profile_photo || null, req.user.id]
     )
     res.json({ success: true, data: result.rows[0] })
   } catch (err) {

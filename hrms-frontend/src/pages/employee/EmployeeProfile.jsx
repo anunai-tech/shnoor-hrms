@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../services/api'
 
@@ -7,78 +7,45 @@ function EmployeeProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState(null)
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState('')
-  const fileInputRef = useRef(null)
+  const [profilePhoto, setProfilePhoto] = useState(null)
   const [formData, setFormData] = useState({ first_name: '', last_name: '', phone: '', address: '' })
 
   useEffect(() => {
     api.get('/employee/profile')
       .then(res => {
         const d = res.data.data
-        setFormData({ first_name: d?.first_name || '', last_name: d?.last_name || '', phone: d?.phone || '', address: d?.address || '' })
+        setFormData({ 
+          first_name: d?.first_name || '', 
+          last_name: d?.last_name || '', 
+          phone: d?.phone || '', 
+          address: d?.address || '' 
+        })
+        if (d?.profile_photo) setProfilePhoto(d.profile_photo)
       })
       .catch(() => {
-        setFormData({ first_name: user?.first_name || '', last_name: user?.last_name || '', phone: '', address: '' })
+        setFormData({ 
+          first_name: user?.first_name || '', 
+          last_name: user?.last_name || '', 
+          phone: '', address: '' 
+        })
       })
-
-    api.get('/profile-picture')
-      .then(res => setAvatarUrl(res.data?.data?.url || null))
-      .catch(() => setAvatarUrl(null))
   }, [])
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
 
-  const handlePhotoUpload = async (e) => {
+  const handlePhotoUpload = (e) => {
     const file = e.target.files[0]
-    if (!file) return
-
-    setUploadError('')
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (!allowed.includes(file.type)) {
-      setUploadError('Only JPEG, PNG, or WEBP images are allowed.')
-      return
-    }
-    if (file.size > 3 * 1024 * 1024) {
-      setUploadError('Image must be under 3MB.')
-      return
-    }
-
-    const formPayload = new FormData()
-    formPayload.append('profilePicture', file)
-
-    try {
-      setUploading(true)
-      const res = await api.post('/profile-picture', formPayload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      setAvatarUrl(res.data.data.url)
-    } catch (err) {
-      setUploadError('Upload failed. Please try again.')
-      console.error(err)
-    } finally {
-      setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    }
-  }
-
-  const handleRemovePhoto = async () => {
-    try {
-      setUploading(true)
-      await api.delete('/profile-picture')
-      setAvatarUrl(null)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setUploading(false)
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => setProfilePhoto(event.target.result)
+      reader.readAsDataURL(file)
     }
   }
 
   const handleSave = async () => {
     try {
       setSaving(true)
-      await api.put('/employee/profile', formData)
+      await api.put('/employee/profile', { ...formData, profile_photo: profilePhoto })
       setUser({ ...user, ...formData })
       setIsEditing(false)
       setSaved(true)
@@ -120,45 +87,19 @@ function EmployeeProfile() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-100">
-
-          {/* Avatar with upload controls */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
-                {avatarUrl ? (
-                  <img
-                    src={`http://localhost:5000${avatarUrl}`}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-blue-600 font-black text-4xl">{formData.first_name?.charAt(0) || 'E'}</span>
-                )}
-              </div>
-              <label className={`absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                <span className="text-white text-xs font-bold">{uploading ? '…' : '+'}</span>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-blue-600 font-black text-4xl">{formData.first_name?.charAt(0) || 'E'}</span>
+              )}
             </div>
-            {avatarUrl && !uploading && (
-              <button
-                onClick={handleRemovePhoto}
-                className="text-xs text-red-400 hover:text-red-600 transition"
-              >
-                Remove photo
-              </button>
-            )}
-            {uploadError && (
-              <p className="text-xs text-red-500 text-center max-w-[100px]">{uploadError}</p>
-            )}
+            <label className="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition">
+              <span className="text-white text-xs font-bold">+</span>
+              <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+            </label>
           </div>
-
           <div>
             <p className="text-xl font-bold text-gray-800">{formData.first_name} {formData.last_name}</p>
             <p className="text-sm text-gray-400">{user?.email}</p>
