@@ -212,3 +212,29 @@ CREATE TABLE IF NOT EXISTS complaints (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS profile_pictures (
+  id             serial PRIMARY KEY,
+  user_id        integer       NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  filename       varchar(255)  NOT NULL,
+  original_name  varchar(255),
+  mimetype       varchar(100),
+  size           integer,
+  uploaded_at    timestamp     DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS payslips (
+  id               serial PRIMARY KEY,
+  user_id          integer       NOT NULL REFERENCES users(id),
+  company_id       integer       NOT NULL REFERENCES companies(id),
+  month            integer       NOT NULL CHECK (month BETWEEN 1 AND 12),
+  year             integer       NOT NULL,
+  basic            numeric(10,2) DEFAULT 0,
+  hra              numeric(10,2) DEFAULT 0,
+  transport        numeric(10,2) DEFAULT 0,
+  other_allowance  numeric(10,2) DEFAULT 0,
+  deductions       numeric(10,2) DEFAULT 0,
+  net_pay          numeric(10,2) DEFAULT 0,
+  generated_at     timestamp     DEFAULT now(),
+  UNIQUE (user_id, month, year)
+);
+
