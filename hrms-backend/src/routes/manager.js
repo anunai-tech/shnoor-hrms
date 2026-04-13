@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
+const { getMyOffboarding, submitResignation, getMyComplaints, raiseComplaint } = require('../controllers/offboardingController')
 
 const { getEmployees, getEmployee, createEmployee, updateEmployee, deleteEmployee } = require('../controllers/employeeController')
 const { getLeaves, updateLeaveStatus, getMyLeaves, applyLeave } = require('../controllers/leaveController')
@@ -59,6 +60,11 @@ router.get('/self/payslips', getMyPayslips)
 router.get('/letters', getLetters)
 router.post('/letters', generateLetter)
 router.get('/self/letters', getMyLetters)
+router.get('/self/offboarding', getMyOffboarding)
+router.post('/self/offboarding/resign', submitResignation)
+router.get('/self/complaints', getMyComplaints)
+router.post('/self/complaints', raiseComplaint)
+
 
 // Offboarding requests
 router.get('/offboarding-requests', getOffboardingRequests)
