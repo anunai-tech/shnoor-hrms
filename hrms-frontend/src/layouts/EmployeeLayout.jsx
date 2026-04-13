@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useMessaging } from '../context/MessagingContext'
 import ThemeSwitcher from '../components/ThemeSwitcher'
+import api from '../services/api'
 
 const navItems = [
   { label: 'Dashboard', path: '/employee/dashboard' },
@@ -20,11 +21,17 @@ const navItems = [
 ]
 
 function EmployeeLayout({ children }) {
-
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [avatarUrl, setAvatarUrl] = useState(null)
   const { user, logout } = useAuth()
   const { unreadCount } = useMessaging()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    api.get('/profile-picture')
+      .then(res => setAvatarUrl(res.data?.data?.url || null))
+      .catch(() => setAvatarUrl(null))
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -112,18 +119,28 @@ function EmployeeLayout({ children }) {
 
           <div className="flex items-center gap-4">
             <ThemeSwitcher />
-
             <div className="text-right">
               <p className="text-sm font-semibold text-gray-800">
                 {user?.first_name} {user?.last_name}
               </p>
               <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
             </div>
-            <div className="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">
-                {user?.first_name?.charAt(0) || 'E'}
-              </span>
-            </div>
+            <button
+              onClick={() => navigate('/employee/profile')}
+              className="w-9 h-9 rounded-full overflow-hidden bg-blue-500 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+            >
+              {avatarUrl ? (
+                <img
+                  src={`http://localhost:5000${avatarUrl}`}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white font-bold text-sm">
+                  {user?.first_name?.charAt(0) || 'E'}
+                </span>
+              )}
+            </button>
           </div>
 
         </header>
