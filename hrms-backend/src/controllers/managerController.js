@@ -77,7 +77,7 @@ const deletePolicy = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, address, department, designation, role
+      `SELECT id, first_name, last_name, email, phone, address, department, designation, role, profile_photo
        FROM users WHERE id=$1`,
       [req.user.id]
     )
@@ -89,18 +89,18 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { first_name, last_name, phone, address, designation, department } = req.body
+    const { first_name, last_name, phone, address, designation, department, profile_photo } = req.body
     const result = await pool.query(
-      `UPDATE users SET first_name=$1, last_name=$2, phone=$3, address=$4, designation=$5, department=$6
-       WHERE id=$7 RETURNING id, first_name, last_name, email, phone, address, designation, department`,
-      [first_name, last_name, phone, address, designation || null, department || null, req.user.id]
+      `UPDATE users SET first_name=$1, last_name=$2, phone=$3, address=$4, 
+       designation=$5, department=$6, profile_photo=$7
+       WHERE id=$8 RETURNING id, first_name, last_name, email, phone, address, designation, department, profile_photo`,
+      [first_name, last_name, phone, address, designation || null, department || null, profile_photo || null, req.user.id]
     )
     res.json({ success: true, data: result.rows[0] })
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' })
   }
 }
-
 // ── DASHBOARD STATS ───────────────────────────────────────
 
 const getDashboardStats = async (req, res) => {
