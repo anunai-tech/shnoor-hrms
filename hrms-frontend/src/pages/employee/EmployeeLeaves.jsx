@@ -53,7 +53,7 @@ function EmployeeLeaves() {
     }
   }
 
-  // Compute balance from leaves already fetched — no extra API call needed
+  // Compute balance from leaves 
   const approved = leaves.filter(l => l.status === 'Approved')
   const paidUsed   = approved.filter(l => l.leave_type === 'Paid Leave').reduce((s, l) => s + Number(l.days), 0)
   const sickUsed   = approved.filter(l => l.leave_type === 'Sick Leave').reduce((s, l) => s + Number(l.days), 0)

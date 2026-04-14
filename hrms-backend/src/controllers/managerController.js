@@ -1,6 +1,6 @@
 const pool = require('../config/db')
 
-// ── HOLIDAYS ──────────────────────────────────────────────
+// HOLIDAYS 
 
 const getHolidays = async (req, res) => {
   try {
@@ -36,7 +36,7 @@ const deleteHoliday = async (req, res) => {
   }
 }
 
-// ── COMPANY POLICIES ──────────────────────────────────────
+// COMPANY POLICIES 
 
 const getPolicies = async (req, res) => {
   try {
@@ -72,7 +72,7 @@ const deletePolicy = async (req, res) => {
   }
 }
 
-// ── MANAGER PROFILE + SETTINGS ────────────────────────────
+//  MANAGER PROFILE and SETTINGS
 
 const getProfile = async (req, res) => {
   try {
@@ -101,7 +101,7 @@ const updateProfile = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' })
   }
 }
-// ── DASHBOARD STATS ───────────────────────────────────────
+// DASHBOARD STATS 
 
 const getDashboardStats = async (req, res) => {
   try {

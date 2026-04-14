@@ -8,7 +8,7 @@ const MONTHS = [
   'July','August','September','October','November','December'
 ]
 
-// ── PDF GENERATOR — teal color + shnoor logo ──
+// ── PDF GENERATOR 
 async function generatePayslipPDF(payslip, user) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const pageW = 210
@@ -41,7 +41,7 @@ async function generatePayslipPDF(payslip, user) {
   doc.text('Salary Slip', logoBase64 ? margin + 25 : margin, 21)
   doc.text(`Period: ${MONTHS[payslip.month - 1]} ${payslip.year}`, logoBase64 ? margin + 25 : margin, 27)
 
-  // Employee info box — teal tinted background
+  // Employee info box 
   doc.setFillColor(240, 253, 250)
   doc.setDrawColor(167, 243, 208)
   doc.rect(margin, 45, contentW, 30, 'FD')

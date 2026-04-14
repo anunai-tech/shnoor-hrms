@@ -53,7 +53,7 @@ function SelfLeaves() {
     }
   }
 
-  // Compute from already-fetched leaves — zero extra API calls
+  // Compute from already-fetched leaves 
   const approved = leaves.filter(l => l.status === 'Approved')
   const paidUsed   = approved.filter(l => l.leave_type === 'Paid Leave').reduce((s, l) => s + Number(l.days), 0)
   const sickUsed   = approved.filter(l => l.leave_type === 'Sick Leave').reduce((s, l) => s + Number(l.days), 0)

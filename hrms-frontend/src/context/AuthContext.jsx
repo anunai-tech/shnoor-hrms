@@ -4,8 +4,6 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
 
-  // ── Initialize user SYNCHRONOUSLY from localStorage
-  // This runs immediately on first render — no timing issue
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user')
     const storedToken = localStorage.getItem('token')

@@ -84,8 +84,6 @@ function Employees() {
       setError('Failed to delete employee')
     }
   }
-
-  // ✅ JSX variable — no focus bug
   const formFields = (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">

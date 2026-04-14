@@ -1,6 +1,7 @@
--- SHNOOR HRMS — Database Schema
--- Run this file in pgAdmin to create all tables
+-- SHNOOR HRMS — Complete Database Schema
+-- Run this entire file in pgAdmin Query Tool on a fresh hrms_db
 
+-- Subscription Plans
 CREATE TABLE IF NOT EXISTS subscriptions (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -10,6 +11,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Companies
 CREATE TABLE IF NOT EXISTS companies (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -20,6 +22,7 @@ CREATE TABLE IF NOT EXISTS companies (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Users (superadmin, manager, employee)
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   company_id INTEGER REFERENCES companies(id),
@@ -34,36 +37,12 @@ CREATE TABLE IF NOT EXISTS users (
   designation VARCHAR(100),
   joining_date DATE,
   date_of_birth DATE,
+  profile_photo TEXT,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS messages (
-  id SERIAL PRIMARY KEY,
-  company_id INTEGER REFERENCES companies(id) NOT NULL,
-  conversation_key VARCHAR(100) NOT NULL,
-  sender_id INTEGER REFERENCES users(id) NOT NULL,
-  receiver_id INTEGER REFERENCES users(id) NOT NULL,
-  message TEXT,
-  file_url TEXT,
-  file_name VARCHAR(255),
-  file_type VARCHAR(150),
-  seen_status BOOLEAN DEFAULT false,
-  is_edited BOOLEAN DEFAULT false,
-  created_at TIMESTAMP DEFAULT NOW(),
-  CHECK (sender_id <> receiver_id),
-  CHECK (message IS NOT NULL OR file_url IS NOT NULL)
-);
-
-CREATE INDEX IF NOT EXISTS idx_messages_conversation_key
-ON messages (conversation_key, created_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_messages_receiver_seen
-ON messages (receiver_id, seen_status, created_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_messages_company_users
-ON messages (company_id, sender_id, receiver_id);
-
+-- Transactions
 CREATE TABLE IF NOT EXISTS transactions (
   id SERIAL PRIMARY KEY,
   company_id INTEGER REFERENCES companies(id),
@@ -75,6 +54,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Attendance
 CREATE TABLE IF NOT EXISTS attendance (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
@@ -87,6 +67,7 @@ CREATE TABLE IF NOT EXISTS attendance (
   UNIQUE(user_id, date)
 );
 
+-- Leaves
 CREATE TABLE IF NOT EXISTS leaves (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
@@ -101,6 +82,7 @@ CREATE TABLE IF NOT EXISTS leaves (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Holidays
 CREATE TABLE IF NOT EXISTS holidays (
   id SERIAL PRIMARY KEY,
   company_id INTEGER REFERENCES companies(id),
@@ -109,6 +91,7 @@ CREATE TABLE IF NOT EXISTS holidays (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Expenses
 CREATE TABLE IF NOT EXISTS expenses (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
@@ -121,6 +104,7 @@ CREATE TABLE IF NOT EXISTS expenses (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Salaries
 CREATE TABLE IF NOT EXISTS salaries (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
@@ -134,6 +118,24 @@ CREATE TABLE IF NOT EXISTS salaries (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Payslips 
+CREATE TABLE IF NOT EXISTS payslips (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  company_id INTEGER NOT NULL REFERENCES companies(id),
+  month INTEGER NOT NULL CHECK (month BETWEEN 1 AND 12),
+  year INTEGER NOT NULL,
+  basic NUMERIC(10,2) DEFAULT 0,
+  hra NUMERIC(10,2) DEFAULT 0,
+  transport NUMERIC(10,2) DEFAULT 0,
+  other_allowance NUMERIC(10,2) DEFAULT 0,
+  deductions NUMERIC(10,2) DEFAULT 0,
+  net_pay NUMERIC(10,2) DEFAULT 0,
+  generated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE (user_id, month, year)
+);
+
+-- Company Policies
 CREATE TABLE IF NOT EXISTS company_policies (
   id SERIAL PRIMARY KEY,
   company_id INTEGER REFERENCES companies(id),
@@ -142,6 +144,7 @@ CREATE TABLE IF NOT EXISTS company_policies (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Contact Queries 
 CREATE TABLE IF NOT EXISTS contact_queries (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -152,6 +155,7 @@ CREATE TABLE IF NOT EXISTS contact_queries (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Website Settings 
 CREATE TABLE IF NOT EXISTS website_settings (
   id SERIAL PRIMARY KEY,
   logo_url TEXT,
@@ -165,6 +169,7 @@ CREATE TABLE IF NOT EXISTS website_settings (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Password Resets (OTP based)
 CREATE TABLE IF NOT EXISTS password_resets (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
@@ -173,7 +178,30 @@ CREATE TABLE IF NOT EXISTS password_resets (
   used BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
 );
--- Letters table
+
+-- Messages (employee <-> manager chat)
+CREATE TABLE IF NOT EXISTS messages (
+  id SERIAL PRIMARY KEY,
+  company_id INTEGER NOT NULL REFERENCES companies(id),
+  conversation_key VARCHAR(100) NOT NULL,
+  sender_id INTEGER NOT NULL REFERENCES users(id),
+  receiver_id INTEGER NOT NULL REFERENCES users(id),
+  message TEXT,
+  file_url TEXT,
+  file_name VARCHAR(255),
+  file_type VARCHAR(150),
+  seen_status BOOLEAN DEFAULT false,
+  is_edited BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT NOW(),
+  CHECK (sender_id <> receiver_id),
+  CHECK (message IS NOT NULL OR file_url IS NOT NULL)
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_key ON messages (conversation_key, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_receiver_seen ON messages (receiver_id, seen_status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_company_users ON messages (company_id, sender_id, receiver_id);
+
+-- Letters (HR generated letters)
 CREATE TABLE IF NOT EXISTS letters (
   id SERIAL PRIMARY KEY,
   employee_id INTEGER REFERENCES users(id),
@@ -185,7 +213,7 @@ CREATE TABLE IF NOT EXISTS letters (
   generated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Offboarding requests table
+-- Offboarding Requests
 CREATE TABLE IF NOT EXISTS offboarding_requests (
   id SERIAL PRIMARY KEY,
   employee_id INTEGER REFERENCES users(id),
@@ -200,7 +228,7 @@ CREATE TABLE IF NOT EXISTS offboarding_requests (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Complaints table
+-- Complaints
 CREATE TABLE IF NOT EXISTS complaints (
   id SERIAL PRIMARY KEY,
   employee_id INTEGER REFERENCES users(id),
@@ -213,28 +241,13 @@ CREATE TABLE IF NOT EXISTS complaints (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Profile Pictures metadata (optional, photo stored as base64 in users.profile_photo)
 CREATE TABLE IF NOT EXISTS profile_pictures (
-  id             serial PRIMARY KEY,
-  user_id        integer       NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-  filename       varchar(255)  NOT NULL,
-  original_name  varchar(255),
-  mimetype       varchar(100),
-  size           integer,
-  uploaded_at    timestamp     DEFAULT now()
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  filename VARCHAR(255) NOT NULL,
+  original_name VARCHAR(255),
+  mimetype VARCHAR(100),
+  size INTEGER,
+  uploaded_at TIMESTAMP DEFAULT NOW()
 );
-CREATE TABLE IF NOT EXISTS payslips (
-  id               serial PRIMARY KEY,
-  user_id          integer       NOT NULL REFERENCES users(id),
-  company_id       integer       NOT NULL REFERENCES companies(id),
-  month            integer       NOT NULL CHECK (month BETWEEN 1 AND 12),
-  year             integer       NOT NULL,
-  basic            numeric(10,2) DEFAULT 0,
-  hra              numeric(10,2) DEFAULT 0,
-  transport        numeric(10,2) DEFAULT 0,
-  other_allowance  numeric(10,2) DEFAULT 0,
-  deductions       numeric(10,2) DEFAULT 0,
-  net_pay          numeric(10,2) DEFAULT 0,
-  generated_at     timestamp     DEFAULT now(),
-  UNIQUE (user_id, month, year)
-);
-

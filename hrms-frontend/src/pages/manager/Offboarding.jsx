@@ -144,7 +144,6 @@ function Offboarding() {
     } catch (err) { alert('Failed to update resignation.') }
   }
 
-  // ── CHANGE 1: new handler for manager-initiated termination letter ──
   const handleGenerateTerminationLetter = async (o) => {
     try {
       const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -295,7 +294,6 @@ function Offboarding() {
                     <td className="px-6 py-4 text-sm text-gray-500">{o.last_working_day ? new Date(o.last_working_day).toLocaleDateString('en-GB') : '—'}</td>
                     <td className="px-6 py-4"><span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_COLORS[o.status]}`}>{o.status}</span></td>
 
-                    {/* ── CHANGE 2: updated actions column with all 3 button conditions ── */}
                     <td className="px-6 py-4">
                       <div className="flex gap-2 flex-wrap">
                         {/* Employee-submitted resignation pending review */}

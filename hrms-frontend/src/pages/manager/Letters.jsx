@@ -134,9 +134,8 @@ function Modal({ title, onClose, children }) {
 }
 
 function Letters() {
-  // ── KEY CHANGE: get logged-in manager's data ──
-  const { user } = useAuth()
 
+  const { user } = useAuth()
   const [employees, setEmployees] = useState([])
   const [letters, setLetters] = useState([])
   const [loading, setLoading] = useState(true)
@@ -256,7 +255,6 @@ function Letters() {
                       <span className="text-teal-700 font-bold text-sm">{emp.first_name?.charAt(0)}</span>
                     </div>
                     <div>
-                      {/* ── KEY CHANGE: show "You" badge for manager self card ── */}
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-semibold text-gray-800">{emp.first_name} {emp.last_name}</p>
                         {emp.isSelf && (

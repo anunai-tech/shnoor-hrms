@@ -59,7 +59,7 @@ function WebsiteSettings() {
   return (
     <div className="space-y-6">
 
-      {/* ✅ FIX: Stack title and button on mobile, side-by-side on sm+ */}
+      
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Website Settings</h1>
@@ -80,7 +80,6 @@ function WebsiteSettings() {
       {/* Logo Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
         <h2 className="text-base font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-100">Logo</h2>
-        {/* ✅ FIX: Stack logo preview and upload vertically on mobile */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8">
           <div className="flex-shrink-0">
             <p className="text-xs text-gray-400 font-medium mb-2">Current Logo</p>
@@ -132,7 +131,6 @@ function WebsiteSettings() {
       {/* CTA Button Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
         <h2 className="text-base font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-100">Call To Action Button</h2>
-        {/* ✅ Already had grid-cols-1 sm:grid-cols-2 — good, kept as-is */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
