@@ -70,7 +70,6 @@ function Subscriptions() {
     } catch (err) { console.error(err) }
   }
 
-  // ✅ JSX variable — NOT a component — fixes the focus/cursor bug
   const formFields = (
     <div className="space-y-4">
       <div>

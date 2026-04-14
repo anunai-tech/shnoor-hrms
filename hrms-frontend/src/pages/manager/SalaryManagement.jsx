@@ -100,7 +100,6 @@ function SalaryManagement() {
 
   const netPay = (Number(formData.basic) + Number(formData.hra) + Number(formData.transport) + Number(formData.other_allowance)) - Number(formData.deductions)
 
-  // ✅ JSX variable (not component) — avoids cursor jump bug
   const editFormFields = (
     <div className="space-y-4">
       {[['basic','Basic Salary'],['hra','HRA'],['transport','Transport'],['other_allowance','Other Allowance'],['deductions','Deductions']].map(([name, label]) => (

@@ -326,7 +326,7 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-gray-800">
 
-      {/* ── NAVBAR ─────────────────────────────── */}
+      {/* NAVBAR */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollTo(homeRef)}>
@@ -355,7 +355,7 @@ function LandingPage() {
         </div>
       </nav>
 
-      {/* ── HERO SECTION ───────────────────────── */}
+      {/*HERO SECTION*/}
       <section ref={homeRef} className="pt-28 pb-20 px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -398,7 +398,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ── FEATURES SECTION ───────────────────── */}
+      {/* FEATURES SECTION */}
       <section ref={featuresRef} className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -417,7 +417,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING SECTION ────────────────────── */}
+      {/* PRICING SECTION */}
       <section ref={pricingRef} className="py-24 px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -465,7 +465,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ── CONTACT SECTION ────────────────────── */}
+      {/* CONTACT SECTION */}
       <section ref={contactRef} className="py-24 px-6 bg-white">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-12">
@@ -517,7 +517,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ── FOOTER ─────────────────────────────── */}
+      {/* FOOTER */}
       <footer className="bg-white border-t border-gray-200 pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-10 mb-12">
@@ -565,7 +565,7 @@ function LandingPage() {
         </div>
       </footer>
 
-      {/* ── FAQ CHATBOT ─────────────────────────── */}
+      {/* FAQ CHATBOT */}
       <FAQChatbot onContactClick={() => scrollTo(contactRef)} />
 
     </div>

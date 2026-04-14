@@ -5,18 +5,18 @@ import api from '../services/api'
 
 function LoginPage() {
 
-  // ── State Variables ──────────────────────────
+  // State Variables 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  // ── Hooks ────────────────────────────────────
+  //  Hooks 
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  // ── Form Submit Handler ───────────────────────
+  // Form Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -56,14 +56,13 @@ function LoginPage() {
     }
   }
 
-  // ── UI ───────────────────────────────────────
+  // UI 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
 
       {/* Login Card */}
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
 
-        {/* Logo Section */}
         {/* Logo Section */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">

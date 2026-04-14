@@ -185,7 +185,7 @@ function PrivacyPolicy() {
   )
 }
 
-// ── Helper Components ─────────────────────────
+//  Helper Components 
 function Section({ title, children }) {
   return (
     <div>

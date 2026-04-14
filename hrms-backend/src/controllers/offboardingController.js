@@ -1,6 +1,6 @@
 const pool = require('../config/db')
 
-// ── OFFBOARDING REQUESTS ──────────────────────────────────
+//  OFFBOARDING REQUESTS 
 
 // Manager — get all offboarding requests for company
 const getOffboardingRequests = async (req, res) => {
@@ -19,7 +19,7 @@ const getOffboardingRequests = async (req, res) => {
   }
 }
 
-// Manager — update offboarding request status (Approve/Reject/In Progress/Completed)
+// Manager — update offboarding status (Approve/Reject/In Progress/Completed)
 const updateOffboardingStatus = async (req, res) => {
   try {
     const { status, manager_notes, last_working_day } = req.body
@@ -92,7 +92,7 @@ const getMyOffboarding = async (req, res) => {
   }
 }
 
-// ── COMPLAINTS ────────────────────────────────────────────
+//  COMPLAINTS 
 
 // Manager — get all complaints for company
 const getComplaints = async (req, res) => {

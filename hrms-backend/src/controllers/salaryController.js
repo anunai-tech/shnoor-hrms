@@ -1,8 +1,6 @@
 const pool = require('../config/db')
 
 // Manager — get all salaries
-// KEY CHANGE: includes the manager themselves (u.id = $2) alongside employees
-// So manager can set their own salary from the same panel
 const getSalaries = async (req, res) => {
   try {
     const result = await pool.query(
@@ -68,8 +66,6 @@ const getMySalary = async (req, res) => {
 }
 
 // Manager — Run Payroll for a given month/year
-// Takes a SNAPSHOT of every employee's + manager's current salary and saves it as a payslip
-// ON CONFLICT DO UPDATE means re-running payroll for same month safely updates the record
 const runPayroll = async (req, res) => {
   try {
     const { month, year } = req.body

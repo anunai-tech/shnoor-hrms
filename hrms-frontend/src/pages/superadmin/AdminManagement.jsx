@@ -28,7 +28,6 @@ function AdminManagement() {
   const [deleteType, setDeleteType] = useState('')
   const [error, setError] = useState('')
   const [adminForm, setAdminForm] = useState({ first_name: '', last_name: '', email: '', phone: '', password: '' })
-  // ── CHANGE 1: added designation + department to initial state ──
   const [managerForm, setManagerForm] = useState({ first_name: '', last_name: '', email: '', phone: '', password: '', company_id: '', designation: '', department: '' })
 
   useEffect(() => { fetchData() }, [])
@@ -63,7 +62,6 @@ function AdminManagement() {
     try {
       await createManager(managerForm)
       setShowAddManagerModal(false)
-      // ── CHANGE 2: reset includes designation + department ──
       setManagerForm({ first_name: '', last_name: '', email: '', phone: '', password: '', company_id: '', designation: '', department: '' })
       fetchData()
     } catch (err) {
@@ -231,7 +229,7 @@ function AdminManagement() {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
               </div>
             ))}
-            {/* ── CHANGE 3: designation + department fields added ── */}
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
               <input name="designation" value={managerForm.designation}

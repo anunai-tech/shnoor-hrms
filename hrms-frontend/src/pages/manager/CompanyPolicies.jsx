@@ -61,7 +61,7 @@ function CompanyPolicies() {
     }
   }
 
-  // ✅ JSX variable
+  //  JSX variable
   const formFields = (
     <div className="space-y-4">
       <div>

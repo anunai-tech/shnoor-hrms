@@ -53,7 +53,7 @@ import ManagerMessages from '../pages/manager/Messages'
 import EmployeeChat from '../pages/employee/Chat'
 
 
-// ── Helper: wraps page with layout + protection ──────────
+// Role Based Layout Wrappers
 function SuperAdminPage({ component: Component }) { // eslint-disable-line no-unused-vars
   return (
     <ProtectedRoute allowedRoles={['superadmin']}>
@@ -84,7 +84,7 @@ function EmployeePage({ component: Component }) { // eslint-disable-line no-unus
   )
 }
 
-// ── App Routes ───────────────────────────────────────────
+// App Routes 
 function AppRoutes() {
   return (
     <BrowserRouter>
