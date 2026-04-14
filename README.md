@@ -27,7 +27,7 @@ SHNOOR HRMS is a multi-tenant SaaS platform where one installation serves multip
 ---
 
 ## Project Structure
-
+```
 shnoor-hrms/
 ├── hrms-frontend/
 │   └── src/
@@ -49,7 +49,7 @@ shnoor-hrms/
 ├── seed.sql
 ├── README.md
 └── SETUP.md
-
+```
 ---
 
 ## Features
