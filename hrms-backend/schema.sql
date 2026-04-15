@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   department VARCHAR(100),
   designation VARCHAR(100),
   joining_date DATE,
-  date_of_birth DATE,
+  date_of_birth DATE,o
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
 );

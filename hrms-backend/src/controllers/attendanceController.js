@@ -17,7 +17,7 @@ const getAttendance = async (req, res) => {
   }
 }
 
-// Employee — clock in
+// Employee — clock in for the day
 const clockIn = async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0]
