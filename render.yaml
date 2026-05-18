@@ -28,8 +28,9 @@ services:
       - key: EMAIL_PASS
         sync: false
 
-  - type: static
+  - type: web
     name: shnoor-hrms-frontend
+    env: static
     rootDir: hrms-frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
