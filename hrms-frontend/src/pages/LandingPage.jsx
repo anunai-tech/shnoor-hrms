@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../services/api'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 
 const features = [
@@ -287,7 +287,7 @@ function LandingPage() {
   })
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/v1/public/website-settings')
+    api.get('/public/website-settings')
       .then(res => {
         if (res.data && res.data.data) {
           const db = res.data.data
@@ -314,7 +314,7 @@ function LandingPage() {
     e.preventDefault()
     setContactLoading(true)
     try {
-      await axios.post('http://localhost:5000/api/v1/public/contact', contactForm)
+      await api.post('/public/contact', contactForm)
     } catch (err) { }
     finally {
       setContactSubmitted(true)
