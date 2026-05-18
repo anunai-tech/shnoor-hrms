@@ -7,7 +7,7 @@ const { getCompanies, createCompany, updateCompany, deleteCompany } = require('.
 const {
   getSubscriptions, createSubscription, updateSubscription, deleteSubscription,
   getTransactions,
-  getAdmins, getManagers, createAdmin, createManager, deleteUser,
+  getAdmins, getManagers, createAdmin, createManager, deleteUser, activateUser,
   getContactQueries, updateQueryStatus,
   getWebsiteSettings, updateWebsiteSettings,
   getProfile, updateProfile, changePassword
@@ -31,12 +31,13 @@ router.delete('/subscriptions/:id', deleteSubscription)
 // Transactions
 router.get('/transactions', getTransactions)
 
-// Admin management
+// Admin & manager management
 router.get('/admins', getAdmins)
 router.get('/managers', getManagers)
 router.post('/admins', createAdmin)
 router.post('/managers', createManager)
 router.delete('/users/:id', deleteUser)
+router.put('/users/:id/activate', activateUser)
 
 // Contact queries
 router.get('/contact-queries', getContactQueries)

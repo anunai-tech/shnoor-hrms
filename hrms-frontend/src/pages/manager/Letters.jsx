@@ -251,9 +251,14 @@ function Letters() {
               filteredEmps.map(emp => (
                 <div key={emp.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-teal-700 font-bold text-sm">{emp.first_name?.charAt(0)}</span>
-                    </div>
+                    {emp.profile_photo ? (
+                      <img src={emp.profile_photo} alt={emp.first_name}
+                        className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-teal-700 font-bold text-sm">{emp.first_name?.charAt(0)}</span>
+                      </div>
+                    )}
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-semibold text-gray-800">{emp.first_name} {emp.last_name}</p>

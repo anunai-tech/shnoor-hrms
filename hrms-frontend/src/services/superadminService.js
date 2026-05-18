@@ -21,6 +21,7 @@ export const getManagers = () => api.get('/superadmin/managers')
 export const createAdmin = (data) => api.post('/superadmin/admins', data)
 export const createManager = (data) => api.post('/superadmin/managers', data)
 export const deleteUser = (id) => api.delete(`/superadmin/users/${id}`)
+export const activateUser = (id) => api.put(`/superadmin/users/${id}/activate`)
 
 // Contact Queries
 export const getContactQueries = () => api.get('/superadmin/contact-queries')

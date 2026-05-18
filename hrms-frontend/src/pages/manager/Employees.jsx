@@ -20,6 +20,22 @@ function Modal({ title, onClose, children }) {
   )
 }
 
+// Reusable avatar — shows photo if available, falls back to initial
+function Avatar({ emp, size = 'sm' }) {
+  const sizeClass = size === 'lg' ? 'w-14 h-14 text-xl' : 'w-8 h-8 text-xs'
+  if (emp?.profile_photo) {
+    return (
+      <img src={emp.profile_photo} alt={emp.first_name}
+        className={`${sizeClass} rounded-full object-cover flex-shrink-0`} />
+    )
+  }
+  return (
+    <div className={`${sizeClass} bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0`}>
+      <span className="text-blue-600 font-bold">{emp?.first_name?.charAt(0)}</span>
+    </div>
+  )
+}
+
 function Employees() {
   const [employees, setEmployees] = useState([])
   const [search, setSearch] = useState('')
@@ -84,6 +100,7 @@ function Employees() {
       setError('Failed to delete employee')
     }
   }
+
   const formFields = (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -179,9 +196,7 @@ function Employees() {
                     <td className="px-6 py-4 text-sm text-gray-400">{index + 1}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-blue-600 font-bold text-xs">{emp.first_name?.charAt(0)}</span>
-                        </div>
+                        <Avatar emp={emp} size="sm" />
                         <div>
                           <p className="text-sm font-medium text-gray-800">{emp.first_name} {emp.last_name}</p>
                           <p className="text-xs text-gray-400">{emp.email}</p>
@@ -231,9 +246,7 @@ function Employees() {
         <Modal title="Employee Details" onClose={() => setShowViewModal(false)}>
           <div className="space-y-4">
             <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
-              <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-xl">{selectedEmployee.first_name?.charAt(0)}</span>
-              </div>
+              <Avatar emp={selectedEmployee} size="lg" />
               <div>
                 <p className="text-lg font-bold text-gray-800">{selectedEmployee.first_name} {selectedEmployee.last_name}</p>
                 <p className="text-sm text-gray-400">{selectedEmployee.designation}</p>

@@ -3,7 +3,6 @@ const router = express.Router()
 const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
 const { getMyOffboarding, submitResignation, getMyComplaints, raiseComplaint } = require('../controllers/offboardingController')
-
 const { getEmployees, getEmployee, createEmployee, updateEmployee, deleteEmployee } = require('../controllers/employeeController')
 const { getLeaves, updateLeaveStatus, getMyLeaves, applyLeave } = require('../controllers/leaveController')
 const { getAttendance, clockIn, clockOut, getMyAttendance } = require('../controllers/attendanceController')
@@ -30,7 +29,7 @@ router.delete('/employees/:id', deleteEmployee)
 router.get('/leaves', getLeaves)
 router.put('/leaves/:id', updateLeaveStatus)
 
-// Self leaves
+// Manager self leaves
 router.get('/self/leaves', getMyLeaves)
 router.post('/self/leaves', applyLeave)
 
@@ -60,22 +59,38 @@ router.get('/self/payslips', getMyPayslips)
 router.get('/letters', getLetters)
 router.post('/letters', generateLetter)
 router.get('/self/letters', getMyLetters)
+
+// Self — offboarding and complaints
 router.get('/self/offboarding', getMyOffboarding)
 router.post('/self/offboarding/resign', submitResignation)
 router.get('/self/complaints', getMyComplaints)
 router.post('/self/complaints', raiseComplaint)
 
-
-// Offboarding requests
+// Manager — offboarding requests (view, update, deactivate)
 router.get('/offboarding-requests', getOffboardingRequests)
 router.put('/offboarding-requests/:id', updateOffboardingStatus)
 router.put('/offboarding/deactivate/:employee_id', deactivateEmployee)
 
-// Manager-initiated offboarding request
+// Manager-initiated offboarding — check for existing active request before creating
 router.post('/offboarding-requests', async (req, res) => {
   const pool = require('../config/db')
   try {
     const { employee_id, type, reason, last_working_day, manager_notes, requested_by, status } = req.body
+
+    // Prevent duplicate active requests for the same employee
+    const existing = await pool.query(
+      `SELECT id FROM offboarding_requests
+       WHERE employee_id = $1 AND company_id = $2 AND status IN ('Pending', 'In Progress', 'Approved')`,
+      [employee_id, req.user.company_id]
+    )
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'This employee already has an active offboarding request.'
+      })
+    }
+
     const result = await pool.query(
       `INSERT INTO offboarding_requests (employee_id, company_id, type, reason, last_working_day, manager_notes, requested_by, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
@@ -87,7 +102,7 @@ router.post('/offboarding-requests', async (req, res) => {
   }
 })
 
-// Complaints
+// Manager — complaints
 router.get('/complaints', getComplaints)
 router.put('/complaints/:id', respondToComplaint)
 
@@ -121,34 +136,44 @@ router.put('/self/change-password', async (req, res) => {
   }
 })
 
-// Manager mark attendance for employee
+// Manager mark attendance for an employee
 router.post('/attendance/mark', async (req, res) => {
   const pool = require('../config/db')
   try {
     const { user_id, date, status, clock_in, clock_out } = req.body
-    await pool.query(
-      `INSERT INTO attendance (user_id, company_id, date, clock_in, clock_out, status)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (user_id, date) DO UPDATE
-       SET clock_in=$4, clock_out=$5, status=$6`,
-      [user_id, req.user.company_id, date,
-       status === 'Present' || status === 'Late' ? clock_in : null,
-       status === 'Present' || status === 'Late' ? clock_out : null,
-       status]
+    const clockInVal = (status === 'Present' || status === 'Late') ? clock_in : null
+    const clockOutVal = (status === 'Present' || status === 'Late') ? clock_out : null
+
+    const existing = await pool.query(
+      'SELECT id FROM attendance WHERE user_id=$1 AND date=$2',
+      [user_id, date]
     )
+
+    if (existing.rows.length > 0) {
+      await pool.query(
+        'UPDATE attendance SET clock_in=$1, clock_out=$2, status=$3 WHERE user_id=$4 AND date=$5',
+        [clockInVal, clockOutVal, status, user_id, date]
+      )
+    } else {
+      await pool.query(
+        `INSERT INTO attendance (user_id, company_id, date, clock_in, clock_out, status)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [user_id, req.user.company_id, date, clockInVal, clockOutVal, status]
+      )
+    }
     res.json({ success: true, message: 'Attendance marked' })
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' })
   }
 })
 
-// Manager edit attendance record
+// Manager edit an existing attendance record
 router.put('/attendance/:id', async (req, res) => {
   const pool = require('../config/db')
   try {
     const { clock_in, clock_out, status } = req.body
     const result = await pool.query(
-      `UPDATE attendance SET clock_in=$1, clock_out=$2, status=$3 WHERE id=$4 RETURNING *`,
+      'UPDATE attendance SET clock_in=$1, clock_out=$2, status=$3 WHERE id=$4 RETURNING *',
       [clock_in || null, clock_out || null, status, req.params.id]
     )
     res.json({ success: true, data: result.rows[0] })
