@@ -60,10 +60,10 @@ function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
 
-      {/* Login Card */}
+
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
 
-        {/* Logo Section */}
+
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img
@@ -74,7 +74,7 @@ function LoginPage() {
             />
           </div>
           <h1
-            className="text-2xl font-bold text-gray-800 cursor-pointer hover:text-blue-600 transition"
+            className="text-2xl font-bold text-gray-800 cursor-pointer hover:text-primary transition"
             onClick={() => navigate('/')}
           >
             SHNOOR HRMS
@@ -82,17 +82,17 @@ function LoginPage() {
           <p className="text-gray-500 text-sm mt-1">Login to your account</p>
         </div>
 
-        {/* Error Message */}
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 mb-6">
             {error}
           </div>
         )}
 
-        {/* Form */}
+
         <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* Email Field */}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email Address
@@ -106,7 +106,7 @@ function LoginPage() {
             />
           </div>
 
-          {/* Password Field */}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
@@ -119,7 +119,7 @@ function LoginPage() {
                 placeholder="Enter your password"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition"
               />
-              {/* Show/Hide Password Toggle */}
+
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -129,37 +129,37 @@ function LoginPage() {
               </button>
             </div>
           </div>
-          {/* Forgot Password Link */}
+
           <div className="flex justify-end mt-1 mb-4">
             <button
               type="button"
               onClick={() => navigate('/forgot-password')}
-              className="text-sm text-blue-600 hover:underline font-medium"
+              className="text-sm text-primary hover:underline font-medium"
             >
               Forgot Password?
             </button>
           </div>
 
-          {/* Submit Button */}
+
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-yellow-200 text-white font-semibold py-2.5 rounded-lg transition text-sm"
+            className="w-full bg-primary hover:opacity-90 disabled:opacity-50 text-quaternary font-semibold py-2.5 rounded-lg transition text-sm"
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
 
         </form>
 
-        {/* Legal Links */}
+
         <p className="text-center text-xs text-gray-400 mt-4">
           By signing in you agree to our{' '}
-          <a href="/terms" className="text-blue-600 hover:underline">Terms & Conditions</a>
+          <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a>
           {' '}and{' '}
-          <a href="/privacy-policy" className="text-blue-600 hover:underline">Privacy Policy</a>
+          <a href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</a>
         </p>
 
-        {/* Footer */}
+
         <p className="text-center text-xs text-gray-400 mt-8">
           © 2026 SHNOOR International LLC. All rights reserved.
         </p>
