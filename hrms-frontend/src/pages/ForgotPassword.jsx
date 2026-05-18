@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../services/api'
 
 function ForgotPassword() {
   const navigate = useNavigate()
@@ -18,7 +18,7 @@ function ForgotPassword() {
     setError('')
     setLoading(true)
     try {
-      await axios.post('http://localhost:5000/api/v1/public/forgot-password', { email })
+      await api.post('/public/forgot-password', { email })
       setStep(2)
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP. Try again.')
@@ -40,7 +40,7 @@ function ForgotPassword() {
     }
     setLoading(true)
     try {
-      await axios.post('http://localhost:5000/api/v1/public/reset-password', {
+      await api.post('/public/reset-password', {
         email, otp, new_password: newPassword
       })
       setSuccess(true)
