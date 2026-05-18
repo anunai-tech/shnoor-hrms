@@ -2,20 +2,19 @@ import { useState, useEffect } from 'react'
 import { getMySalary, getMyPayslips } from '../../services/employeeService'
 import { useAuth } from '../../context/AuthContext'
 import { jsPDF } from 'jspdf'
+import api from '../../services/api'
 
 const MONTHS = [
   'January','February','March','April','May','June',
   'July','August','September','October','November','December'
 ]
 
-// ── PDF GENERATOR — teal color + shnoor logo ──
 async function generatePayslipPDF(payslip, user) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const pageW = 210
   const margin = 20
   const contentW = pageW - margin * 2
 
-  // Load logo from public folder → convert to base64
   let logoBase64 = null
   try {
     const blob = await fetch('/shnoor-logo.png').then(r => r.blob())
@@ -24,9 +23,8 @@ async function generatePayslipPDF(payslip, user) {
       reader.onload = () => resolve(reader.result)
       reader.readAsDataURL(blob)
     })
-  } catch (e) { /* logo is optional, continues without it */ }
+  } catch (e) {}
 
-  // Header — deep teal (15, 118, 110)
   doc.setFillColor(15, 118, 110)
   doc.rect(0, 0, pageW, 35, 'F')
 
@@ -41,7 +39,6 @@ async function generatePayslipPDF(payslip, user) {
   doc.text('Salary Slip', logoBase64 ? margin + 25 : margin, 21)
   doc.text(`Period: ${MONTHS[payslip.month - 1]} ${payslip.year}`, logoBase64 ? margin + 25 : margin, 27)
 
-  // Employee info box — teal tinted background
   doc.setFillColor(240, 253, 250)
   doc.setDrawColor(167, 243, 208)
   doc.rect(margin, 45, contentW, 30, 'FD')
@@ -60,7 +57,6 @@ async function generatePayslipPDF(payslip, user) {
   doc.text(user.designation || '—', margin + 70, 62)
   doc.text(user.department || '—', margin + 130, 62)
 
-  // Earnings section
   let y = 90
   doc.setTextColor(15, 118, 110)
   doc.setFontSize(10)
@@ -97,7 +93,6 @@ async function generatePayslipPDF(payslip, user) {
   doc.text('Gross Salary', margin + 5, y)
   doc.text(`Rs. ${Number(gross).toLocaleString('en-IN')}`, margin + contentW - 5, y, { align: 'right' })
 
-  // Deductions section
   y += 14
   doc.setTextColor(220, 38, 38)
   doc.setFontSize(10)
@@ -113,7 +108,6 @@ async function generatePayslipPDF(payslip, user) {
   doc.text('Total Deductions', margin + 5, y)
   doc.text(`- Rs. ${Number(payslip.deductions || 0).toLocaleString('en-IN')}`, margin + contentW - 5, y, { align: 'right' })
 
-  // Net Pay box — teal
   y += 14
   doc.setFillColor(15, 118, 110)
   doc.rect(margin, y, contentW, 16, 'F')
@@ -123,7 +117,6 @@ async function generatePayslipPDF(payslip, user) {
   doc.text('NET PAY', margin + 5, y + 10)
   doc.text(`Rs. ${Number(payslip.net_pay || 0).toLocaleString('en-IN')}`, margin + contentW - 5, y + 10, { align: 'right' })
 
-  // Footer
   y += 35
   doc.setTextColor(148, 163, 184)
   doc.setFontSize(8)
@@ -140,12 +133,19 @@ function EmployeeSalary() {
   const [salary, setSalary] = useState(null)
   const [payslips, setPayslips] = useState([])
   const [loading, setLoading] = useState(true)
+  // Full profile with designation and department — needed for accurate payslip PDF
+  const [fullProfile, setFullProfile] = useState(null)
 
   useEffect(() => {
-    Promise.all([getMySalary(), getMyPayslips()])
-      .then(([salRes, payRes]) => {
+    Promise.all([
+      getMySalary(),
+      getMyPayslips(),
+      api.get('/employee/profile')
+    ])
+      .then(([salRes, payRes, profileRes]) => {
         setSalary(salRes.data.data)
         setPayslips(payRes.data.data || [])
+        setFullProfile(profileRes.data.data)
       })
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
@@ -157,6 +157,9 @@ function EmployeeSalary() {
     ? Number(salary.basic) + Number(salary.hra) + Number(salary.transport) + Number(salary.other_allowance)
     : 0
 
+  // Merge profile data so the PDF has designation and department
+  const userForPdf = fullProfile ? { ...user, ...fullProfile } : user
+
   return (
     <div className="space-y-6">
       <div>
@@ -164,16 +167,15 @@ function EmployeeSalary() {
         <p className="text-sm text-gray-400 mt-1">Your current salary breakdown and payslip history</p>
       </div>
 
-      {/* Current Salary Breakdown */}
       {!salary ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center">
-          <p className="text-gray-400 text-sm">No salary details configured yet. Contact your manager.</p>
+          <p className="text-gray-400 text-sm">No salary configured yet. Please contact your manager.</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-base font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-100">Current Salary Structure</h2>
           <div className="space-y-3 max-w-md">
-            {[['Basic Salary', salary.basic],['HRA', salary.hra],['Transport Allowance', salary.transport],['Other Allowance', salary.other_allowance]].map(([label, val]) => (
+            {[['Basic Salary', salary.basic], ['HRA', salary.hra], ['Transport Allowance', salary.transport], ['Other Allowance', salary.other_allowance]].map(([label, val]) => (
               <div key={label} className="flex justify-between items-center py-2 border-b border-gray-50">
                 <span className="text-sm text-gray-600">{label}</span>
                 <span className="text-sm font-medium text-gray-800">₹{Number(val || 0).toLocaleString('en-IN')}</span>
@@ -195,7 +197,6 @@ function EmployeeSalary() {
         </div>
       )}
 
-      {/* Payslip History */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-800">Payslip History</h2>
@@ -203,7 +204,7 @@ function EmployeeSalary() {
         </div>
         {payslips.length === 0 ? (
           <div className="p-10 text-center">
-            <p className="text-gray-400 text-sm">No payslips generated yet. Your manager will run payroll each month.</p>
+            <p className="text-gray-400 text-sm">No payslips generated yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -225,10 +226,8 @@ function EmployeeSalary() {
                     <td className="px-6 py-4 text-sm text-red-500">- ₹{Number(p.deductions || 0).toLocaleString('en-IN')}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-teal-600">₹{Number(p.net_pay || 0).toLocaleString('en-IN')}</td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => generatePayslipPDF(p, user)}
-                        className="text-xs bg-teal-600 hover:bg-teal-700 text-white font-semibold px-3 py-1.5 rounded-lg transition"
-                      >
+                      <button onClick={() => generatePayslipPDF(p, userForPdf)}
+                        className="text-xs bg-teal-600 hover:bg-teal-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">
                         Download PDF
                       </button>
                     </td>

@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useMessaging } from '../context/MessagingContext'
 import ThemeSwitcher from '../components/ThemeSwitcher'
+import api from '../services/api'
 
 const managerNavItems = [
   { label: 'Dashboard', path: '/manager/dashboard' },
@@ -21,6 +22,7 @@ const managerNavItems = [
 
 const selfNavItems = [
   { label: 'Dashboard', path: '/manager/self/dashboard' },
+  { label: 'Messages', path: '/manager/messages' },
   { label: 'Holidays', path: '/manager/self/holidays' },
   { label: 'Leaves', path: '/manager/self/leaves' },
   { label: 'Attendance', path: '/manager/self/attendance' },
@@ -35,9 +37,20 @@ const selfNavItems = [
 function ManagerLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768)
   const [activeTab, setActiveTab] = useState('manager')
-  const { user, logout } = useAuth()
+  const { user, setUser, logout } = useAuth()
   const { unreadCount } = useMessaging()
   const navigate = useNavigate()
+
+  // Fetch full profile on mount to load profile_photo into context
+  useEffect(() => {
+    api.get('/manager/self/profile')
+      .then(res => {
+        if (res.data?.data) {
+          setUser({ ...user, ...res.data.data })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const handleResize = () => {
@@ -142,10 +155,12 @@ function ManagerLayout({ children }) {
               <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
             </div>
             <button onClick={() => navigate('/manager/self/profile')}
-              className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-              <span className="text-white font-bold text-sm">
-                {user?.first_name?.charAt(0) || 'M'}
-              </span>
+              className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+              {user?.profile_photo ? (
+                <img src={user.profile_photo} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white font-bold text-sm">{user?.first_name?.charAt(0) || 'M'}</span>
+              )}
             </button>
           </div>
         </header>

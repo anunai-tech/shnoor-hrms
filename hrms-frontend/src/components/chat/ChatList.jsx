@@ -5,6 +5,31 @@ import {
   getUserInitials
 } from '../../utils/messageUtils'
 
+// Role-based label shown under the name in the list
+const getRoleLabel = (role, designation) => {
+  if (designation) return designation
+  if (role === 'manager') return 'Manager'
+  return 'Employee'
+}
+
+function Avatar({ user, size = 'md' }) {
+  const sizeClass = size === 'sm' ? 'h-10 w-10 text-xs' : 'h-12 w-12 text-sm'
+  if (user?.profile_photo) {
+    return (
+      <img
+        src={user.profile_photo}
+        alt={user.first_name}
+        className={`${sizeClass} rounded-full object-cover flex-shrink-0`}
+      />
+    )
+  }
+  return (
+    <div className={`${sizeClass} flex flex-shrink-0 items-center justify-center rounded-full bg-slate-900 font-semibold text-white`}>
+      {getUserInitials(user?.first_name, user?.last_name)}
+    </div>
+  )
+}
+
 function ChatList({
   title,
   subtitle,
@@ -17,22 +42,22 @@ function ChatList({
   const [search, setSearch] = useState('')
 
   const filteredConversations = conversations.filter(conversation => {
-    const searchValue = search.toLowerCase()
-    return `${conversation.first_name || ''} ${conversation.last_name || ''}`.toLowerCase().includes(searchValue)
-      || (conversation.email || '').toLowerCase().includes(searchValue)
-      || (conversation.department || '').toLowerCase().includes(searchValue)
-      || (conversation.designation || '').toLowerCase().includes(searchValue)
-      || getConversationPreview(conversation).toLowerCase().includes(searchValue)
+    const val = search.toLowerCase()
+    return `${conversation.first_name || ''} ${conversation.last_name || ''}`.toLowerCase().includes(val)
+      || (conversation.email || '').toLowerCase().includes(val)
+      || (conversation.department || '').toLowerCase().includes(val)
+      || (conversation.designation || '').toLowerCase().includes(val)
+      || getConversationPreview(conversation).toLowerCase().includes(val)
   })
 
   return (
-    <section className="flex min-h-[70vh] w-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm xl:max-w-sm">
-      <div className="border-b border-slate-200 px-5 py-5">
+    <section className="flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+      <div className="flex-shrink-0 border-b border-slate-200 px-5 py-5">
         <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
         <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         <input
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Search conversations"
           className="mt-4 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-300 focus:bg-white"
         />
@@ -54,14 +79,13 @@ function ChatList({
             ))}
           </div>
         ) : filteredConversations.length === 0 ? (
-          <div className="flex h-full min-h-64 items-center justify-center px-6 text-center">
+          <div className="flex h-full min-h-48 items-center justify-center px-6 text-center">
             <p className="text-sm text-slate-400">{emptyMessage}</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {filteredConversations.map(conversation => {
               const isActive = conversation.user_id === activeConversationId
-
               return (
                 <button
                   key={conversation.user_id}
@@ -71,9 +95,7 @@ function ChatList({
                     isActive ? 'bg-blue-50/80' : 'hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-                    {getUserInitials(conversation.first_name, conversation.last_name)}
-                  </div>
+                  <Avatar user={conversation} />
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
@@ -82,7 +104,7 @@ function ChatList({
                           {conversation.first_name} {conversation.last_name}
                         </p>
                         <p className="truncate text-xs text-slate-400">
-                          {conversation.designation || conversation.email}
+                          {getRoleLabel(conversation.role, conversation.designation)}
                         </p>
                       </div>
 

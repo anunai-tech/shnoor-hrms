@@ -30,6 +30,25 @@ function Modal({ title, onClose, children }) {
   )
 }
 
+// Extract a plain YYYY-MM-DD string from whatever pg sends (string or Date object)
+// This avoids all timezone-related off-by-one issues in display and filtering
+const toDateString = (val) => {
+  if (!val) return ''
+  if (typeof val === 'string') return val.substring(0, 10)
+  if (val instanceof Date) return val.toISOString().substring(0, 10)
+  return String(val).substring(0, 10)
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+// Format "YYYY-MM-DD" → "12 Apr 2026" with no timezone involvement
+const formatDate = (val) => {
+  const s = toDateString(val)
+  if (!s) return '—'
+  const [year, month, day] = s.split('-')
+  return `${day} ${MONTHS[parseInt(month, 10) - 1]} ${year}`
+}
+
 function Attendance() {
   const [records, setRecords] = useState([])
   const [employees, setEmployees] = useState([])
@@ -45,16 +64,11 @@ function Attendance() {
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [editForm, setEditForm] = useState({ clock_in: '', clock_out: '', status: '' })
 
-  useEffect(() => {
-    fetchAll()
-  }, [])
+  useEffect(() => { fetchAll() }, [])
 
   const fetchAll = async () => {
     try {
-      const [attRes, empRes] = await Promise.all([
-        getAttendance(),
-        getEmployees()
-      ])
+      const [attRes, empRes] = await Promise.all([getAttendance(), getEmployees()])
       setRecords(attRes.data.data)
       const emps = empRes.data.data
       setEmployees(emps)
@@ -72,14 +86,15 @@ function Attendance() {
     const name = `${r.first_name} ${r.last_name}`.toLowerCase()
     const matchesSearch = name.includes(search.toLowerCase())
     const matchesStatus = statusFilter === 'All' || r.status === statusFilter
-    const matchesDate = !dateFilter || r.date?.startsWith(dateFilter)
+    // Compare normalized date strings — no timezone conversion involved
+    const matchesDate = !dateFilter || toDateString(r.date) === dateFilter
     return matchesSearch && matchesStatus && matchesDate
   })
 
-  const present = records.filter(r => r.status === 'Present').length
-  const absent = records.filter(r => r.status === 'Absent').length
-  const late = records.filter(r => r.status === 'Late').length
-  const onLeave = records.filter(r => r.status === 'On Leave').length
+  const present  = records.filter(r => r.status === 'Present').length
+  const absent   = records.filter(r => r.status === 'Absent').length
+  const late     = records.filter(r => r.status === 'Late').length
+  const onLeave  = records.filter(r => r.status === 'On Leave').length
 
   const handleMarkAttendance = async () => {
     try {
@@ -125,10 +140,10 @@ function Attendance() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total Present', value: present, color: 'text-green-600' },
-          { label: 'Total Absent', value: absent, color: 'text-red-500' },
-          { label: 'Late Arrivals', value: late, color: 'text-yellow-500' },
-          { label: 'On Leave', value: onLeave, color: 'text-blue-500' },
+          { label: 'Total Present', value: present,  color: 'text-green-600' },
+          { label: 'Total Absent',  value: absent,   color: 'text-red-500'   },
+          { label: 'Late Arrivals', value: late,     color: 'text-yellow-500'},
+          { label: 'On Leave',      value: onLeave,  color: 'text-blue-500'  },
         ].map(item => (
           <div key={item.label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{item.label}</p>
@@ -178,9 +193,7 @@ function Attendance() {
                   <tr key={record.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                     <td className="px-6 py-4 text-sm text-gray-400">{index + 1}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-800">{record.first_name} {record.last_name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{formatDate(record.date)}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{record.clock_in || '—'}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{record.clock_out || '—'}</td>
                     <td className="px-6 py-4"><Badge status={record.status} /></td>
@@ -200,7 +213,6 @@ function Attendance() {
         </div>
       </div>
 
-      {/* MARK ATTENDANCE MODAL */}
       {showMarkModal && (
         <Modal title="Mark Attendance" onClose={() => setShowMarkModal(false)}>
           <div className="space-y-4">
@@ -256,15 +268,12 @@ function Attendance() {
         </Modal>
       )}
 
-      {/* EDIT MODAL */}
       {showEditModal && selectedRecord && (
         <Modal title="Edit Attendance Record" onClose={() => setShowEditModal(false)}>
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm font-semibold text-gray-800">{selectedRecord.first_name} {selectedRecord.last_name}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {new Date(selectedRecord.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-              </p>
+              <p className="text-xs text-gray-400 mt-1">{formatDate(selectedRecord.date)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>

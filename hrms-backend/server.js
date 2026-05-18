@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 5000
 
 const initDB = async () => {
   try {
-    const createTableQuery = `
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS messages (
         id SERIAL PRIMARY KEY,
         company_id INTEGER REFERENCES companies(id) NOT NULL,
@@ -34,15 +34,20 @@ const initDB = async () => {
       ON messages (company_id, sender_id, receiver_id);
 
       ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_edited BOOLEAN DEFAULT false;
-    `;
-    await pool.query(createTableQuery);
-    console.log('Successfully confirmed messages table exists in DB.');
+    `)
+    console.log('DB init complete.')
   } catch (err) {
-    console.error('Error creating messages table:', err);
+    console.error('DB init error:', err)
   }
 }
 
-app.listen(PORT, async () => {
-  await initDB();
-  console.log(`SHNOOR HRMS Server running on http://localhost:${PORT}`)
-})
+// Init the DB first, then start listening — avoids the race condition
+// where a request hits before the messages table is confirmed to exist
+const startServer = async () => {
+  await initDB()
+  app.listen(PORT, () => {
+    console.log(`SHNOOR HRMS Server running on http://localhost:${PORT}`)
+  })
+}
+
+startServer()

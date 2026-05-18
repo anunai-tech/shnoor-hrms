@@ -1,6 +1,6 @@
 const pool = require('../config/db')
 
-// Manager — get all salaries
+// Manager — get all salaries for the company (includes manager's own row)
 const getSalaries = async (req, res) => {
   try {
     const result = await pool.query(
@@ -25,23 +25,28 @@ const getSalaries = async (req, res) => {
   }
 }
 
-// Manager — create or update salary for any user (employee or self)
+// Manager — create or update salary for any user in the company
 const upsertSalary = async (req, res) => {
   try {
     const { user_id, basic, hra, transport, other_allowance, deductions } = req.body
     const net_pay = (Number(basic) + Number(hra) + Number(transport) + Number(other_allowance)) - Number(deductions)
-    const existing = await pool.query('SELECT id FROM salaries WHERE user_id=$1', [user_id])
+
+    const existing = await pool.query(
+      'SELECT id FROM salaries WHERE user_id = $1 AND company_id = $2',
+      [user_id, req.user.company_id]
+    )
+
     let result
     if (existing.rows.length > 0) {
       result = await pool.query(
-        `UPDATE salaries SET basic=$1, hra=$2, transport=$3, other_allowance=$4, deductions=$5, net_pay=$6
-         WHERE user_id=$7 RETURNING *`,
-        [basic, hra, transport, other_allowance, deductions, net_pay, user_id]
+        `UPDATE salaries SET basic = $1, hra = $2, transport = $3, other_allowance = $4, deductions = $5, net_pay = $6
+         WHERE user_id = $7 AND company_id = $8 RETURNING *`,
+        [basic, hra, transport, other_allowance, deductions, net_pay, user_id, req.user.company_id]
       )
     } else {
       result = await pool.query(
         `INSERT INTO salaries (user_id, company_id, basic, hra, transport, other_allowance, deductions, net_pay)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
         [user_id, req.user.company_id, basic, hra, transport, other_allowance, deductions, net_pay]
       )
     }
@@ -52,11 +57,11 @@ const upsertSalary = async (req, res) => {
   }
 }
 
-// Employee/Manager self — get own current salary
+// Employee / Manager self — get own current salary
 const getMySalary = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM salaries WHERE user_id=$1',
+      'SELECT * FROM salaries WHERE user_id = $1',
       [req.user.id]
     )
     res.json({ success: true, data: result.rows[0] || null })
@@ -65,7 +70,7 @@ const getMySalary = async (req, res) => {
   }
 }
 
-// Manager — Run Payroll for a given month/year
+// Manager — run payroll for a given month/year
 const runPayroll = async (req, res) => {
   try {
     const { month, year } = req.body
@@ -74,7 +79,6 @@ const runPayroll = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Month and year are required' })
     }
 
-    // Get all active employees + the manager for this company who have a salary configured
     const usersResult = await pool.query(
       `SELECT u.id as user_id, s.basic, s.hra, s.transport, s.other_allowance, s.deductions, s.net_pay
        FROM users u
@@ -87,7 +91,6 @@ const runPayroll = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No salary records found. Configure salaries first.' })
     }
 
-    // For each user, insert or update their payslip for this month/year
     let count = 0
     for (const row of usersResult.rows) {
       await pool.query(
@@ -108,11 +111,11 @@ const runPayroll = async (req, res) => {
   }
 }
 
-// Manager — get payslip history for a specific user (to view any employee's history)
+// Manager — get payslip history for a specific user
 const getPayslipsByUser = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM payslips WHERE user_id=$1 AND company_id=$2 ORDER BY year DESC, month DESC`,
+      'SELECT * FROM payslips WHERE user_id = $1 AND company_id = $2 ORDER BY year DESC, month DESC',
       [req.params.user_id, req.user.company_id]
     )
     res.json({ success: true, data: result.rows })
@@ -121,11 +124,11 @@ const getPayslipsByUser = async (req, res) => {
   }
 }
 
-// Employee/Manager self — get own payslip history
+// Employee / Manager self — get own payslip history
 const getMyPayslips = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM payslips WHERE user_id=$1 ORDER BY year DESC, month DESC`,
+      'SELECT * FROM payslips WHERE user_id = $1 ORDER BY year DESC, month DESC',
       [req.user.id]
     )
     res.json({ success: true, data: result.rows })

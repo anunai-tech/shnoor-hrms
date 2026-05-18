@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react'
 import { getMyAttendance } from '../../services/managerService'
 
+// Parse date string directly — avoids timezone off-by-one from new Date()
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const formatDate = (val) => {
+  if (!val) return '—'
+  const s = typeof val === 'string' ? val.substring(0, 10) : val.toISOString().substring(0, 10)
+  const [year, month, day] = s.split('-')
+  return `${day} ${MONTHS[parseInt(month, 10) - 1]} ${year}`
+}
+
 function SelfAttendance() {
   const [attendance, setAttendance] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,8 +22,8 @@ function SelfAttendance() {
   }, [])
 
   const present = attendance.filter(a => a.status === 'Present').length
-  const absent = attendance.filter(a => a.status === 'Absent').length
-  const late = attendance.filter(a => a.status === 'Late').length
+  const absent  = attendance.filter(a => a.status === 'Absent').length
+  const late    = attendance.filter(a => a.status === 'Late').length
 
   if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
 
@@ -26,7 +35,7 @@ function SelfAttendance() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[['Present', present, 'text-green-600'],['Absent', absent, 'text-red-500'],['Late', late, 'text-yellow-500']].map(([label, val, color]) => (
+        {[['Present', present, 'text-green-600'], ['Absent', absent, 'text-red-500'], ['Late', late, 'text-yellow-500']].map(([label, val, color]) => (
           <div key={label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <p className="text-sm text-gray-500 font-medium">{label}</p>
             <p className={`text-3xl font-bold mt-2 ${color}`}>{val}</p>
@@ -51,13 +60,13 @@ function SelfAttendance() {
               ) : (
                 attendance.map(record => (
                   <tr key={record.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm text-gray-700">{new Date(record.date).toLocaleDateString('en-GB')}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{formatDate(record.date)}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{record.clock_in || '—'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{record.clock_out || '—'}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                         record.status === 'Present' ? 'bg-green-50 text-green-600' :
-                        record.status === 'Late' ? 'bg-yellow-50 text-yellow-600' :
+                        record.status === 'Late'    ? 'bg-yellow-50 text-yellow-600' :
                         'bg-red-50 text-red-500'}`}>
                         {record.status}
                       </span>

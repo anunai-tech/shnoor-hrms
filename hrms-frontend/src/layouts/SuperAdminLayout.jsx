@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useMessaging } from '../context/MessagingContext'
 import ThemeSwitcher from '../components/ThemeSwitcher'
+import api from '../services/api'
 
 const navItems = [
   { label: 'Dashboard', path: '/superadmin/dashboard' },
@@ -18,8 +18,19 @@ const navItems = [
 
 function SuperAdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768)
-  const { user, logout } = useAuth()
+  const { user, setUser, logout } = useAuth()
   const navigate = useNavigate()
+
+  // Load profile_photo for avatar on mount
+  useEffect(() => {
+    api.get('/superadmin/profile')
+      .then(res => {
+        if (res.data?.data) {
+          setUser({ ...user, ...res.data.data })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const handleResize = () => {
@@ -101,10 +112,12 @@ function SuperAdminLayout({ children }) {
               <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
             </div>
             <button onClick={() => navigate('/superadmin/profile')}
-              className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2">
-              <span className="text-white font-bold text-sm">
-                {user?.first_name?.charAt(0) || 'S'}
-              </span>
+              className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2">
+              {user?.profile_photo ? (
+                <img src={user.profile_photo} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white font-bold text-sm">{user?.first_name?.charAt(0) || 'S'}</span>
+              )}
             </button>
           </div>
         </header>
