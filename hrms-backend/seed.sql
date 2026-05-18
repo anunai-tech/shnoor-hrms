@@ -29,5 +29,5 @@ INSERT INTO website_settings (
 -- Copy the output and replace REPLACE_WITH_BCRYPT_HASH below
 
 INSERT INTO users (first_name, last_name, email, password_hash, role) VALUES
-('Admin', 'SHNOOR', 'admin@shnoor.com', 'REPLACE_WITH_BCRYPT_HASH', 'superadmin')
+('Admin', 'SHNOOR', 'admin@shnoor.com', '$2b$10$CDgVTaQxZicEWjtH0p8H9eoT7q1zRR2SyOvSv.M2pv4eYJzIFrDdO', 'superadmin')
 ON CONFLICT (email) DO NOTHING;
