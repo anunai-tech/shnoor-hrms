@@ -7,7 +7,7 @@ function Badge({ status }) {
     'Present':  'bg-green-50 text-green-600',
     'Absent':   'bg-red-50 text-red-500',
     'Late':     'bg-yellow-50 text-yellow-600',
-    'On Leave': 'bg-blue-50 text-blue-600',
+    'On Leave': 'bg-amber-50 text-amber-700',
   }
   return (
     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
@@ -133,7 +133,7 @@ function Attendance() {
           <p className="text-sm text-gray-400 mt-1">View and manage employee attendance records</p>
         </div>
         <button onClick={() => setShowMarkModal(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          className="bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
           + Mark Attendance
         </button>
       </div>
@@ -143,7 +143,7 @@ function Attendance() {
           { label: 'Total Present', value: present,  color: 'text-green-600' },
           { label: 'Total Absent',  value: absent,   color: 'text-red-500'   },
           { label: 'Late Arrivals', value: late,     color: 'text-yellow-500'},
-          { label: 'On Leave',      value: onLeave,  color: 'text-blue-500'  },
+          { label: 'On Leave',      value: onLeave,  color: 'text-primary'  },
         ].map(item => (
           <div key={item.label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{item.label}</p>
@@ -157,15 +157,15 @@ function Attendance() {
           <div className="flex gap-3 flex-wrap">
             <input value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Search employee..."
-              className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-48" />
+              className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary w-48" />
             <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div className="flex gap-2">
             {['All', 'Present', 'Absent', 'Late', 'On Leave'].map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition
-                  ${statusFilter === s ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                  ${statusFilter === s ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
                 {s}
               </button>
             ))}
@@ -199,7 +199,7 @@ function Attendance() {
                     <td className="px-6 py-4"><Badge status={record.status} /></td>
                     <td className="px-6 py-4">
                       <button onClick={() => openEdit(record)}
-                        className="text-xs text-blue-600 hover:underline font-medium">Edit</button>
+                        className="text-xs text-primary hover:underline font-medium">Edit</button>
                     </td>
                   </tr>
                 ))
@@ -219,7 +219,7 @@ function Attendance() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
               <select value={markForm.user_id} onChange={(e) => setMarkForm({ ...markForm, user_id: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                 {employees.map(emp => (
                   <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name}</option>
                 ))}
@@ -228,12 +228,12 @@ function Attendance() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
               <input type="date" value={markForm.date} onChange={(e) => setMarkForm({ ...markForm, date: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select value={markForm.status} onChange={(e) => setMarkForm({ ...markForm, status: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                 <option>Present</option>
                 <option>Absent</option>
                 <option>Late</option>
@@ -245,19 +245,19 @@ function Attendance() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Clock In</label>
                   <input type="time" value={markForm.clock_in} onChange={(e) => setMarkForm({ ...markForm, clock_in: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Clock Out</label>
                   <input type="time" value={markForm.clock_out} onChange={(e) => setMarkForm({ ...markForm, clock_out: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
               </div>
             )}
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleMarkAttendance}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition">
               Save Attendance
             </button>
             <button onClick={() => setShowMarkModal(false)}
@@ -278,7 +278,7 @@ function Attendance() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                 <option>Present</option>
                 <option>Absent</option>
                 <option>Late</option>
@@ -290,19 +290,19 @@ function Attendance() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Clock In</label>
                 <input type="text" value={editForm.clock_in} onChange={(e) => setEditForm({ ...editForm, clock_in: e.target.value })}
                   placeholder="09:00"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Clock Out</label>
                 <input type="text" value={editForm.clock_out} onChange={(e) => setEditForm({ ...editForm, clock_out: e.target.value })}
                   placeholder="18:00"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleEditSave}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition">
               Save Changes
             </button>
             <button onClick={() => setShowEditModal(false)}

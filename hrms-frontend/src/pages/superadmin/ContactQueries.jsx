@@ -5,7 +5,7 @@ function Badge({ status }) {
   const styles = {
     'Unread':  'bg-yellow-50 text-yellow-600',
     'Read':    'bg-gray-100 text-gray-500',
-    'Replied': 'bg-blue-50 text-blue-600',
+    'Replied': 'bg-amber-50 text-amber-700',
   }
   return (
     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
@@ -147,7 +147,7 @@ function ContactQueries() {
                     </td>
                     <td className="px-6 py-4">
                       <button onClick={() => openQuery(query)}
-                        className="text-xs text-blue-600 hover:underline font-medium">View</button>
+                        className="text-xs text-primary hover:underline font-medium">View</button>
                     </td>
                   </tr>
                 ))

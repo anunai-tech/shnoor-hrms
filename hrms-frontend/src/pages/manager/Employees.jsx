@@ -30,8 +30,8 @@ function Avatar({ emp, size = 'sm' }) {
     )
   }
   return (
-    <div className={`${sizeClass} bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0`}>
-      <span className="text-blue-600 font-bold">{emp?.first_name?.charAt(0)}</span>
+    <div className={`${sizeClass} bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0`}>
+      <span className="text-primary font-bold">{emp?.first_name?.charAt(0)}</span>
     </div>
   )
 }
@@ -107,46 +107,46 @@ function Employees() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
           <input name="first_name" value={formData.first_name} onChange={handleFormChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
           <input name="last_name" value={formData.last_name} onChange={handleFormChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input name="email" value={formData.email} onChange={handleFormChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
         <input name="phone" value={formData.phone} onChange={handleFormChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
           <input name="department" value={formData.department} onChange={handleFormChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
           <input name="designation" value={formData.designation} onChange={handleFormChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Joining Date</label>
         <input name="joining_date" type="date" value={formData.joining_date} onChange={handleFormChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
         <input name="password" type="password" value={formData.password} onChange={handleFormChange}
           placeholder="Set initial password"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
     </div>
   )
@@ -161,7 +161,7 @@ function Employees() {
           <p className="text-sm text-gray-400 mt-1">Manage your company employees</p>
         </div>
         <button onClick={() => setShowAddModal(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          className="bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
           + Add Employee
         </button>
       </div>
@@ -172,7 +172,7 @@ function Employees() {
         <div className="px-6 py-4 border-b border-gray-100">
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, email or department..."
-            className="w-full max-w-sm border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-full max-w-sm border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -210,7 +210,7 @@ function Employees() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button onClick={() => { setSelectedEmployee(emp); setShowViewModal(true) }}
-                          className="text-xs text-blue-600 hover:underline font-medium">View</button>
+                          className="text-xs text-primary hover:underline font-medium">View</button>
                         <span className="text-gray-300">|</span>
                         <button onClick={() => toggleStatus(emp)}
                           className={`text-xs font-medium hover:underline ${emp.is_active ? 'text-yellow-500' : 'text-green-600'}`}>
@@ -236,7 +236,7 @@ function Employees() {
         <Modal title="Add New Employee" onClose={() => setShowAddModal(false)}>
           {formFields}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleAdd} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Employee</button>
+            <button onClick={handleAdd} className="flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Employee</button>
             <button onClick={() => setShowAddModal(false)} className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
           </div>
         </Modal>

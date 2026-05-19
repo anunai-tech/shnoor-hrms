@@ -68,13 +68,13 @@ function CompanyPolicies() {
         <label className="block text-sm font-medium text-gray-700 mb-1">Policy Title</label>
         <input name="title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
           placeholder="e.g. Leave Policy"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Policy Content</label>
         <textarea name="content" value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})}
           placeholder="Write the full policy details here..." rows={6}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
       </div>
     </div>
   )
@@ -89,13 +89,13 @@ function CompanyPolicies() {
           <p className="text-sm text-gray-400 mt-1">Manage and share company policies</p>
         </div>
         <button onClick={() => setShowAddModal(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          className="bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
           + Add Policy
         </button>
       </div>
 
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search policies..."
-        className="w-full max-w-sm border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        className="w-full max-w-sm border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filtered.length === 0 ? (
@@ -109,7 +109,7 @@ function CompanyPolicies() {
                 <p className="text-xs text-gray-400">{new Date(policy.created_at).toLocaleDateString('en-GB')}</p>
                 <div className="flex items-center gap-3">
                   <button onClick={() => { setSelectedPolicy(policy); setShowViewModal(true) }}
-                    className="text-xs text-blue-600 hover:underline font-medium">View</button>
+                    className="text-xs text-primary hover:underline font-medium">View</button>
                   <span className="text-gray-300">|</span>
                   <button onClick={() => { setSelectedPolicy(policy); setShowDeleteModal(true) }}
                     className="text-xs text-red-500 hover:underline font-medium">Delete</button>
@@ -124,7 +124,7 @@ function CompanyPolicies() {
         <Modal title="Add New Policy" onClose={() => setShowAddModal(false)}>
           {formFields}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleAdd} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Policy</button>
+            <button onClick={handleAdd} className="flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Policy</button>
             <button onClick={() => setShowAddModal(false)} className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
           </div>
         </Modal>

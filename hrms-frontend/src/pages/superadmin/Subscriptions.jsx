@@ -135,7 +135,7 @@ function Subscriptions() {
                   <td className="px-6 py-4 text-sm text-gray-600">{plan.max_users}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => openEdit(plan)} className="text-xs text-blue-600 hover:underline font-medium">Edit</button>
+                      <button onClick={() => openEdit(plan)} className="text-xs text-primary hover:underline font-medium">Edit</button>
                       {plan.name !== 'Default' && (
                         <>
                           <span className="text-gray-300">|</span>

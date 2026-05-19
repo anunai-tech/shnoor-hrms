@@ -28,8 +28,8 @@ function PrivacyPolicy() {
         <div className="mb-12">
           <h1 className="text-4xl font-black text-gray-900 mb-4">Privacy Policy</h1>
           <p className="text-gray-500 text-sm">Last updated: April 08, 2026</p>
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-            <p className="text-sm text-blue-700">
+          <div className="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <p className="text-sm text-amber-800">
               This Privacy Policy describes how SHNOOR INTERNATIONAL LLC ("we", "us", or "our")
               collects, uses, and protects your personal information when you use the SHNOOR HRMS
               platform ("Service"). Please read this policy carefully.
@@ -174,9 +174,9 @@ function PrivacyPolicy() {
           </p>
           <div className="flex justify-center gap-6 mt-4">
             <button onClick={() => navigate('/')}
-              className="text-sm text-blue-600 hover:underline">Home</button>
+              className="text-sm text-primary hover:underline">Home</button>
             <button onClick={() => navigate('/terms')}
-              className="text-sm text-blue-600 hover:underline">Terms & Conditions</button>
+              className="text-sm text-primary hover:underline">Terms & Conditions</button>
           </div>
         </div>
 

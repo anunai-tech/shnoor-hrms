@@ -60,7 +60,7 @@ function ManagerSettings() {
           </div>
           <div>
             <label className="block text-xs text-gray-400 font-medium mb-1">Role</label>
-            <span className="inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">Manager</span>
+            <span className="inline-block bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">Manager</span>
           </div>
         </div>
       </div>
@@ -74,11 +74,11 @@ function ManagerSettings() {
             <div key={name}>
               <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
               <input type="password" name={name} value={passwordData[name]} onChange={handlePasswordChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
           ))}
           <button onClick={handlePasswordSave} disabled={saving}
-            className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition">
+            className="bg-primary hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition">
             {saving ? 'Updating...' : 'Update Password'}
           </button>
         </div>

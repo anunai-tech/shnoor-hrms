@@ -65,7 +65,7 @@ function ManagerExpenses() {
         <div className="px-6 py-4 border-b border-gray-100 flex gap-2">
           {['All', 'Pending', 'Approved', 'Rejected'].map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition ${statusFilter === s ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition ${statusFilter === s ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
               {s}
             </button>
           ))}
@@ -99,7 +99,7 @@ function ManagerExpenses() {
                     <td className="px-6 py-4 text-sm text-gray-400">{new Date(exp.created_at).toLocaleDateString('en-GB')}</td>
                     <td className="px-6 py-4">
                       <button onClick={() => { setSelectedExpense(exp); setShowViewModal(true) }}
-                        className="text-xs text-blue-600 hover:underline font-medium">View</button>
+                        className="text-xs text-primary hover:underline font-medium">View</button>
                     </td>
                   </tr>
                 ))

@@ -85,7 +85,7 @@ function EmployeeLayout({ children }) {
             <NavLink key={item.path} to={item.path} onClick={handleNavClick}
               className={({ isActive }) => `
                 flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200
-                ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}
+                ${isActive ? 'bg-amber-50 text-primary' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}
               `}>
               <span>{item.label}</span>
               {item.path === '/employee/chat' && unreadCount > 0 && (
@@ -123,7 +123,7 @@ function EmployeeLayout({ children }) {
               <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
             </div>
             <button onClick={() => navigate('/employee/profile')}
-              className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+              className="w-9 h-9 rounded-full bg-primary flex items-center justify-center overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
               {user?.profile_photo ? (
                 <img src={user.profile_photo} alt="avatar" className="w-full h-full object-cover" />
               ) : (

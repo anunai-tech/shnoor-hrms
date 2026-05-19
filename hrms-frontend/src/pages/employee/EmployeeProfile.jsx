@@ -66,13 +66,13 @@ function EmployeeProfile() {
         </div>
         {!isEditing ? (
           <button onClick={() => setIsEditing(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+            className="bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
             Edit Profile
           </button>
         ) : (
           <div className="flex gap-3">
             <button onClick={handleSave} disabled={saving}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+              className="bg-primary hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <button onClick={() => setIsEditing(false)}
@@ -88,14 +88,14 @@ function EmployeeProfile() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-100">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-amber-100 flex items-center justify-center">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-blue-600 font-black text-4xl">{formData.first_name?.charAt(0) || 'E'}</span>
+                <span className="text-primary font-black text-4xl">{formData.first_name?.charAt(0) || 'E'}</span>
               )}
             </div>
-            <label className="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition">
+            <label className="absolute bottom-0 right-0 w-7 h-7 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition">
               <span className="text-white text-xs font-bold">+</span>
               <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
             </label>
@@ -103,7 +103,7 @@ function EmployeeProfile() {
           <div>
             <p className="text-xl font-bold text-gray-800">{formData.first_name} {formData.last_name}</p>
             <p className="text-sm text-gray-400">{user?.email}</p>
-            <span className="inline-block mt-2 bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">Employee</span>
+            <span className="inline-block mt-2 bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">Employee</span>
           </div>
         </div>
 
@@ -113,7 +113,7 @@ function EmployeeProfile() {
               <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
               {isEditing ? (
                 <input name={name} value={formData[name]} onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
               ) : (
                 <p className="text-sm text-gray-700">{formData[name] || '—'}</p>
               )}

@@ -76,7 +76,7 @@ function ManagerDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-800">Pending Leaves</h2>
-            <a href="/manager/leaves" className="text-xs text-blue-600 hover:underline font-medium">View all</a>
+            <a href="/manager/leaves" className="text-xs text-primary hover:underline font-medium">View all</a>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -109,7 +109,7 @@ function ManagerDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-800">Pending Expenses</h2>
-            <a href="/manager/expenses" className="text-xs text-blue-600 hover:underline font-medium">View all</a>
+            <a href="/manager/expenses" className="text-xs text-primary hover:underline font-medium">View all</a>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">

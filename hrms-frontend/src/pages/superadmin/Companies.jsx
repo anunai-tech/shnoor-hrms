@@ -213,7 +213,7 @@ function Companies() {
                     <td className="px-6 py-4 text-sm text-gray-400">{new Date(company.created_at).toLocaleDateString('en-GB')}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => openEdit(company)} className="text-xs text-blue-600 hover:underline font-medium">Edit</button>
+                        <button onClick={() => openEdit(company)} className="text-xs text-primary hover:underline font-medium">Edit</button>
                         <span className="text-gray-300">|</span>
                         <button onClick={() => openDelete(company)} className="text-xs text-red-500 hover:underline font-medium">Delete</button>
                       </div>
