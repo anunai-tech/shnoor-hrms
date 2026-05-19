@@ -3,8 +3,8 @@ import { getSalaries, upsertSalary, runPayroll } from '../../services/managerSer
 
 // Month names for the Run Payroll modal
 const MONTHS = [
-  'January','February','March','April','May','June',
-  'July','August','September','October','November','December'
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
 function Modal({ title, onClose, children }) {
@@ -102,17 +102,17 @@ function SalaryManagement() {
 
   const editFormFields = (
     <div className="space-y-4">
-      {[['basic','Basic Salary'],['hra','HRA'],['transport','Transport'],['other_allowance','Other Allowance'],['deductions','Deductions']].map(([name, label]) => (
+      {[['basic', 'Basic Salary'], ['hra', 'HRA'], ['transport', 'Transport'], ['other_allowance', 'Other Allowance'], ['deductions', 'Deductions']].map(([name, label]) => (
         <div key={name}>
           <label className="font-display block text-sm font-medium text-gray-700 mb-1">{label} (₹)</label>
           <input name={name} type="number" value={formData[name]}
-            onChange={e => setFormData({...formData, [e.target.name]: e.target.value})}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            onChange={e => setFormData({ ...formData, [e.target.name]: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       ))}
-      <div className="bg-blue-50 rounded-lg p-4">
+      <div className="bg-amber-50 rounded-lg p-4">
         <p className="font-display text-sm font-medium text-gray-700">Net Pay Preview</p>
-        <p className="text-2xl font-bold text-blue-600 mt-1">₹{isNaN(netPay) ? 0 : netPay.toLocaleString('en-IN')}</p>
+        <p className="text-2xl font-bold text-primary mt-1">₹{isNaN(netPay) ? 0 : netPay.toLocaleString('en-IN')}</p>
       </div>
       {editError && <p className="text-red-500 text-sm">{editError}</p>}
     </div>
@@ -131,7 +131,7 @@ function SalaryManagement() {
         </div>
         <button
           onClick={() => { setPayrollSuccess(''); setPayrollError(''); setShowPayrollModal(true) }}
-          className="font-display bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
+          className="font-display bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
         >
           Run Payroll
         </button>
@@ -141,7 +141,7 @@ function SalaryManagement() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-100">
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or department..."
-            className="w-full max-w-sm border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-full max-w-sm border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -161,14 +161,14 @@ function SalaryManagement() {
                 <tr><td colSpan="7" className="font-body text-center py-10 text-sm text-gray-400">No records found</td></tr>
               ) : (
                 filtered.map((emp, index) => (
-                  <tr key={emp.user_id} className={`border-b border-gray-50 hover:bg-gray-50 transition ${emp.role === 'manager' ? 'bg-blue-50/30' : ''}`}>
+                  <tr key={emp.user_id} className={`border-b border-gray-50 hover:bg-gray-50 transition ${emp.role === 'manager' ? 'bg-amber-50/30' : ''}`}>
                     <td className="px-6 py-4 text-sm text-gray-400">{index + 1}</td>
                     <td className="px-6 py-4">
                       <p className="font-display text-sm font-medium text-gray-800">{emp.first_name} {emp.last_name}</p>
                       <p className="text-xs text-gray-400">{emp.designation}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${emp.role === 'manager' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${emp.role === 'manager' ? 'bg-amber-100 text-primary' : 'bg-gray-100 text-gray-600'}`}>
                         {emp.role === 'manager' ? 'You (Manager)' : 'Employee'}
                       </span>
                     </td>
@@ -178,10 +178,10 @@ function SalaryManagement() {
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         <button onClick={() => { setSelectedEmployee(emp); setShowViewModal(true) }}
-                          className="text-xs text-blue-600 hover:underline font-medium">View</button>
+                          className="text-xs text-primary hover:underline font-medium">View</button>
                         <span className="text-gray-300">|</span>
                         <button onClick={() => openEdit(emp)}
-                          className="text-xs text-blue-600 hover:underline font-medium">Edit</button>
+                          className="text-xs text-primary hover:underline font-medium">Edit</button>
                       </div>
                     </td>
                   </tr>
@@ -199,7 +199,7 @@ function SalaryManagement() {
             <p className="font-display text-base font-semibold text-gray-800">{selectedEmployee.first_name} {selectedEmployee.last_name}</p>
             <p className="font-body text-sm text-gray-400">{selectedEmployee.designation} — {selectedEmployee.department}</p>
             <div className="space-y-2 pt-2">
-              {[['Basic Salary', selectedEmployee.basic],['HRA', selectedEmployee.hra],['Transport', selectedEmployee.transport],['Other Allowance', selectedEmployee.other_allowance]].map(([label, val]) => (
+              {[['Basic Salary', selectedEmployee.basic], ['HRA', selectedEmployee.hra], ['Transport', selectedEmployee.transport], ['Other Allowance', selectedEmployee.other_allowance]].map(([label, val]) => (
                 <div key={label} className="flex justify-between text-sm">
                   <span className="text-gray-500">{label}</span>
                   <span className="text-gray-700">₹{Number(val || 0).toLocaleString('en-IN')}</span>
@@ -209,9 +209,9 @@ function SalaryManagement() {
                 <span className="text-red-500">Deductions</span>
                 <span className="text-red-500">- ₹{Number(selectedEmployee.deductions || 0).toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold bg-blue-50 rounded-lg px-3 py-2">
-                <span className="text-blue-700">Net Pay</span>
-                <span className="text-blue-700">₹{Number(selectedEmployee.net_pay || 0).toLocaleString('en-IN')}</span>
+              <div className="flex justify-between text-sm font-bold bg-amber-50 rounded-lg px-3 py-2">
+                <span className="text-amber-700">Net Pay</span>
+                <span className="text-amber-700">₹{Number(selectedEmployee.net_pay || 0).toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -225,58 +225,59 @@ function SalaryManagement() {
         <Modal title={`Edit Salary — ${selectedEmployee.first_name} ${selectedEmployee.last_name}`} onClose={() => setShowEditModal(false)}>
           {editFormFields}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleSave} className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Save</button>
-            <button onClick={() => setShowEditModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
-          </div>
-        </Modal>
-      )}
+            <button onClick={handleSave} className="font-display flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition">Save</button>
+            <button onClick={() => setShowEditModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>          </div >
+        </Modal >
+      )
+      }
 
       {/* Run Payroll Modal */}
-      {showPayrollModal && (
-        <Modal title="Run Payroll" onClose={() => setShowPayrollModal(false)}>
-          <div className="space-y-5">
-            <p className="font-body text-sm text-gray-500">
-              This will generate payslips for <strong>all employees and yourself</strong> based on their current salary structure for the selected month.
-              If payslips already exist for this month, they will be updated.
-            </p>
+      {
+        showPayrollModal && (
+          <Modal title="Run Payroll" onClose={() => setShowPayrollModal(false)}>
+            <div className="space-y-5">
+              <p className="font-body text-sm text-gray-500">
+                This will generate payslips for <strong>all employees and yourself</strong> based on their current salary structure for the selected month.
+                If payslips already exist for this month, they will be updated.
+              </p>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Month</label>
-                <select value={payrollMonth} onChange={e => setPayrollMonth(Number(e.target.value))}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                  {MONTHS.map((m, i) => (
-                    <option key={i+1} value={i+1}>{m}</option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Month</label>
+                  <select value={payrollMonth} onChange={e => setPayrollMonth(Number(e.target.value))}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                    {MONTHS.map((m, i) => (
+                      <option key={i + 1} value={i + 1}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Year</label>
+                  <select value={payrollYear} onChange={e => setPayrollYear(Number(e.target.value))}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                    {[2024, 2025, 2026, 2027].map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Year</label>
-                <select value={payrollYear} onChange={e => setPayrollYear(Number(e.target.value))}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                  {[2024, 2025, 2026, 2027].map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+
+              {payrollError && <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">{payrollError}</div>}
+              {payrollSuccess && <div className="font-body bg-green-50 border border-green-200 text-green-600 text-sm rounded-lg px-4 py-3">✓ {payrollSuccess}</div>}
+
+              <div className="flex gap-3">
+                <button onClick={handleRunPayroll} disabled={payrollRunning}
+                  className="font-display flex-1 bg-primary hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold py-2.5 rounded-lg transition">            {payrollRunning ? 'Generating...' : `Generate Payslips for ${MONTHS[payrollMonth - 1]} ${payrollYear}`}
+                </button>
+                <button onClick={() => setShowPayrollModal(false)}
+                  className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Close</button>
               </div>
             </div>
+          </Modal>
+        )
+      }
 
-            {payrollError && <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">{payrollError}</div>}
-            {payrollSuccess && <div className="font-body bg-green-50 border border-green-200 text-green-600 text-sm rounded-lg px-4 py-3">✓ {payrollSuccess}</div>}
-
-            <div className="flex gap-3">
-              <button onClick={handleRunPayroll} disabled={payrollRunning}
-                className="font-display flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
-                {payrollRunning ? 'Generating...' : `Generate Payslips for ${MONTHS[payrollMonth-1]} ${payrollYear}`}
-              </button>
-              <button onClick={() => setShowPayrollModal(false)}
-                className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Close</button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-    </div>
+    </div >
   )
 }
 

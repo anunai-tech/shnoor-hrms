@@ -7,7 +7,6 @@
   --color-secondary: #FCD34D;
   --color-tertiary: #111827;
   --color-quaternary: #FFFFFF;
-
   /* Semantic font tokens — use font-display and font-body as Tailwind classes */
   --font-display: 'Poppins', sans-serif;
   --font-body: 'Inter', sans-serif;

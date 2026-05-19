@@ -3,7 +3,7 @@ import { getCompanies, createCompany, updateCompany, deleteCompany, getSubscript
 
 function Badge({ status }) {
   const styles = {
-    'true':  'bg-green-50 text-green-600',
+    'true': 'bg-green-50 text-green-600',
     'false': 'bg-red-50 text-red-500',
   }
   return (
@@ -214,8 +214,7 @@ function Companies() {
                     <td className="font-body px-6 py-4 text-sm text-gray-400">{new Date(company.created_at).toLocaleDateString('en-GB')}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => openEdit(company)} className="font-display text-xs text-blue-600 hover:underline font-medium">Edit</button>
-                        <span className="text-gray-300">|</span>
+                        <button onClick={() => openEdit(company)} className="font-display text-xs text-primary hover:underline font-medium">Edit</button>                        <span className="text-gray-300">|</span>
                         <button onClick={() => openDelete(company)} className="font-display text-xs text-red-500 hover:underline font-medium">Delete</button>
                       </div>
                     </td>

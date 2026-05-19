@@ -79,9 +79,8 @@ function LoginPage() {
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
 
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="font-display block text-sm font-medium text-gray-700 mb-1">
               Email Address

@@ -62,7 +62,7 @@ async function generateLetterPDF(letter, user) {
 const TYPE_COLORS = {
   'Warning Letter': 'bg-red-50 text-red-600',
   'Appreciation Letter': 'bg-green-50 text-green-600',
-  'Offer Letter': 'bg-blue-50 text-blue-600',
+  'Offer Letter': 'bg-amber-50 text-amber-700',
   'Appointment Letter': 'bg-purple-50 text-purple-600',
 }
 

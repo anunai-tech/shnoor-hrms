@@ -95,7 +95,7 @@ function ChatWindow({
           <div className="flex flex-wrap gap-2">
             {quickQuestions.map(question => (
               <button key={question.id} type="button" onClick={() => onQuickQuestion(question.text)}
-                className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 transition hover:border-blue-300 hover:text-blue-600">
+                className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 transition hover:border-primary hover:text-primary">
                 {question.text}
               </button>
             ))}
@@ -148,11 +148,11 @@ function ChatWindow({
                     {isEditing ? (
                       <div className="flex flex-col gap-2 min-w-[200px]">
                         <textarea value={editInputValue} onChange={(e) => setEditInputValue(e.target.value)}
-                          className="w-full text-sm border border-blue-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none bg-slate-50"
+                          className="w-full text-sm border border-primary rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-amber-100 resize-none bg-slate-50"
                           rows={3} autoFocus />
                         <div className="flex gap-2 justify-end mt-1">
                           <button onClick={() => setEditingMessageId(null)} className="text-xs text-slate-500 hover:text-slate-700 font-medium px-2 py-1">Cancel</button>
-                          <button onClick={() => handleEditSave(message.id)} className="text-xs bg-blue-600 text-white rounded-lg px-3 py-1.5 font-semibold hover:bg-blue-700 transition">Save Changes</button>
+                          <button onClick={() => handleEditSave(message.id)} className="text-xs bg-primary text-white rounded-lg px-3 py-1.5 font-semibold hover:opacity-90 transition">Save Changes</button>
                         </div>
                       </div>
                     ) : (

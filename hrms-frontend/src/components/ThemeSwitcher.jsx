@@ -34,7 +34,7 @@ export default function ThemeSwitcher() {
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
           {themes.map((t) => (
             <button key={t.id} onClick={() => { changeTheme(t.id); setIsOpen(false); }}
-              className={`font-display w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 transition-colors ${theme === t.id ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'}`}>
+              className={`font-display w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 transition-colors ${theme === t.id ? 'bg-amber-50 text-primary font-medium' : 'text-gray-700'}`}>
               <span className={`w-4 h-4 rounded-full border mr-3 ${t.color}`}></span>
               {t.label}
             </button>
