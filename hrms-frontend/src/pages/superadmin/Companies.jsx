@@ -7,7 +7,7 @@ function Badge({ status }) {
     'false': 'bg-red-50 text-red-500',
   }
   return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[String(status)] || 'bg-gray-100 text-gray-500'}`}>
+    <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${styles[String(status)] || 'bg-gray-100 text-gray-500'}`}>
       {status ? 'Active' : 'Inactive'}
     </span>
   )
@@ -18,8 +18,8 @@ function Modal({ title, onClose, children }) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-gray-800">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
+          <h3 className="font-display text-base font-semibold text-gray-800">{title}</h3>
+          <button onClick={onClose} className="font-display text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
         </div>
         <div className="px-6 py-5">{children}</div>
       </div>
@@ -117,27 +117,26 @@ function Companies() {
     }
   }
 
-  
   const formFields = (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+        <label className="font-display block text-sm font-medium text-gray-700 mb-1">Company Name</label>
         <input name="name" value={formData.name} onChange={handleFormChange}
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label className="font-display block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input name="email" value={formData.email} onChange={handleFormChange}
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+        <label className="font-display block text-sm font-medium text-gray-700 mb-1">Phone</label>
         <input name="phone" value={formData.phone} onChange={handleFormChange}
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+          <label className="font-display block text-sm font-medium text-gray-700 mb-1">Plan</label>
           <select name="subscription_id" value={formData.subscription_id} onChange={handleFormChange}
             className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
             <option value="">Select plan</option>
@@ -145,7 +144,7 @@ function Companies() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="font-display block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select name="is_active" value={String(formData.is_active)} onChange={handleFormChange}
             className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
             <option value="true">Active</option>
@@ -156,23 +155,25 @@ function Companies() {
     </div>
   )
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
+
+      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Companies</h1>
-          <p className="text-sm text-gray-400 mt-1">Manage all registered companies</p>
+          <h1 className="font-display text-2xl font-bold text-gray-800">Companies</h1>
+          <p className="font-body text-sm text-gray-400 mt-1">Manage all registered companies</p>
         </div>
         <button onClick={() => setShowAddModal(true)}
-          className="bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          className="font-display bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
           + Add Company
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">
+        <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">
           {error}
         </div>
       )}
@@ -187,35 +188,35 @@ function Companies() {
           <table className="w-full">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 font-medium">#</th>
-                <th className="text-left px-6 py-3 font-medium">Company</th>
-                <th className="text-left px-6 py-3 font-medium">Phone</th>
-                <th className="text-left px-6 py-3 font-medium">Plan</th>
-                <th className="text-left px-6 py-3 font-medium">Status</th>
-                <th className="text-left px-6 py-3 font-medium">Joined</th>
-                <th className="text-left px-6 py-3 font-medium">Actions</th>
+                <th className="font-display text-left px-6 py-3 font-medium">#</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Company</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Phone</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Plan</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Status</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Joined</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan="7" className="text-center py-10 text-sm text-gray-400">No companies found</td></tr>
+                <tr><td colSpan="7" className="font-body text-center py-10 text-sm text-gray-400">No companies found</td></tr>
               ) : (
                 filtered.map((company, index) => (
                   <tr key={company.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm text-gray-400">{index + 1}</td>
+                    <td className="font-body px-6 py-4 text-sm text-gray-400">{index + 1}</td>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-gray-800">{company.name}</p>
-                      <p className="text-xs text-gray-400">{company.email}</p>
+                      <p className="font-display text-sm font-medium text-gray-800">{company.name}</p>
+                      <p className="font-body text-xs text-gray-400">{company.email}</p>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{company.phone}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{company.subscription_name || 'Default'}</td>
+                    <td className="font-body px-6 py-4 text-sm text-gray-500">{company.phone}</td>
+                    <td className="font-body px-6 py-4 text-sm text-gray-500">{company.subscription_name || 'Default'}</td>
                     <td className="px-6 py-4"><Badge status={company.is_active} /></td>
-                    <td className="px-6 py-4 text-sm text-gray-400">{new Date(company.created_at).toLocaleDateString('en-GB')}</td>
+                    <td className="font-body px-6 py-4 text-sm text-gray-400">{new Date(company.created_at).toLocaleDateString('en-GB')}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => openEdit(company)} className="text-xs text-blue-600 hover:underline font-medium">Edit</button>
+                        <button onClick={() => openEdit(company)} className="font-display text-xs text-blue-600 hover:underline font-medium">Edit</button>
                         <span className="text-gray-300">|</span>
-                        <button onClick={() => openDelete(company)} className="text-xs text-red-500 hover:underline font-medium">Delete</button>
+                        <button onClick={() => openDelete(company)} className="font-display text-xs text-red-500 hover:underline font-medium">Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -225,7 +226,7 @@ function Companies() {
           </table>
         </div>
         <div className="px-6 py-3 border-t border-gray-100">
-          <p className="text-xs text-gray-400">Showing {filtered.length} of {companies.length} companies</p>
+          <p className="font-body text-xs text-gray-400">Showing {filtered.length} of {companies.length} companies</p>
         </div>
       </div>
 
@@ -233,8 +234,8 @@ function Companies() {
         <Modal title="Add New Company" onClose={() => setShowAddModal(false)}>
           {formFields}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleAdd} className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Company</button>
-            <button onClick={() => setShowAddModal(false)} className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+            <button onClick={handleAdd} className="font-display flex-1 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Company</button>
+            <button onClick={() => setShowAddModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
           </div>
         </Modal>
       )}
@@ -243,18 +244,18 @@ function Companies() {
         <Modal title="Edit Company" onClose={() => setShowEditModal(false)}>
           {formFields}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleEdit} className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold py-2.5 rounded-lg transition">Save Changes</button>
-            <button onClick={() => setShowEditModal(false)} className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+            <button onClick={handleEdit} className="font-display flex-1 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold py-2.5 rounded-lg transition">Save Changes</button>
+            <button onClick={() => setShowEditModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
           </div>
         </Modal>
       )}
 
       {showDeleteModal && (
         <Modal title="Delete Company" onClose={() => setShowDeleteModal(false)}>
-          <p className="text-sm text-gray-600">Are you sure you want to delete <span className="font-semibold text-gray-800">{selectedCompany?.name}</span>?</p>
+          <p className="font-body text-sm text-gray-600">Are you sure you want to delete <span className="font-display font-semibold text-gray-800">{selectedCompany?.name}</span>?</p>
           <div className="flex gap-3 mt-6">
-            <button onClick={handleDelete} className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Delete</button>
-            <button onClick={() => setShowDeleteModal(false)} className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+            <button onClick={handleDelete} className="font-display flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Delete</button>
+            <button onClick={() => setShowDeleteModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
           </div>
         </Modal>
       )}

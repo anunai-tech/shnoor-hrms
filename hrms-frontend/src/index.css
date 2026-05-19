@@ -1,7 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
 @import 'tailwindcss';
 
+@theme {
+  --color-primary: #D97706;
+  --color-secondary: #FCD34D;
+  --color-tertiary: #111827;
+  --color-quaternary: #FFFFFF;
+
+  /* Semantic font tokens — use font-display and font-body as Tailwind classes */
+  --font-display: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
 @layer base {
-  /* DARK THEME */
+  /* Everything defaults to Inter (body font) */
+  * {
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Native headings default to Poppins */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+
   [data-theme="dark"] {
     --color-white: #1f2937;
     --color-gray-50: #111827;
@@ -14,44 +36,38 @@
     --color-gray-700: #f3f4f6;
     --color-gray-800: #f9fafb;
     --color-gray-900: #ffffff;
-    
-    
     --color-blue-50: rgba(59, 130, 246, 0.15);
   }
 
-  /* BLUE THEME */
   [data-theme="blue"] {
-    --color-white: #0f172a; 
-    --color-gray-50: #020617; 
-    --color-gray-100: #020617; 
-    --color-gray-200: #1e293b; 
-    --color-gray-300: #334155; 
-    --color-gray-400: #94a3b8; 
-    --color-gray-500: #cbd5e1; 
-    --color-gray-600: #e2e8f0; 
-    --color-gray-700: #f1f5f9; 
-    --color-gray-800: #f8fafc; 
+    --color-white: #0f172a;
+    --color-gray-50: #020617;
+    --color-gray-100: #020617;
+    --color-gray-200: #1e293b;
+    --color-gray-300: #334155;
+    --color-gray-400: #94a3b8;
+    --color-gray-500: #cbd5e1;
+    --color-gray-600: #e2e8f0;
+    --color-gray-700: #f1f5f9;
+    --color-gray-800: #f8fafc;
     --color-gray-900: #ffffff;
-
     --color-blue-50: rgba(14, 165, 233, 0.15);
     --color-blue-500: #0ea5e9;
     --color-blue-600: #0ea5e9;
   }
 
-  /* GREEN THEME */
   [data-theme="green"] {
-    --color-white: #064e3b; 
-    --color-gray-50: #022c22; 
-    --color-gray-100: #022c22; 
-    --color-gray-200: #065f46; 
-    --color-gray-300: #047857; 
-    --color-gray-400: #34d399; 
-    --color-gray-500: #6ee7b7; 
-    --color-gray-600: #a7f3d0; 
-    --color-gray-700: #d1fae5; 
-    --color-gray-800: #ecfdf5; 
+    --color-white: #064e3b;
+    --color-gray-50: #022c22;
+    --color-gray-100: #022c22;
+    --color-gray-200: #065f46;
+    --color-gray-300: #047857;
+    --color-gray-400: #34d399;
+    --color-gray-500: #6ee7b7;
+    --color-gray-600: #a7f3d0;
+    --color-gray-700: #d1fae5;
+    --color-gray-800: #ecfdf5;
     --color-gray-900: #ffffff;
-
     --color-blue-50: rgba(16, 185, 129, 0.15);
     --color-blue-500: #10b981;
     --color-blue-600: #10b981;

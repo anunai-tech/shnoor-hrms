@@ -146,7 +146,7 @@ function SelfSalary() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   const gross = salary
     ? Number(salary.basic) + Number(salary.hra) + Number(salary.transport) + Number(salary.other_allowance)
@@ -157,8 +157,8 @@ function SelfSalary() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">My Salary</h1>
-        <p className="text-sm text-gray-400 mt-1">Your current salary breakdown and payslip history</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">My Salary</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">Your current salary breakdown and payslip history</p>
       </div>
 
       {!salary ? (
@@ -171,13 +171,13 @@ function SelfSalary() {
           <div className="space-y-3 max-w-md">
             {[['Basic Salary', salary.basic], ['HRA', salary.hra], ['Transport Allowance', salary.transport], ['Other Allowance', salary.other_allowance]].map(([label, val]) => (
               <div key={label} className="flex justify-between items-center py-2 border-b border-gray-50">
-                <span className="text-sm text-gray-600">{label}</span>
-                <span className="text-sm font-medium text-gray-800">₹{Number(val || 0).toLocaleString('en-IN')}</span>
+                <span className="font-body text-sm text-gray-600">{label}</span>
+                <span className="font-display text-sm font-medium text-gray-800">₹{Number(val || 0).toLocaleString('en-IN')}</span>
               </div>
             ))}
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm font-medium text-gray-700">Gross Salary</span>
-              <span className="text-sm font-semibold text-gray-800">₹{Number(gross).toLocaleString('en-IN')}</span>
+              <span className="font-display text-sm font-medium text-gray-700">Gross Salary</span>
+              <span className="font-display text-sm font-semibold text-gray-800">₹{Number(gross).toLocaleString('en-IN')}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="text-sm text-red-500">Deductions</span>
@@ -193,7 +193,7 @@ function SelfSalary() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">Payslip History</h2>
+          <h2 className="font-display text-base font-semibold text-gray-800">Payslip History</h2>
           <p className="text-xs text-gray-400 mt-1">Download your monthly payslips as PDF</p>
         </div>
         {payslips.length === 0 ? (
@@ -205,11 +205,11 @@ function SelfSalary() {
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-3 font-medium">Period</th>
-                  <th className="text-left px-6 py-3 font-medium">Basic</th>
-                  <th className="text-left px-6 py-3 font-medium">Deductions</th>
-                  <th className="text-left px-6 py-3 font-medium">Net Pay</th>
-                  <th className="text-left px-6 py-3 font-medium">Action</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Period</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Basic</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Deductions</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Net Pay</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>

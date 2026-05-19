@@ -5,9 +5,9 @@ import { getContactQueries } from '../../services/superadminService'
 function StatCard({ label, value, change }) {
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <p className="text-sm text-gray-500 font-medium">{label}</p>
-      <p className="text-3xl font-bold text-gray-800 mt-2">{value}</p>
-      <p className="text-xs text-gray-400 mt-1">{change}</p>
+      <p className="font-body text-sm text-gray-500 font-medium">{label}</p>
+      <p className="font-display text-3xl font-bold text-gray-800 mt-2">{value}</p>
+      <p className="font-body text-xs text-gray-400 mt-1">{change}</p>
     </div>
   )
 }
@@ -21,7 +21,7 @@ function Badge({ status }) {
     'Replied':  'bg-blue-50 text-blue-600',
   }
   return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
+    <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
       {status}
     </span>
   )
@@ -65,17 +65,20 @@ function SuperAdminDashboard() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <p className="text-gray-400">Loading...</p>
+      <p className="font-body text-gray-400">Loading...</p>
     </div>
   )
 
   return (
     <div className="space-y-6">
+
+      {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-sm text-gray-400 mt-1">Welcome back, here's what's happening.</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">Dashboard</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">Welcome back, here's what's happening.</p>
       </div>
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <StatCard key={stat.label} label={stat.label} value={stat.value} change={stat.change} />
@@ -84,34 +87,35 @@ function SuperAdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
+        {/* Recent Companies */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-800">Recent Companies</h2>
-            <a href="/superadmin/companies" className="text-xs text-yellow-600 hover:underline font-medium">View all</a>
+            <h2 className="font-display text-base font-semibold text-gray-800">Recent Companies</h2>
+            <a href="/superadmin/companies" className="font-display text-xs text-yellow-600 hover:underline font-medium">View all</a>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-gray-100">
-                  <th className="text-left px-6 py-3 font-medium">Company</th>
-                  <th className="text-left px-6 py-3 font-medium">Status</th>
-                  <th className="text-left px-6 py-3 font-medium">Joined</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Company</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Status</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Joined</th>
                 </tr>
               </thead>
               <tbody>
                 {recentCompanies.length === 0 ? (
-                  <tr><td colSpan="3" className="text-center py-8 text-sm text-gray-400">No companies yet</td></tr>
+                  <tr><td colSpan="3" className="font-body text-center py-8 text-sm text-gray-400">No companies yet</td></tr>
                 ) : (
                   recentCompanies.map((company) => (
                     <tr key={company.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                       <td className="px-6 py-3">
-                        <p className="text-sm font-medium text-gray-700">{company.name}</p>
-                        <p className="text-xs text-gray-400">{company.email}</p>
+                        <p className="font-display text-sm font-medium text-gray-700">{company.name}</p>
+                        <p className="font-body text-xs text-gray-400">{company.email}</p>
                       </td>
                       <td className="px-6 py-3">
                         <Badge status={company.is_active ? 'Active' : 'Inactive'} />
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-400">
+                      <td className="font-body px-6 py-3 text-sm text-gray-400">
                         {new Date(company.created_at).toLocaleDateString('en-GB')}
                       </td>
                     </tr>
@@ -122,31 +126,32 @@ function SuperAdminDashboard() {
           </div>
         </div>
 
+        {/* Recent Contact Queries */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-800">Recent Contact Queries</h2>
-            <a href="/superadmin/contact-queries" className="text-xs text-yellow-600 hover:underline font-medium">View all</a>
+            <h2 className="font-display text-base font-semibold text-gray-800">Recent Contact Queries</h2>
+            <a href="/superadmin/contact-queries" className="font-display text-xs text-yellow-600 hover:underline font-medium">View all</a>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-gray-100">
-                  <th className="text-left px-6 py-3 font-medium">Name</th>
-                  <th className="text-left px-6 py-3 font-medium">Subject</th>
-                  <th className="text-left px-6 py-3 font-medium">Status</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Name</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Subject</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {recentQueries.length === 0 ? (
-                  <tr><td colSpan="3" className="text-center py-8 text-sm text-gray-400">No queries yet</td></tr>
+                  <tr><td colSpan="3" className="font-body text-center py-8 text-sm text-gray-400">No queries yet</td></tr>
                 ) : (
                   recentQueries.map((query) => (
                     <tr key={query.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                       <td className="px-6 py-3">
-                        <p className="text-sm font-medium text-gray-700">{query.name}</p>
-                        <p className="text-xs text-gray-400">{query.email}</p>
+                        <p className="font-display text-sm font-medium text-gray-700">{query.name}</p>
+                        <p className="font-body text-xs text-gray-400">{query.email}</p>
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-500">{query.subject}</td>
+                      <td className="font-body px-6 py-3 text-sm text-gray-500">{query.subject}</td>
                       <td className="px-6 py-3"><Badge status={query.status} /></td>
                     </tr>
                   ))

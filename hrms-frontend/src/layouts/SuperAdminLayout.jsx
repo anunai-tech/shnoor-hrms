@@ -21,13 +21,10 @@ function SuperAdminLayout({ children }) {
   const { user, setUser, logout } = useAuth()
   const navigate = useNavigate()
 
-  // Load profile_photo for avatar on mount
   useEffect(() => {
     api.get('/superadmin/profile')
       .then(res => {
-        if (res.data?.data) {
-          setUser({ ...user, ...res.data.data })
-        }
+        if (res.data?.data) setUser({ ...user, ...res.data.data })
       })
       .catch(() => {})
   }, [])
@@ -58,27 +55,31 @@ function SuperAdminLayout({ children }) {
           onClick={() => setSidebarOpen(false)} />
       )}
 
+      {/* Sidebar */}
       <aside className={`
         fixed md:relative z-30 md:z-auto
         ${sidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full md:w-0 md:translate-x-0'}
         h-full bg-white border-r border-gray-200
         flex flex-col transition-all duration-300 ease-in-out flex-shrink-0 overflow-hidden
       `}>
+
+        {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <img src="/shnoor-logo.png" alt="SHNOOR" className="h-9 w-auto object-contain" />
             <div>
-              <p className="text-sm font-bold text-gray-800 leading-tight">SHNOOR</p>
-              <p className="text-xs text-gray-400 leading-tight">International LLC</p>
+              <p className="font-display text-sm font-bold text-gray-800 leading-tight">SHNOOR</p>
+              <p className="font-body text-xs text-gray-400 leading-tight">International LLC</p>
             </div>
           </div>
         </div>
 
+        {/* Nav */}
         <nav className="flex-1 py-4 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink key={item.path} to={item.path} onClick={handleNavClick}
               className={({ isActive }) => `
-                flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200
+                font-display flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200
                 ${isActive ? 'bg-yellow-50 text-yellow-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}
               `}>
               {item.label}
@@ -86,15 +87,19 @@ function SuperAdminLayout({ children }) {
           ))}
         </nav>
 
+        {/* Logout */}
         <div className="p-4 border-t border-gray-200">
           <button onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-all">
+            className="font-display flex items-center w-full px-4 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-all">
             Logout
           </button>
         </div>
       </aside>
 
+      {/* Main */}
       <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+
+        {/* Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
           <button onClick={() => setSidebarOpen(!sidebarOpen)}
             className="flex flex-col gap-1 p-2 rounded-lg hover:bg-gray-100 transition flex-shrink-0">
@@ -106,17 +111,17 @@ function SuperAdminLayout({ children }) {
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             <ThemeSwitcher />
             <div className="text-right hidden sm:block min-w-0">
-              <p className="text-sm font-semibold text-gray-800 truncate max-w-[120px] md:max-w-none">
+              <p className="font-display text-sm font-semibold text-gray-800 truncate max-w-[120px] md:max-w-none">
                 {user?.first_name} {user?.last_name}
               </p>
-              <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
+              <p className="font-body text-xs text-gray-400 capitalize">{user?.role}</p>
             </div>
             <button onClick={() => navigate('/superadmin/profile')}
               className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2">
               {user?.profile_photo ? (
                 <img src={user.profile_photo} alt="avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-white font-bold text-sm">{user?.first_name?.charAt(0) || 'S'}</span>
+                <span className="font-display text-white font-bold text-sm">{user?.first_name?.charAt(0) || 'S'}</span>
               )}
             </button>
           </div>

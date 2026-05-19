@@ -14,28 +14,28 @@ function SelfHolidays() {
 
   const upcoming = holidays.filter(h => new Date(h.date) >= new Date())
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Holidays</h1>
-        <p className="text-sm text-gray-400 mt-1">{upcoming.length} upcoming holidays</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">Holidays</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">{upcoming.length} upcoming holidays</p>
       </div>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 font-medium">#</th>
-                <th className="text-left px-6 py-3 font-medium">Holiday</th>
-                <th className="text-left px-6 py-3 font-medium">Date</th>
-                <th className="text-left px-6 py-3 font-medium">Day</th>
+                <th className="font-display text-left px-6 py-3 font-medium">#</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Holiday</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Date</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Day</th>
               </tr>
             </thead>
             <tbody>
               {holidays.length === 0 ? (
-                <tr><td colSpan="4" className="text-center py-10 text-sm text-gray-400">No holidays found</td></tr>
+                <tr><td colSpan="4" className="font-body text-center py-10 text-sm text-gray-400">No holidays found</td></tr>
               ) : (
                 holidays.map((h, index) => (
                   <tr key={h.id} className="border-b border-gray-50 hover:bg-gray-50 transition">

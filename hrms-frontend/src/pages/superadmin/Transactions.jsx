@@ -3,7 +3,7 @@ import { getTransactions } from '../../services/superadminService'
 
 function Badge({ status }) {
   const styles = { 'Paid': 'bg-green-50 text-green-600', 'Pending': 'bg-yellow-50 text-yellow-600', 'Failed': 'bg-red-50 text-red-500' }
-  return <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>{status}</span>
+  return <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>{status}</span>
 }
 
 function Transactions() {
@@ -30,31 +30,33 @@ function Transactions() {
   const totalPending = transactions.filter(t => t.status === 'Pending').length
   const totalFailed = transactions.filter(t => t.status === 'Failed').length
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
+
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Transactions</h1>
-        <p className="text-sm text-gray-400 mt-1">View all payment and billing history</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">Transactions</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">View all payment and billing history</p>
       </div>
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Total Revenue</p>
-          <p className="text-2xl font-bold text-gray-800 mt-2">₹{totalRevenue.toLocaleString('en-IN')}</p>
+          <p className="font-body text-xs text-gray-400 font-medium uppercase tracking-wide">Total Revenue</p>
+          <p className="font-display text-2xl font-bold text-gray-800 mt-2">₹{totalRevenue.toLocaleString('en-IN')}</p>
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Paid</p>
-          <p className="text-2xl font-bold text-green-600 mt-2">{totalPaid}</p>
+          <p className="font-body text-xs text-gray-400 font-medium uppercase tracking-wide">Paid</p>
+          <p className="font-display text-2xl font-bold text-green-600 mt-2">{totalPaid}</p>
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Pending</p>
-          <p className="text-2xl font-bold text-yellow-500 mt-2">{totalPending}</p>
+          <p className="font-body text-xs text-gray-400 font-medium uppercase tracking-wide">Pending</p>
+          <p className="font-display text-2xl font-bold text-yellow-500 mt-2">{totalPending}</p>
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Failed</p>
-          <p className="text-2xl font-bold text-red-500 mt-2">{totalFailed}</p>
+          <p className="font-body text-xs text-gray-400 font-medium uppercase tracking-wide">Failed</p>
+          <p className="font-display text-2xl font-bold text-red-500 mt-2">{totalFailed}</p>
         </div>
       </div>
 
@@ -65,7 +67,7 @@ function Transactions() {
           <div className="flex gap-2">
             {['All', 'Paid', 'Pending', 'Failed'].map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition ${statusFilter === s ? 'bg-yellow-400 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                className={`font-display px-4 py-1.5 rounded-lg text-xs font-medium transition ${statusFilter === s ? 'bg-yellow-400 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
                 {s}
               </button>
             ))}
@@ -75,28 +77,28 @@ function Transactions() {
           <table className="w-full">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 font-medium">#</th>
-                <th className="text-left px-6 py-3 font-medium">Company</th>
-                <th className="text-left px-6 py-3 font-medium">Plan</th>
-                <th className="text-left px-6 py-3 font-medium">Amount</th>
-                <th className="text-left px-6 py-3 font-medium">Type</th>
-                <th className="text-left px-6 py-3 font-medium">Status</th>
-                <th className="text-left px-6 py-3 font-medium">Date</th>
+                <th className="font-display text-left px-6 py-3 font-medium">#</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Company</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Plan</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Amount</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Type</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Status</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Date</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan="7" className="text-center py-10 text-sm text-gray-400">No transactions found</td></tr>
+                <tr><td colSpan="7" className="font-body text-center py-10 text-sm text-gray-400">No transactions found</td></tr>
               ) : (
                 filtered.map((t, index) => (
                   <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm text-gray-400">{index + 1}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{t.company_name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{t.plan}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-700">₹{Number(t.amount).toLocaleString('en-IN')}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{t.type}</td>
+                    <td className="font-body px-6 py-4 text-sm text-gray-400">{index + 1}</td>
+                    <td className="font-display px-6 py-4 text-sm font-medium text-gray-800">{t.company_name}</td>
+                    <td className="font-body px-6 py-4 text-sm text-gray-500">{t.plan}</td>
+                    <td className="font-display px-6 py-4 text-sm font-semibold text-gray-700">₹{Number(t.amount).toLocaleString('en-IN')}</td>
+                    <td className="font-body px-6 py-4 text-sm text-gray-500">{t.type}</td>
                     <td className="px-6 py-4"><Badge status={t.status} /></td>
-                    <td className="px-6 py-4 text-sm text-gray-400">{new Date(t.payment_date).toLocaleDateString('en-GB')}</td>
+                    <td className="font-body px-6 py-4 text-sm text-gray-400">{new Date(t.payment_date).toLocaleDateString('en-GB')}</td>
                   </tr>
                 ))
               )}
@@ -104,7 +106,7 @@ function Transactions() {
           </table>
         </div>
         <div className="px-6 py-3 border-t border-gray-100">
-          <p className="text-xs text-gray-400">Showing {filtered.length} of {transactions.length} transactions</p>
+          <p className="font-body text-xs text-gray-400">Showing {filtered.length} of {transactions.length} transactions</p>
         </div>
       </div>
     </div>

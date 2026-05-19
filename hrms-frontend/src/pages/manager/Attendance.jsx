@@ -10,7 +10,7 @@ function Badge({ status }) {
     'On Leave': 'bg-blue-50 text-blue-600',
   }
   return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
+    <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
       {status}
     </span>
   )
@@ -21,7 +21,7 @@ function Modal({ title, onClose, children }) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+          <h3 className="font-display text-base font-semibold text-gray-800">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
         </div>
         <div className="px-6 py-5">{children}</div>
@@ -122,18 +122,18 @@ function Attendance() {
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Attendance</h1>
-          <p className="text-sm text-gray-400 mt-1">View and manage employee attendance records</p>
+          <h1 className="font-display text-2xl font-bold text-gray-800">Attendance</h1>
+          <p className="font-body text-sm text-gray-400 mt-1">View and manage employee attendance records</p>
         </div>
         <button onClick={() => setShowMarkModal(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          className="font-display bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
           + Mark Attendance
         </button>
       </div>
@@ -176,18 +176,18 @@ function Attendance() {
           <table className="w-full">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 font-medium">#</th>
-                <th className="text-left px-6 py-3 font-medium">Employee</th>
-                <th className="text-left px-6 py-3 font-medium">Date</th>
-                <th className="text-left px-6 py-3 font-medium">Clock In</th>
-                <th className="text-left px-6 py-3 font-medium">Clock Out</th>
-                <th className="text-left px-6 py-3 font-medium">Status</th>
-                <th className="text-left px-6 py-3 font-medium">Actions</th>
+                <th className="font-display text-left px-6 py-3 font-medium">#</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Employee</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Date</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Clock In</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Clock Out</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Status</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan="7" className="text-center py-10 text-sm text-gray-400">No records found</td></tr>
+                <tr><td colSpan="7" className="font-body text-center py-10 text-sm text-gray-400">No records found</td></tr>
               ) : (
                 filtered.map((record, index) => (
                   <tr key={record.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
@@ -209,7 +209,7 @@ function Attendance() {
         </div>
 
         <div className="px-6 py-3 border-t border-gray-100">
-          <p className="text-xs text-gray-400">Showing {filtered.length} of {records.length} records</p>
+          <p className="font-body text-xs text-gray-400">Showing {filtered.length} of {records.length} records</p>
         </div>
       </div>
 
@@ -217,7 +217,7 @@ function Attendance() {
         <Modal title="Mark Attendance" onClose={() => setShowMarkModal(false)}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Employee</label>
               <select value={markForm.user_id} onChange={(e) => setMarkForm({ ...markForm, user_id: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                 {employees.map(emp => (
@@ -226,12 +226,12 @@ function Attendance() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Date</label>
               <input type="date" value={markForm.date} onChange={(e) => setMarkForm({ ...markForm, date: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select value={markForm.status} onChange={(e) => setMarkForm({ ...markForm, status: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option>Present</option>
@@ -243,12 +243,12 @@ function Attendance() {
             {(markForm.status === 'Present' || markForm.status === 'Late') && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Clock In</label>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Clock In</label>
                   <input type="time" value={markForm.clock_in} onChange={(e) => setMarkForm({ ...markForm, clock_in: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Clock Out</label>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Clock Out</label>
                   <input type="time" value={markForm.clock_out} onChange={(e) => setMarkForm({ ...markForm, clock_out: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
                 </div>
@@ -257,11 +257,11 @@ function Attendance() {
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleMarkAttendance}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
               Save Attendance
             </button>
             <button onClick={() => setShowMarkModal(false)}
-              className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+              className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
           </div>
@@ -272,11 +272,11 @@ function Attendance() {
         <Modal title="Edit Attendance Record" onClose={() => setShowEditModal(false)}>
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm font-semibold text-gray-800">{selectedRecord.first_name} {selectedRecord.last_name}</p>
+              <p className="font-display text-sm font-semibold text-gray-800">{selectedRecord.first_name} {selectedRecord.last_name}</p>
               <p className="text-xs text-gray-400 mt-1">{formatDate(selectedRecord.date)}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option>Present</option>
@@ -287,13 +287,13 @@ function Attendance() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Clock In</label>
+                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Clock In</label>
                 <input type="text" value={editForm.clock_in} onChange={(e) => setEditForm({ ...editForm, clock_in: e.target.value })}
                   placeholder="09:00"
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Clock Out</label>
+                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Clock Out</label>
                 <input type="text" value={editForm.clock_out} onChange={(e) => setEditForm({ ...editForm, clock_out: e.target.value })}
                   placeholder="18:00"
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
@@ -302,11 +302,11 @@ function Attendance() {
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleEditSave}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
               Save Changes
             </button>
             <button onClick={() => setShowEditModal(false)}
-              className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+              className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
           </div>
