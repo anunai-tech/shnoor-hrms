@@ -18,7 +18,7 @@ function Badge({ status }) {
     'Inactive': 'bg-red-50 text-red-500',
     'Unread':   'bg-yellow-50 text-yellow-600',
     'Read':     'bg-gray-100 text-gray-500',
-    'Replied':  'bg-blue-50 text-blue-600',
+    'Replied':  'bg-amber-50 text-amber-700',
   }
   return (
     <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>

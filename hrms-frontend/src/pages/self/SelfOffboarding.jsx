@@ -17,15 +17,15 @@ function Modal({ title, onClose, children }) {
 }
 
 const STATUS_COLORS = {
-  'Pending':     'bg-yellow-50 text-yellow-600',
-  'Approved':    'bg-green-50 text-green-600',
-  'Rejected':    'bg-red-50 text-red-500',
-  'In Progress': 'bg-blue-50 text-blue-600',
-  'Completed':   'bg-gray-100 text-gray-500',
-  'Open':        'bg-yellow-50 text-yellow-600',
-  'Under Review':'bg-blue-50 text-blue-600',
-  'Resolved':    'bg-green-50 text-green-600',
-  'Closed':      'bg-gray-100 text-gray-500',
+  'Pending': 'bg-yellow-50 text-yellow-600',
+  'Approved': 'bg-green-50 text-green-600',
+  'Rejected': 'bg-red-50 text-red-500',
+  'In Progress': 'bg-amber-50 text-amber-700',
+  'Completed': 'bg-gray-100 text-gray-500',
+  'Open': 'bg-yellow-50 text-yellow-600',
+  'Under Review': 'bg-amber-50 text-amber-700',
+  'Resolved': 'bg-green-50 text-green-600',
+  'Closed': 'bg-gray-100 text-gray-500',
 }
 
 function SelfOffboarding() {
@@ -167,7 +167,8 @@ function SelfOffboarding() {
         <div className="space-y-4">
           <div className="flex justify-end">
             <button onClick={() => setShowComplaintModal(true)}
-              className="font-display bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+              className="font-display bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
+            >
               + Raise Complaint
             </button>
           </div>
@@ -186,8 +187,8 @@ function SelfOffboarding() {
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ml-4 ${STATUS_COLORS[c.status]}`}>{c.status}</span>
                     </div>
                     {c.manager_response && (
-                      <div className="mt-3 bg-blue-50 rounded-lg px-4 py-3">
-                        <p className="text-xs text-blue-500 font-medium mb-1">Manager Response</p>
+                      <div className="mt-3 bg-amber-50 rounded-lg px-4 py-3">
+                        <p className="font-display text-xs text-primary font-medium mb-1">Manager Response</p>
                         <p className="font-body text-sm text-gray-700">{c.manager_response}</p>
                       </div>
                     )}
@@ -230,13 +231,13 @@ function SelfOffboarding() {
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Reason for Resignation</label>
-              <textarea value={resignForm.reason} onChange={e => setResignForm({...resignForm, reason: e.target.value})}
+              <textarea value={resignForm.reason} onChange={e => setResignForm({ ...resignForm, reason: e.target.value })}
                 rows={4} placeholder="Please provide your reason..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none" />
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Proposed Last Working Day</label>
-              <input type="date" value={resignForm.last_working_day} onChange={e => setResignForm({...resignForm, last_working_day: e.target.value})}
+              <input type="date" value={resignForm.last_working_day} onChange={e => setResignForm({ ...resignForm, last_working_day: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400" />
             </div>
             {resignError && <p className="text-red-500 text-sm">{resignError}</p>}
@@ -259,20 +260,21 @@ function SelfOffboarding() {
           <div className="space-y-4">
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Subject</label>
-              <input value={complaintForm.title} onChange={e => setComplaintForm({...complaintForm, title: e.target.value})}
+              <input value={complaintForm.title} onChange={e => setComplaintForm({ ...complaintForm, title: e.target.value })}
                 placeholder="Brief subject of your complaint"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea value={complaintForm.description} onChange={e => setComplaintForm({...complaintForm, description: e.target.value})}
+              <textarea value={complaintForm.description} onChange={e => setComplaintForm({ ...complaintForm, description: e.target.value })}
                 rows={5} placeholder="Describe your complaint in detail..."
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
             </div>
             {complaintError && <p className="text-red-500 text-sm">{complaintError}</p>}
             <div className="flex gap-3">
               <button onClick={handleComplaint} disabled={complaintSaving}
-                className="font-display flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+                className="font-display flex-1 bg-primary hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold py-2.5 rounded-lg transition"
+              >
                 {complaintSaving ? 'Submitting...' : 'Submit Complaint'}
               </button>
               <button onClick={() => setShowComplaintModal(false)}

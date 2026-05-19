@@ -69,24 +69,24 @@ function SelfLeaves() {
   }
 
   const approved = leaves.filter(l => l.status === 'Approved')
-  const paidUsed   = approved.filter(l => l.leave_type === 'Paid Leave').reduce((s, l) => s + Number(l.days), 0)
-  const sickUsed   = approved.filter(l => l.leave_type === 'Sick Leave').reduce((s, l) => s + Number(l.days), 0)
+  const paidUsed = approved.filter(l => l.leave_type === 'Paid Leave').reduce((s, l) => s + Number(l.days), 0)
+  const sickUsed = approved.filter(l => l.leave_type === 'Sick Leave').reduce((s, l) => s + Number(l.days), 0)
   const casualUsed = approved.filter(l => l.leave_type === 'Casual Leave').reduce((s, l) => s + Number(l.days), 0)
   const unpaidUsed = approved.filter(l => l.leave_type === 'Unpaid Leave').reduce((s, l) => s + Number(l.days), 0)
 
   const leaveCards = [
-    { type: 'Paid Leaves',   total: 12,   used: paidUsed,   isUnpaid: false },
-    { type: 'Sick Leaves',   total: 6,    used: sickUsed,   isUnpaid: false },
-    { type: 'Casual Leaves', total: 6,    used: casualUsed, isUnpaid: false },
-    { type: 'Unpaid Leaves', total: null, used: unpaidUsed, isUnpaid: true  },
+    { type: 'Paid Leaves', total: 12, used: paidUsed, isUnpaid: false },
+    { type: 'Sick Leaves', total: 6, used: sickUsed, isUnpaid: false },
+    { type: 'Casual Leaves', total: 6, used: casualUsed, isUnpaid: false },
+    { type: 'Unpaid Leaves', total: null, used: unpaidUsed, isUnpaid: true },
   ]
 
   const applyForm = (
     <div className="space-y-4">
       <div>
         <label className="font-display block text-sm font-medium text-gray-700 mb-1">Leave Type</label>
-        <select value={formData.leave_type} onChange={e => setFormData({...formData, leave_type: e.target.value})}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <select value={formData.leave_type} onChange={e => setFormData({ ...formData, leave_type: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           <option>Paid Leave</option>
           <option>Sick Leave</option>
           <option>Casual Leave</option>
@@ -96,20 +96,20 @@ function SelfLeaves() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="font-display block text-sm font-medium text-gray-700 mb-1">From</label>
-          <input type="date" value={formData.start_date} onChange={e => setFormData({...formData, start_date: e.target.value})}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          <input type="date" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
         <div>
           <label className="font-display block text-sm font-medium text-gray-700 mb-1">To</label>
-          <input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          <input type="date" value={formData.end_date} onChange={e => setFormData({ ...formData, end_date: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
         </div>
       </div>
       <div>
         <label className="font-display block text-sm font-medium text-gray-700 mb-1">Reason</label>
-        <textarea value={formData.reason} onChange={e => setFormData({...formData, reason: e.target.value})}
+        <textarea value={formData.reason} onChange={e => setFormData({ ...formData, reason: e.target.value })}
           rows={3} placeholder="Reason for leave..."
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
       </div>
       {formError && <p className="text-red-500 text-sm">{formError}</p>}
     </div>
@@ -125,7 +125,8 @@ function SelfLeaves() {
           <p className="font-body text-sm text-gray-400 mt-1">Apply and track your leave requests</p>
         </div>
         <button onClick={() => { setFormError(''); setShowApplyModal(true) }}
-          className="font-display bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          className="font-display bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
+        >
           + Apply Leave
         </button>
       </div>
@@ -181,9 +182,8 @@ function SelfLeaves() {
         <Modal title="Apply for Leave" onClose={() => setShowApplyModal(false)}>
           {applyForm}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleApply} className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Submit</button>
-            <button onClick={() => setShowApplyModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
-          </div>
+            <button onClick={handleApply} className="font-display flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition">Submit</button>
+            <button onClick={() => setShowApplyModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>          </div>
         </Modal>
       )}
     </div>

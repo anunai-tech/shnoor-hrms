@@ -42,9 +42,7 @@ function ManagerSettings() {
             <p className="font-body text-sm text-gray-600">{user?.email}</p>
           </div>
           <div>
-            <label className="font-display block text-xs text-gray-400 font-medium mb-1">Role</label>
-            <span className="font-display inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">Manager</span>
-          </div>
+            <span className="font-display inline-block bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">Manager</span>          </div>
         </div>
       </div>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -52,15 +50,16 @@ function ManagerSettings() {
         {passwordError && <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 mb-4">{passwordError}</div>}
         {passwordSuccess && <div className="font-body bg-green-50 border border-green-200 text-green-600 text-sm rounded-lg px-4 py-3 mb-4">Password changed successfully!</div>}
         <div className="space-y-4 max-w-md">
-          {[['current_password','Current Password'],['new_password','New Password'],['confirm_password','Confirm New Password']].map(([name, label]) => (
+          {[['current_password', 'Current Password'], ['new_password', 'New Password'], ['confirm_password', 'Confirm New Password']].map(([name, label]) => (
             <div key={name}>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">{label}</label>
               <input type="password" name={name} value={passwordData[name]} onChange={handlePasswordChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
           ))}
           <button onClick={handlePasswordSave} disabled={saving}
-            className="font-display bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition">
+            className="font-display bg-primary hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition"
+          >
             {saving ? 'Updating...' : 'Update Password'}
           </button>
         </div>

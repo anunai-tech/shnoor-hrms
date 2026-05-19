@@ -54,19 +54,19 @@ function EmployeeExpenses() {
     <div className="space-y-4">
       <div>
         <label className="font-display block text-sm font-medium text-gray-700 mb-1">Title</label>
-        <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
+        <input value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })}
           placeholder="e.g. Cab to client office"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
       <div>
         <label className="font-display block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
-        <input type="number" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
       <div>
         <label className="font-display block text-sm font-medium text-gray-700 mb-1">Category</label>
-        <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           <option>Travel</option><option>Food</option><option>Accommodation</option><option>Office Supplies</option><option>Other</option>
         </select>
       </div>
@@ -83,7 +83,8 @@ function EmployeeExpenses() {
           <p className="font-body text-sm text-gray-400 mt-1">Submit and track expense claims</p>
         </div>
         <button onClick={() => setShowAddModal(true)}
-          className="font-display bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          className="font-display bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
+        >
           + Submit Expense
         </button>
       </div>
@@ -125,9 +126,8 @@ function EmployeeExpenses() {
         <Modal title="Submit Expense" onClose={() => setShowAddModal(false)}>
           {addForm}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleAdd} className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Submit</button>
-            <button onClick={() => setShowAddModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
-          </div>
+            <button onClick={handleAdd} className="font-display flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition">Submit</button>
+            <button onClick={() => setShowAddModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>          </div>
         </Modal>
       )}
     </div>

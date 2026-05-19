@@ -29,7 +29,7 @@ function EmployeeLayout({ children }) {
   useEffect(() => {
     api.get('/employee/profile')
       .then(res => { if (res.data?.data) setUser({ ...user, ...res.data.data }) })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   useEffect(() => {
@@ -68,8 +68,7 @@ function EmployeeLayout({ children }) {
         <nav className="flex-1 py-4 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink key={item.path} to={item.path} onClick={handleNavClick}
-              className={({ isActive }) => `font-display flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}`}>
-              <span>{item.label}</span>
+              className={({ isActive }) => `font-display flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? 'bg-amber-50 text-primary' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}`}>              <span>{item.label}</span>
               {item.path === '/employee/chat' && unreadCount > 0 && (
                 <span className="font-display ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-semibold text-white">
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -105,7 +104,7 @@ function EmployeeLayout({ children }) {
               <p className="font-body text-xs text-gray-400 capitalize">{user?.role}</p>
             </div>
             <button onClick={() => navigate('/employee/profile')}
-              className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+              className="w-9 h-9 rounded-full bg-primary flex items-center justify-center overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
               {user?.profile_photo ? (
                 <img src={user.profile_photo} alt="avatar" className="w-full h-full object-cover" />
               ) : (

@@ -3,9 +3,9 @@ import { getContactQueries, updateQueryStatus } from '../../services/superadminS
 
 function Badge({ status }) {
   const styles = {
-    'Unread':  'bg-yellow-50 text-yellow-600',
-    'Read':    'bg-gray-100 text-gray-500',
-    'Replied': 'bg-blue-50 text-blue-600',
+    'Unread': 'bg-yellow-50 text-yellow-600',
+    'Read': 'bg-gray-100 text-gray-500',
+    'Replied': 'bg-amber-50 text-amber-700',
   }
   return (
     <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
@@ -147,7 +147,7 @@ function ContactQueries() {
                     </td>
                     <td className="px-6 py-4">
                       <button onClick={() => openQuery(query)}
-                        className="font-display text-xs text-blue-600 hover:underline font-medium">View</button>
+                        className="font-display text-xs text-primary hover:underline font-medium">View</button>
                     </td>
                   </tr>
                 ))

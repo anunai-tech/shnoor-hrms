@@ -19,15 +19,15 @@ function Modal({ title, onClose, children }) {
 }
 
 const STATUS_COLORS = {
-  'Pending':     'bg-yellow-50 text-yellow-600',
-  'Approved':    'bg-green-50 text-green-600',
-  'Rejected':    'bg-red-50 text-red-500',
-  'In Progress': 'bg-blue-50 text-blue-600',
-  'Completed':   'bg-gray-100 text-gray-500',
-  'Open':        'bg-yellow-50 text-yellow-600',
-  'Under Review':'bg-blue-50 text-blue-600',
-  'Resolved':    'bg-green-50 text-green-600',
-  'Closed':      'bg-gray-100 text-gray-500',
+  'Pending': 'bg-yellow-50 text-yellow-600',
+  'Approved': 'bg-green-50 text-green-600',
+  'Rejected': 'bg-red-50 text-red-500',
+  'In Progress': 'bg-amber-50 text-amber-700',
+  'Completed': 'bg-gray-100 text-gray-500',
+  'Open': 'bg-yellow-50 text-yellow-600',
+  'Under Review': 'bg-amber-50 text-amber-700',
+  'Resolved': 'bg-green-50 text-green-600',
+  'Closed': 'bg-gray-100 text-gray-500',
 }
 
 async function downloadLetterPDF(letter, empName) {
@@ -41,7 +41,7 @@ async function downloadLetterPDF(letter, empName) {
       r.onload = () => resolve(r.result)
       r.readAsDataURL(blob)
     })
-  } catch (e) {}
+  } catch (e) { }
   doc.setFillColor(15, 118, 110)
   doc.rect(0, 0, pageW, 38, 'F')
   if (logoBase64) doc.addImage(logoBase64, 'PNG', margin, 8, 22, 22)
@@ -114,7 +114,7 @@ function Offboarding() {
     }
   }
 
-  const activeEmployees   = employees.filter(e => e.is_active)
+  const activeEmployees = employees.filter(e => e.is_active)
   const inactiveEmployees = employees.filter(e => !e.is_active)
   const pendingResignations = offboardingRequests.filter(o => o.status === 'Pending' && o.requested_by === 'employee')
 
@@ -248,10 +248,10 @@ function Offboarding() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          ['Active Employees',    activeEmployees.length,                           'text-green-600'],
-          ['Pending Resignations',pendingResignations.length,                       'text-yellow-600'],
-          ['Offboarded',          inactiveEmployees.length,                         'text-red-500'],
-          ['Open Complaints',     complaints.filter(c => c.status === 'Open').length,'text-blue-600'],
+          ['Active Employees', activeEmployees.length, 'text-green-600'],
+          ['Pending Resignations', pendingResignations.length, 'text-yellow-600'],
+          ['Offboarded', inactiveEmployees.length, 'text-red-500'],
+          ['Open Complaints', complaints.filter(c => c.status === 'Open').length, 'text-primary'],
         ].map(([label, val, color]) => (
           <div key={label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <p className="font-body text-sm text-gray-500">{label}</p>
@@ -263,14 +263,14 @@ function Offboarding() {
       {/* Tab Navigation */}
       <div className="flex gap-2 border-b border-gray-200">
         {[
-          ['active',       'Active Employees'],
+          ['active', 'Active Employees'],
           ['resignations', 'Resignations'],
-          ['offboarded',   'Offboarded'],
-          ['complaints',   'Complaints'],
+          ['offboarded', 'Offboarded'],
+          ['complaints', 'Complaints'],
         ].map(([key, label]) => (
           <button key={key} onClick={() => setActiveTab(key)}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px
-              ${activeTab === key ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+              ${activeTab === key ? 'border-primary text-primary' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
             {label}
           </button>
         ))}
@@ -368,7 +368,7 @@ function Offboarding() {
                           {/* Review button — only for pending employee resignations */}
                           {o.requested_by === 'employee' && o.status === 'Pending' && (
                             <button onClick={() => { setResignTarget(o); setResignAction({ status: 'Approved', manager_notes: '', last_working_day: '' }); setShowResignModal(true) }}
-                              className="text-xs text-blue-600 hover:underline font-medium">
+                              className="text-xs text-primary hover:underline font-medium">
                               Review
                             </button>
                           )}
@@ -482,7 +482,7 @@ function Offboarding() {
                       </td>
                       <td className="px-6 py-4">
                         <button onClick={() => { setComplaintTarget(c); setComplaintResponse({ manager_response: c.manager_response || '', status: c.status }); setShowComplaintModal(true) }}
-                          className="text-xs text-blue-600 hover:underline font-medium">
+                          className="text-xs text-primary hover:underline font-medium">
                           Respond
                         </button>
                       </td>
@@ -527,18 +527,18 @@ function Offboarding() {
             <p className="font-body text-sm text-gray-500">This will create a termination request. After generating the termination letter, use the Deactivate button to block their account.</p>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Reason for Termination</label>
-              <textarea value={offboardForm.reason} onChange={e => setOffboardForm({...offboardForm, reason: e.target.value})} rows={3}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+              <textarea value={offboardForm.reason} onChange={e => setOffboardForm({ ...offboardForm, reason: e.target.value })} rows={3}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Last Working Day</label>
-              <input type="date" value={offboardForm.last_working_day} onChange={e => setOffboardForm({...offboardForm, last_working_day: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <input type="date" value={offboardForm.last_working_day} onChange={e => setOffboardForm({ ...offboardForm, last_working_day: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Manager Notes</label>
-              <textarea value={offboardForm.manager_notes} onChange={e => setOffboardForm({...offboardForm, manager_notes: e.target.value})} rows={2}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+              <textarea value={offboardForm.manager_notes} onChange={e => setOffboardForm({ ...offboardForm, manager_notes: e.target.value })} rows={2}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
             </div>
             {offboardError && (
               <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">{offboardError}</div>
@@ -567,26 +567,27 @@ function Offboarding() {
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Decision</label>
-              <select value={resignAction.status} onChange={e => setResignAction({...resignAction, status: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <select value={resignAction.status} onChange={e => setResignAction({ ...resignAction, status: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                 <option value="Approved">Approve</option>
                 <option value="Rejected">Reject</option>
               </select>
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Confirmed Last Working Day</label>
-              <input type="date" value={resignAction.last_working_day} onChange={e => setResignAction({...resignAction, last_working_day: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <input type="date" value={resignAction.last_working_day} onChange={e => setResignAction({ ...resignAction, last_working_day: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Notes</label>
-              <textarea value={resignAction.manager_notes} onChange={e => setResignAction({...resignAction, manager_notes: e.target.value})} rows={2}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+              <textarea value={resignAction.manager_notes} onChange={e => setResignAction({ ...resignAction, manager_notes: e.target.value })} rows={2}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleResignAction}
-              className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="font-display flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition"
+            >
               Submit Decision
             </button>
             <button onClick={() => setShowResignModal(false)}
@@ -607,13 +608,13 @@ function Offboarding() {
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Your Response</label>
-              <textarea value={complaintResponse.manager_response} onChange={e => setComplaintResponse({...complaintResponse, manager_response: e.target.value})} rows={4}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+              <textarea value={complaintResponse.manager_response} onChange={e => setComplaintResponse({ ...complaintResponse, manager_response: e.target.value })} rows={4}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
             </div>
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Update Status</label>
-              <select value={complaintResponse.status} onChange={e => setComplaintResponse({...complaintResponse, status: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <select value={complaintResponse.status} onChange={e => setComplaintResponse({ ...complaintResponse, status: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                 <option value="Open">Open</option>
                 <option value="Under Review">Under Review</option>
                 <option value="Resolved">Resolved</option>
@@ -623,7 +624,8 @@ function Offboarding() {
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleComplaintResponse}
-              className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="font-display flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition"
+            >
               Submit Response
             </button>
             <button onClick={() => setShowComplaintModal(false)}

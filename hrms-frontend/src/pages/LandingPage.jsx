@@ -42,7 +42,6 @@ const faqs = [
   { question: 'How long does setup take?', answer: 'Setup is very fast. Once you contact us, your company account is typically activated within one business day. Your HR Manager can then log in and start adding employees and configuring the system immediately — no technical expertise required.' },
   { question: 'How do I contact support?', answer: null },
 ]
-
 function FAQChatbot({ onContactClick }) {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([])

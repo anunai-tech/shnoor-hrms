@@ -54,7 +54,6 @@ function ForgotPassword() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full max-w-md p-8">
-
         <div className="flex justify-center mb-8">
           <img src="/shnoor-logo.png" alt="SHNOOR" className="h-12 w-auto object-contain" />
         </div>
