@@ -124,7 +124,7 @@ function Modal({ title, onClose, children }) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
-          <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+          <h3 className="font-display text-base font-semibold text-gray-800">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
         </div>
         <div className="px-6 py-5">{children}</div>
@@ -220,13 +220,13 @@ function Letters() {
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Letters</h1>
-        <p className="text-sm text-gray-400 mt-1">Generate and manage employee letters</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">Letters</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">Generate and manage employee letters</p>
       </div>
 
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
@@ -261,7 +261,7 @@ function Letters() {
                     )}
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-gray-800">{emp.first_name} {emp.last_name}</p>
+                        <p className="font-display text-sm font-semibold text-gray-800">{emp.first_name} {emp.last_name}</p>
                         {emp.isSelf && (
                           <span className="text-xs bg-teal-50 text-teal-600 font-semibold px-2 py-0.5 rounded-full">You</span>
                         )}
@@ -289,17 +289,17 @@ function Letters() {
               <table className="w-full">
                 <thead>
                   <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                    <th className="text-left px-6 py-3 font-medium">Employee</th>
-                    <th className="text-left px-6 py-3 font-medium">Letter Type</th>
-                    <th className="text-left px-6 py-3 font-medium">Generated On</th>
-                    <th className="text-left px-6 py-3 font-medium">Action</th>
+                    <th className="font-display text-left px-6 py-3 font-medium">Employee</th>
+                    <th className="font-display text-left px-6 py-3 font-medium">Letter Type</th>
+                    <th className="font-display text-left px-6 py-3 font-medium">Generated On</th>
+                    <th className="font-display text-left px-6 py-3 font-medium">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {letters.map(l => (
                     <tr key={l.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                       <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-800">{l.first_name} {l.last_name}</p>
+                        <p className="font-display text-sm font-medium text-gray-800">{l.first_name} {l.last_name}</p>
                         <p className="text-xs text-gray-400">{l.designation} · {l.department}</p>
                       </td>
                       <td className="px-6 py-4">
@@ -327,7 +327,7 @@ function Letters() {
         <Modal title={`Generate Letter — ${selectedEmp.first_name} ${selectedEmp.last_name}${selectedEmp.isSelf ? ' (You)' : ''}`} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Letter Type</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Letter Type</label>
               <select value={letterType} onChange={e => handleTypeChange(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
                 {LETTER_TYPES.map(t => <option key={t}>{t}</option>)}
@@ -337,13 +337,13 @@ function Letters() {
             {letterType === 'Salary Increment Letter' && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Previous Salary</label>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Previous Salary</label>
                   <input value={extraFields.old_salary || ''} onChange={e => handleExtraChange('old_salary', e.target.value)}
                     placeholder="e.g. Rs. 40,000"
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Effective From</label>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Effective From</label>
                   <input type="date" value={extraFields.effective_date || ''} onChange={e => handleExtraChange('effective_date', e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
                 </div>
@@ -351,14 +351,14 @@ function Letters() {
             )}
             {(letterType === 'Experience Letter' || letterType === 'Relieving Letter') && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Working Day</label>
+                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Last Working Day</label>
                 <input type="date" value={extraFields.last_working_day || ''} onChange={e => handleExtraChange('last_working_day', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
               </div>
             )}
             {letterType === 'Warning Letter' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Warning</label>
+                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Reason for Warning</label>
                 <input value={extraFields.reason || ''} onChange={e => handleExtraChange('reason', e.target.value)}
                   placeholder="Describe the issue..."
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
@@ -366,7 +366,7 @@ function Letters() {
             )}
             {letterType === 'Bonafide / Employment Certificate' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Purpose</label>
+                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Purpose</label>
                 <input value={extraFields.purpose || ''} onChange={e => handleExtraChange('purpose', e.target.value)}
                   placeholder="e.g. bank loan, visa application..."
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
@@ -374,7 +374,7 @@ function Letters() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Letter Content (editable)</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Letter Content (editable)</label>
               <textarea value={editedContent} onChange={e => setEditedContent(e.target.value)}
                 rows={12}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none" />
@@ -382,11 +382,11 @@ function Letters() {
 
             <div className="flex gap-3">
               <button onClick={handleGenerate} disabled={saving}
-                className="flex-1 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+                className="font-display flex-1 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
                 {saving ? 'Generating...' : 'Generate & Save'}
               </button>
               <button onClick={() => setShowModal(false)}
-                className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+                className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
                 Cancel
               </button>
             </div>

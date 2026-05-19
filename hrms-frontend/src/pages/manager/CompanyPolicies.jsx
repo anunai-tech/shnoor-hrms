@@ -6,7 +6,7 @@ function Modal({ title, onClose, children }) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
-          <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+          <h3 className="font-display text-base font-semibold text-gray-800">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
         </div>
         <div className="px-6 py-5">{children}</div>
@@ -65,13 +65,13 @@ function CompanyPolicies() {
   const formFields = (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Policy Title</label>
+        <label className="font-display block text-sm font-medium text-gray-700 mb-1">Policy Title</label>
         <input name="title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
           placeholder="e.g. Leave Policy"
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Policy Content</label>
+        <label className="font-display block text-sm font-medium text-gray-700 mb-1">Policy Content</label>
         <textarea name="content" value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})}
           placeholder="Write the full policy details here..." rows={6}
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
@@ -79,17 +79,17 @@ function CompanyPolicies() {
     </div>
   )
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Company Policies</h1>
-          <p className="text-sm text-gray-400 mt-1">Manage and share company policies</p>
+          <h1 className="font-display text-2xl font-bold text-gray-800">Company Policies</h1>
+          <p className="font-body text-sm text-gray-400 mt-1">Manage and share company policies</p>
         </div>
         <button onClick={() => setShowAddModal(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          className="font-display bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
           + Add Policy
         </button>
       </div>
@@ -99,7 +99,7 @@ function CompanyPolicies() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filtered.length === 0 ? (
-          <div className="col-span-2 text-center py-10 text-sm text-gray-400">No policies found</div>
+          <div className="font-body col-span-2 text-center py-10 text-sm text-gray-400">No policies found</div>
         ) : (
           filtered.map(policy => (
             <div key={policy.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -124,8 +124,8 @@ function CompanyPolicies() {
         <Modal title="Add New Policy" onClose={() => setShowAddModal(false)}>
           {formFields}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleAdd} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Policy</button>
-            <button onClick={() => setShowAddModal(false)} className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+            <button onClick={handleAdd} className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Policy</button>
+            <button onClick={() => setShowAddModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
           </div>
         </Modal>
       )}
@@ -142,10 +142,10 @@ function CompanyPolicies() {
 
       {showDeleteModal && (
         <Modal title="Delete Policy" onClose={() => setShowDeleteModal(false)}>
-          <p className="text-sm text-gray-600">Are you sure you want to delete <span className="font-semibold">{selectedPolicy?.title}</span>?</p>
+          <p className="font-body text-sm text-gray-600">Are you sure you want to delete <span className="font-semibold">{selectedPolicy?.title}</span>?</p>
           <div className="flex gap-3 mt-6">
-            <button onClick={handleDelete} className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Delete</button>
-            <button onClick={() => setShowDeleteModal(false)} className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+            <button onClick={handleDelete} className="font-display flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Delete</button>
+            <button onClick={() => setShowDeleteModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
           </div>
         </Modal>
       )}

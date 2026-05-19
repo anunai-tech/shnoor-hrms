@@ -9,7 +9,7 @@ function Modal({ title, onClose, children }) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
-          <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+          <h3 className="font-display text-base font-semibold text-gray-800">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
         </div>
         <div className="px-6 py-5">{children}</div>
@@ -230,17 +230,17 @@ function Offboarding() {
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Offboarding</h1>
-        <p className="text-sm text-gray-400 mt-1">Manage employee exit processes, warnings and complaints</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">Offboarding</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">Manage employee exit processes, warnings and complaints</p>
       </div>
 
       {pageError && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 flex justify-between">
+        <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 flex justify-between">
           {pageError}
           <button onClick={() => setPageError('')} className="font-bold ml-4">×</button>
         </div>
@@ -254,7 +254,7 @@ function Offboarding() {
           ['Open Complaints',     complaints.filter(c => c.status === 'Open').length,'text-blue-600'],
         ].map(([label, val, color]) => (
           <div key={label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-500">{label}</p>
+            <p className="font-body text-sm text-gray-500">{label}</p>
             <p className={`text-3xl font-bold mt-1 ${color}`}>{val}</p>
           </div>
         ))}
@@ -280,26 +280,26 @@ function Offboarding() {
       {activeTab === 'active' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-800">Active Employees</h2>
+            <h2 className="font-display text-base font-semibold text-gray-800">Active Employees</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-3 font-medium">Name</th>
-                  <th className="text-left px-6 py-3 font-medium">Department</th>
-                  <th className="text-left px-6 py-3 font-medium">Designation</th>
-                  <th className="text-left px-6 py-3 font-medium">Actions</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Name</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Department</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Designation</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {activeEmployees.length === 0 ? (
-                  <tr><td colSpan="4" className="text-center py-10 text-sm text-gray-400">No active employees</td></tr>
+                  <tr><td colSpan="4" className="font-body text-center py-10 text-sm text-gray-400">No active employees</td></tr>
                 ) : (
                   activeEmployees.map(emp => (
                     <tr key={emp.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                       <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-800">{emp.first_name} {emp.last_name}</p>
+                        <p className="font-display text-sm font-medium text-gray-800">{emp.first_name} {emp.last_name}</p>
                         <p className="text-xs text-gray-400">{emp.email}</p>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{emp.department || '—'}</td>
@@ -329,28 +329,28 @@ function Offboarding() {
       {activeTab === 'resignations' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-800">Resignation &amp; Termination Requests</h2>
+            <h2 className="font-display text-base font-semibold text-gray-800">Resignation &amp; Termination Requests</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-3 font-medium">Employee</th>
-                  <th className="text-left px-6 py-3 font-medium">Type</th>
-                  <th className="text-left px-6 py-3 font-medium">Requested By</th>
-                  <th className="text-left px-6 py-3 font-medium">Last Working Day</th>
-                  <th className="text-left px-6 py-3 font-medium">Status</th>
-                  <th className="text-left px-6 py-3 font-medium">Actions</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Employee</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Type</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Requested By</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Last Working Day</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Status</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {offboardingRequests.length === 0 ? (
-                  <tr><td colSpan="6" className="text-center py-10 text-sm text-gray-400">No offboarding requests</td></tr>
+                  <tr><td colSpan="6" className="font-body text-center py-10 text-sm text-gray-400">No offboarding requests</td></tr>
                 ) : (
                   offboardingRequests.map(o => (
                     <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                       <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-800">{o.first_name} {o.last_name}</p>
+                        <p className="font-display text-sm font-medium text-gray-800">{o.first_name} {o.last_name}</p>
                         <p className="text-xs text-gray-400">{o.designation}</p>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{o.type}</td>
@@ -359,7 +359,7 @@ function Offboarding() {
                         {o.last_working_day ? new Date(o.last_working_day).toLocaleDateString('en-GB') : '—'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-500'}`}>
+                        <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-500'}`}>
                           {o.status}
                         </span>
                       </td>
@@ -405,21 +405,21 @@ function Offboarding() {
       {activeTab === 'offboarded' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-800">Offboarded Employees</h2>
+            <h2 className="font-display text-base font-semibold text-gray-800">Offboarded Employees</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-3 font-medium">Name</th>
-                  <th className="text-left px-6 py-3 font-medium">Department</th>
-                  <th className="text-left px-6 py-3 font-medium">Designation</th>
-                  <th className="text-left px-6 py-3 font-medium">Actions</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Name</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Department</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Designation</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {inactiveEmployees.length === 0 ? (
-                  <tr><td colSpan="4" className="text-center py-10 text-sm text-gray-400">No offboarded employees</td></tr>
+                  <tr><td colSpan="4" className="font-body text-center py-10 text-sm text-gray-400">No offboarded employees</td></tr>
                 ) : (
                   inactiveEmployees.map(emp => (
                     <tr key={emp.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
@@ -448,32 +448,32 @@ function Offboarding() {
       {activeTab === 'complaints' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-800">Employee Complaints</h2>
+            <h2 className="font-display text-base font-semibold text-gray-800">Employee Complaints</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-3 font-medium">Employee</th>
-                  <th className="text-left px-6 py-3 font-medium">Title</th>
-                  <th className="text-left px-6 py-3 font-medium">Status</th>
-                  <th className="text-left px-6 py-3 font-medium">Date</th>
-                  <th className="text-left px-6 py-3 font-medium">Actions</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Employee</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Title</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Status</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Date</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {complaints.length === 0 ? (
-                  <tr><td colSpan="5" className="text-center py-10 text-sm text-gray-400">No complaints raised</td></tr>
+                  <tr><td colSpan="5" className="font-body text-center py-10 text-sm text-gray-400">No complaints raised</td></tr>
                 ) : (
                   complaints.map(c => (
                     <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                       <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-800">{c.first_name} {c.last_name}</p>
+                        <p className="font-display text-sm font-medium text-gray-800">{c.first_name} {c.last_name}</p>
                         <p className="text-xs text-gray-400">{c.department}</p>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{c.title}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[c.status] || 'bg-gray-100 text-gray-500'}`}>
+                        <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[c.status] || 'bg-gray-100 text-gray-500'}`}>
                           {c.status}
                         </span>
                       </td>
@@ -499,9 +499,9 @@ function Offboarding() {
       {showWarnModal && warnTarget && (
         <Modal title={`Send Warning — ${warnTarget.first_name} ${warnTarget.last_name}`} onClose={() => setShowWarnModal(false)}>
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">A formal warning letter will be generated and visible in the employee's Letters section.</p>
+            <p className="font-body text-sm text-gray-500">A formal warning letter will be generated and visible in the employee's Letters section.</p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Warning</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Reason for Warning</label>
               <textarea value={warnReason} onChange={e => setWarnReason(e.target.value)} rows={4}
                 placeholder="Describe the specific issue or misconduct..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none" />
@@ -513,7 +513,7 @@ function Offboarding() {
               {warnSaving ? 'Sending...' : 'Send Warning'}
             </button>
             <button onClick={() => setShowWarnModal(false)}
-              className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+              className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
           </div>
@@ -524,33 +524,33 @@ function Offboarding() {
       {showOffboardModal && offboardTarget && (
         <Modal title={`Initiate Offboarding — ${offboardTarget.first_name} ${offboardTarget.last_name}`} onClose={() => setShowOffboardModal(false)}>
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">This will create a termination request. After generating the termination letter, use the Deactivate button to block their account.</p>
+            <p className="font-body text-sm text-gray-500">This will create a termination request. After generating the termination letter, use the Deactivate button to block their account.</p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Termination</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Reason for Termination</label>
               <textarea value={offboardForm.reason} onChange={e => setOffboardForm({...offboardForm, reason: e.target.value})} rows={3}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last Working Day</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Last Working Day</label>
               <input type="date" value={offboardForm.last_working_day} onChange={e => setOffboardForm({...offboardForm, last_working_day: e.target.value})}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Manager Notes</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Manager Notes</label>
               <textarea value={offboardForm.manager_notes} onChange={e => setOffboardForm({...offboardForm, manager_notes: e.target.value})} rows={2}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
             {offboardError && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">{offboardError}</div>
+              <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">{offboardError}</div>
             )}
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleInitiateOffboard}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="font-display flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
               Confirm Offboarding
             </button>
             <button onClick={() => setShowOffboardModal(false)}
-              className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+              className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
           </div>
@@ -566,7 +566,7 @@ function Offboarding() {
               <p className="mt-1"><span className="font-medium">Requested Last Day:</span> {resignTarget.last_working_day ? new Date(resignTarget.last_working_day).toLocaleDateString('en-GB') : '—'}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Decision</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Decision</label>
               <select value={resignAction.status} onChange={e => setResignAction({...resignAction, status: e.target.value})}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="Approved">Approve</option>
@@ -574,23 +574,23 @@ function Offboarding() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirmed Last Working Day</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Confirmed Last Working Day</label>
               <input type="date" value={resignAction.last_working_day} onChange={e => setResignAction({...resignAction, last_working_day: e.target.value})}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Notes</label>
               <textarea value={resignAction.manager_notes} onChange={e => setResignAction({...resignAction, manager_notes: e.target.value})} rows={2}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleResignAction}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
               Submit Decision
             </button>
             <button onClick={() => setShowResignModal(false)}
-              className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+              className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
           </div>
@@ -602,16 +602,16 @@ function Offboarding() {
         <Modal title="Respond to Complaint" onClose={() => setShowComplaintModal(false)}>
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm font-semibold text-gray-800">{complaintTarget.title}</p>
+              <p className="font-display text-sm font-semibold text-gray-800">{complaintTarget.title}</p>
               <p className="text-sm text-gray-500 mt-1">{complaintTarget.description}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Your Response</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Your Response</label>
               <textarea value={complaintResponse.manager_response} onChange={e => setComplaintResponse({...complaintResponse, manager_response: e.target.value})} rows={4}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Update Status</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Update Status</label>
               <select value={complaintResponse.status} onChange={e => setComplaintResponse({...complaintResponse, status: e.target.value})}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <option value="Open">Open</option>
@@ -623,11 +623,11 @@ function Offboarding() {
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleComplaintResponse}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              className="font-display flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">
               Submit Response
             </button>
             <button onClick={() => setShowComplaintModal(false)}
-              className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+              className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
           </div>

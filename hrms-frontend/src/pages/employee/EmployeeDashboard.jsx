@@ -83,8 +83,8 @@ function EmployeeDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-sm text-gray-400 mt-1">Welcome back, {user?.first_name}!</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">Dashboard</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">Welcome back, {user?.first_name}!</p>
       </div>
 
       {/* Attendance */}
@@ -101,11 +101,11 @@ function EmployeeDashboard() {
           <div className="flex gap-8">
             <div>
               <p className="text-xs text-gray-400 font-medium mb-1">Clock In</p>
-              <p className="text-sm font-semibold text-gray-800">{clockInTime || '—'}</p>
+              <p className="font-display text-sm font-semibold text-gray-800">{clockInTime || '—'}</p>
             </div>
             <div>
               <p className="text-xs text-gray-400 font-medium mb-1">Clock Out</p>
-              <p className="text-sm font-semibold text-gray-800">{clockOutTime || '—'}</p>
+              <p className="font-display text-sm font-semibold text-gray-800">{clockOutTime || '—'}</p>
             </div>
           </div>
         </div>
@@ -129,21 +129,21 @@ function EmployeeDashboard() {
       {/* Recent Attendance */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">Recent Attendance</h2>
+          <h2 className="font-display text-base font-semibold text-gray-800">Recent Attendance</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 font-medium">Date</th>
-                <th className="text-left px-6 py-3 font-medium">Clock In</th>
-                <th className="text-left px-6 py-3 font-medium">Clock Out</th>
-                <th className="text-left px-6 py-3 font-medium">Status</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Date</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Clock In</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Clock Out</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
               {recentAttendance.length === 0 ? (
-                <tr><td colSpan="4" className="text-center py-8 text-sm text-gray-400">No attendance records yet</td></tr>
+                <tr><td colSpan="4" className="font-body text-center py-8 text-sm text-gray-400">No attendance records yet</td></tr>
               ) : (
                 recentAttendance.map(record => (
                   <tr key={record.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
@@ -151,7 +151,7 @@ function EmployeeDashboard() {
                     <td className="px-6 py-3 text-sm text-gray-600">{record.clock_in || '—'}</td>
                     <td className="px-6 py-3 text-sm text-gray-600">{record.clock_out || '—'}</td>
                     <td className="px-6 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${record.status === 'Present' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
+                      <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${record.status === 'Present' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
                         {record.status}
                       </span>
                     </td>

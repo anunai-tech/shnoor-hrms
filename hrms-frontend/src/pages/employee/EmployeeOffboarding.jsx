@@ -7,7 +7,7 @@ function Modal({ title, onClose, children }) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
-          <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+          <h3 className="font-display text-base font-semibold text-gray-800">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
         </div>
         <div className="px-6 py-5">{children}</div>
@@ -95,13 +95,13 @@ function EmployeeOffboarding() {
   const activeOffboarding = offboarding.find(o => o.status !== 'Rejected' && o.status !== 'Completed')
   const statusLabel = activeOffboarding ? activeOffboarding.status : 'Active'
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Offboarding</h1>
-        <p className="text-sm text-gray-400 mt-1">Manage your exit process, complaints and warnings</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">Offboarding</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">Manage your exit process, complaints and warnings</p>
       </div>
 
       {/* Status card */}
@@ -147,11 +147,11 @@ function EmployeeOffboarding() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead><tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-3 font-medium">Type</th>
-                  <th className="text-left px-6 py-3 font-medium">Reason</th>
-                  <th className="text-left px-6 py-3 font-medium">Last Working Day</th>
-                  <th className="text-left px-6 py-3 font-medium">Status</th>
-                  <th className="text-left px-6 py-3 font-medium">Manager Notes</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Type</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Reason</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Last Working Day</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Status</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Manager Notes</th>
                 </tr></thead>
                 <tbody>
                   {offboarding.map(o => (
@@ -175,7 +175,7 @@ function EmployeeOffboarding() {
         <div className="space-y-4">
           <div className="flex justify-end">
             <button onClick={() => setShowComplaintModal(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+              className="font-display bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
               + Raise Complaint
             </button>
           </div>
@@ -188,7 +188,7 @@ function EmployeeOffboarding() {
                   <div key={c.id} className="px-6 py-5">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">{c.title}</p>
+                        <p className="font-display text-sm font-semibold text-gray-800">{c.title}</p>
                         <p className="text-sm text-gray-500 mt-1">{c.description}</p>
                       </div>
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ml-4 ${STATUS_COLORS[c.status]}`}>{c.status}</span>
@@ -196,7 +196,7 @@ function EmployeeOffboarding() {
                     {c.manager_response && (
                       <div className="mt-3 bg-blue-50 rounded-lg px-4 py-3">
                         <p className="text-xs text-blue-500 font-medium mb-1">Manager Response</p>
-                        <p className="text-sm text-gray-700">{c.manager_response}</p>
+                        <p className="font-body text-sm text-gray-700">{c.manager_response}</p>
                       </div>
                     )}
                     <p className="text-xs text-gray-400 mt-2">{new Date(c.created_at).toLocaleDateString('en-GB')}</p>
@@ -239,24 +239,24 @@ function EmployeeOffboarding() {
               <p className="text-sm text-red-600 font-medium">⚠ This will be sent to your manager for review.</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Resignation</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Reason for Resignation</label>
               <textarea value={resignForm.reason} onChange={e => setResignForm({...resignForm, reason: e.target.value})}
                 rows={4} placeholder="Please provide your reason..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Proposed Last Working Day</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Proposed Last Working Day</label>
               <input type="date" value={resignForm.last_working_day} onChange={e => setResignForm({...resignForm, last_working_day: e.target.value})}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400" />
             </div>
             {resignError && <p className="text-red-500 text-sm">{resignError}</p>}
             <div className="flex gap-3">
               <button onClick={handleResign} disabled={resignSaving}
-                className="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+                className="font-display flex-1 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
                 {resignSaving ? 'Submitting...' : 'Submit Resignation'}
               </button>
               <button onClick={() => setShowResignModal(false)}
-                className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+                className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
                 Cancel
               </button>
             </div>
@@ -269,13 +269,13 @@ function EmployeeOffboarding() {
         <Modal title="Raise a Complaint" onClose={() => setShowComplaintModal(false)}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Subject</label>
               <input value={complaintForm.title} onChange={e => setComplaintForm({...complaintForm, title: e.target.value})}
                 placeholder="Brief subject of your complaint"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea value={complaintForm.description} onChange={e => setComplaintForm({...complaintForm, description: e.target.value})}
                 rows={5} placeholder="Describe your complaint in detail..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
@@ -283,11 +283,11 @@ function EmployeeOffboarding() {
             {complaintError && <p className="text-red-500 text-sm">{complaintError}</p>}
             <div className="flex gap-3">
               <button onClick={handleComplaint} disabled={complaintSaving}
-                className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+                className="font-display flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
                 {complaintSaving ? 'Submitting...' : 'Submit Complaint'}
               </button>
               <button onClick={() => setShowComplaintModal(false)}
-                className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+                className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
                 Cancel
               </button>
             </div>

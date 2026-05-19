@@ -78,13 +78,13 @@ function EmployeeLetters() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-gray-400">Loading...</p></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">My Letters</h1>
-        <p className="text-sm text-gray-400 mt-1">Official letters issued to you by HR</p>
+        <h1 className="font-display text-2xl font-bold text-gray-800">My Letters</h1>
+        <p className="font-body text-sm text-gray-400 mt-1">Official letters issued to you by HR</p>
       </div>
 
       {letters.length === 0 ? (
@@ -97,10 +97,10 @@ function EmployeeLetters() {
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-6 py-3 font-medium">Letter Type</th>
-                  <th className="text-left px-6 py-3 font-medium">Title</th>
-                  <th className="text-left px-6 py-3 font-medium">Issued On</th>
-                  <th className="text-left px-6 py-3 font-medium">Action</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Letter Type</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Title</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Issued On</th>
+                  <th className="font-display text-left px-6 py-3 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>
