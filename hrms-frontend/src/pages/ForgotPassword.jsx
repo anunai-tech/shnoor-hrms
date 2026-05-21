@@ -61,7 +61,7 @@ function ForgotPassword() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full max-w-md p-8">
         <div className="flex justify-center mb-8 flex-col items-center gap-4">
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(`/login${window.location.search}`)}
             className="font-body self-start flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -78,7 +78,7 @@ function ForgotPassword() {
             <h2 className="font-display text-xl font-bold text-gray-800 mb-2">Password Reset!</h2>
             <p className="font-body text-sm text-gray-400 mb-6">Your password has been updated successfully.</p>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(`/login${window.location.search}`)}
               className="font-display w-full bg-primary hover:opacity-90 text-quaternary font-semibold py-3 rounded-xl text-sm transition"
             >
               Back to Login
@@ -122,7 +122,7 @@ function ForgotPassword() {
             <p className="font-body text-center text-sm text-gray-400 mt-6">
               Remember your password?{' '}
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate(`/login${window.location.search}`)}
                 className="font-display text-primary hover:underline font-medium"
               >
                 Back to Login

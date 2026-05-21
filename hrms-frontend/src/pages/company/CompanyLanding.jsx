@@ -112,7 +112,7 @@ function CompanyLanding() {
             </span>
           </div>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(`/login${window.location.search}`)}
             className="font-display text-sm font-semibold text-white border border-gray-700 hover:border-gray-500 px-5 py-2 rounded-lg transition hover:bg-gray-800"
           >
             Staff Login

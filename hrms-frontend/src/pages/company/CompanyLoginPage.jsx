@@ -105,7 +105,7 @@ function CompanyLoginPage() {
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between px-8 py-6">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate(`/${window.location.search}`)}
           className="font-body flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -221,7 +221,7 @@ function CompanyLoginPage() {
                   <div className="flex justify-end">
                     <button
                       type="button"
-                      onClick={() => navigate('/forgot-password')}
+                      onClick={() => navigate(`/forgot-password${window.location.search}`)}
                       className="font-display text-xs font-medium text-gray-500 hover:text-gray-300 transition"
                       style={{ color: primaryColor + 'cc' }}
                     >

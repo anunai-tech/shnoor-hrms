@@ -96,14 +96,25 @@ const updateCompany = async (req, res) => {
   }
 }
 
-// DELETE company
+// DELETE company — clears FK references before deleting
 const deleteCompany = async (req, res) => {
+  const client = await pool.connect()
   try {
     const { id } = req.params
-    await pool.query('DELETE FROM companies WHERE id = $1', [id])
+    await client.query('BEGIN')
+    await client.query(
+      'UPDATE users SET company_id = NULL, is_active = false WHERE company_id = $1', [id]
+    )
+    await client.query('DELETE FROM transactions WHERE company_id = $1', [id])
+    await client.query('DELETE FROM companies WHERE id = $1', [id])
+    await client.query('COMMIT')
     res.json({ success: true, message: 'Company deleted' })
   } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('deleteCompany error:', err)
     res.status(500).json({ success: false, message: 'Server error' })
+  } finally {
+    client.release()
   }
 }
 
