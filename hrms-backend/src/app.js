@@ -24,7 +24,13 @@ app.use(cors({
     // allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true)
 
-    if (allowedOriginPattern.test(origin) || origin === 'http://localhost:5173') {
+    const renderFrontend = process.env.FRONTEND_URL || ''
+    if (
+      allowedOriginPattern.test(origin) ||
+      origin === 'http://localhost:5173' ||
+      origin === renderFrontend ||
+      origin.endsWith('.onrender.com')
+    ) {
       callback(null, true)
     } else {
       callback(new Error(`CORS blocked: ${origin}`))
