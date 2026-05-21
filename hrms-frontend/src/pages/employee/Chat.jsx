@@ -110,7 +110,7 @@ function EmployeeChat() {
                 </button>
               ))}
             </div>
-          )}git add .
+          )}
           <MessageInput
             onSend={sendCurrentMessage}
             disabled={!activeConversation}
