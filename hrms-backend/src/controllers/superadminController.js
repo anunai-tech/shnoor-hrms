@@ -245,11 +245,195 @@ const changePassword = async (req, res) => {
   }
 }
 
+// get managers of a specific company for superadmin view
+const getCompanyManagers = async (req, res) => {
+  try {
+    const { id } = req.params
+    const result = await pool.query(
+      `SELECT id, first_name, last_name, email, phone,
+              designation, department, is_active, created_at
+       FROM users
+       WHERE company_id = $1 AND role = 'manager'
+       ORDER BY created_at DESC`,
+      [id]
+    )
+    res.json({ success: true, data: result.rows })
+  } catch (err) {
+    console.error('getCompanyManagers error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+// get all client accounts with their company info
+const getClients = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT u.id, u.first_name, u.last_name, u.email, u.phone,
+              u.is_active, u.created_at,
+              c.id as company_id, c.name as company_name,
+              c.subdomain, c.status as company_status
+       FROM users u
+       LEFT JOIN companies c ON u.company_id = c.id
+       WHERE u.role = 'client'
+       ORDER BY u.created_at DESC`
+    )
+    res.json({ success: true, data: result.rows })
+  } catch (err) {
+    console.error('getClients error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+// manually create a client account (superadmin provisioning)
+const createClient = async (req, res) => {
+  const { first_name, last_name, email, phone, password, company_name } = req.body
+
+  if (!first_name || !email || !password || !company_name) {
+    return res.status(400).json({ success: false, message: 'first_name, email, password and company_name are required' })
+  }
+
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const existing = await client.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()])
+    if (existing.rows.length > 0) {
+      await client.query('ROLLBACK')
+      return res.status(409).json({ success: false, message: 'Email already exists' })
+    }
+
+    const password_hash = await bcrypt.hash(password, 12)
+
+    const companyResult = await client.query(
+      `INSERT INTO companies (name, email, phone, status)
+       VALUES ($1, $2, $3, 'pending') RETURNING id`,
+      [company_name.trim(), email.toLowerCase(), phone || null]
+    )
+    const companyId = companyResult.rows[0].id
+
+    const userResult = await client.query(
+      `INSERT INTO users (first_name, last_name, email, phone, password_hash, role, company_id)
+       VALUES ($1,$2,$3,$4,$5,'client',$6) RETURNING id`,
+      [first_name.trim(), last_name?.trim() || '', email.toLowerCase(), phone || null, password_hash, companyId]
+    )
+
+    await client.query(
+      'UPDATE companies SET client_id = $1 WHERE id = $2',
+      [userResult.rows[0].id, companyId]
+    )
+
+    await client.query(
+      'INSERT INTO company_branding (company_id, display_name) VALUES ($1, $2)',
+      [companyId, company_name.trim()]
+    )
+
+    await client.query('COMMIT')
+    res.status(201).json({ success: true, message: 'Client created successfully' })
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('createClient error:', err)
+    res.status(500).json({ success: false, message: 'Failed to create client' })
+  } finally {
+    client.release()
+  }
+}
+
+// get all subdomain requests for superadmin review
+const getSubdomainRequests = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT sr.id, sr.requested_subdomain, sr.status,
+              sr.rejection_reason, sr.requested_at, sr.reviewed_at,
+              c.name as company_name, c.email as company_email, c.id as company_id,
+              u.first_name, u.last_name
+       FROM subdomain_requests sr
+       JOIN companies c ON sr.company_id = c.id
+       LEFT JOIN users u ON u.company_id = c.id AND u.role = 'client'
+       ORDER BY sr.requested_at DESC`
+    )
+    res.json({ success: true, data: result.rows })
+  } catch (err) {
+    console.error('getSubdomainRequests error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+// approve a subdomain request — sets company subdomain and activates portal
+const approveSubdomainRequest = async (req, res) => {
+  const { id } = req.params
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const reqResult = await client.query(
+      'SELECT * FROM subdomain_requests WHERE id = $1',
+      [id]
+    )
+    if (reqResult.rows.length === 0) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ success: false, message: 'Request not found' })
+    }
+    const request = reqResult.rows[0]
+
+    const taken = await client.query(
+      'SELECT id FROM companies WHERE subdomain = $1 AND id != $2',
+      [request.requested_subdomain, request.company_id]
+    )
+    if (taken.rows.length > 0) {
+      await client.query('ROLLBACK')
+      return res.status(409).json({ success: false, message: 'Subdomain already taken by another company' })
+    }
+
+    await client.query(
+      `UPDATE subdomain_requests
+       SET status = 'approved', reviewed_at = NOW(), reviewed_by = $1
+       WHERE id = $2`,
+      [req.user.id, id]
+    )
+
+    await client.query(
+      `UPDATE companies SET subdomain = $1, status = 'active' WHERE id = $2`,
+      [request.requested_subdomain, request.company_id]
+    )
+
+    await client.query('COMMIT')
+    res.json({ success: true, message: 'Subdomain approved and portal activated' })
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('approveSubdomainRequest error:', err)
+    res.status(500).json({ success: false, message: 'Failed to approve request' })
+  } finally {
+    client.release()
+  }
+}
+
+// reject a subdomain request with optional reason
+const rejectSubdomainRequest = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { reason } = req.body
+
+    await pool.query(
+      `UPDATE subdomain_requests
+       SET status = 'rejected', rejection_reason = $1,
+           reviewed_at = NOW(), reviewed_by = $2
+       WHERE id = $3`,
+      [reason || 'Rejected by admin', req.user.id, id]
+    )
+    res.json({ success: true, message: 'Request rejected' })
+  } catch (err) {
+    console.error('rejectSubdomainRequest error:', err)
+    res.status(500).json({ success: false, message: 'Failed to reject request' })
+  }
+}
+
 module.exports = {
   getSubscriptions, createSubscription, updateSubscription, deleteSubscription,
   getTransactions,
   getAdmins, getManagers, createAdmin, createManager, deleteUser, activateUser,
   getContactQueries, updateQueryStatus,
   getWebsiteSettings, updateWebsiteSettings,
-  getProfile, updateProfile, changePassword
+  getProfile, updateProfile, changePassword,
+  getClients, createClient, getCompanyManagers,
+  getSubdomainRequests, approveSubdomainRequest, rejectSubdomainRequest
 }

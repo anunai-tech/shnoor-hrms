@@ -1,12 +1,19 @@
 const pool = require('../config/db')
 
-// GET all companies
+// GET all companies with subdomain, status, last payment
 const getCompanies = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT c.*, s.name as subscription_name 
+      SELECT c.*, s.name as subscription_name,
+             t.payment_date as last_payment_date,
+             t.status as last_payment_status
       FROM companies c
       LEFT JOIN subscriptions s ON c.subscription_id = s.id
+      LEFT JOIN LATERAL (
+        SELECT payment_date, status FROM transactions
+        WHERE company_id = c.id
+        ORDER BY payment_date DESC LIMIT 1
+      ) t ON true
       ORDER BY c.created_at DESC
     `)
     res.json({ success: true, data: result.rows })
@@ -100,4 +107,24 @@ const deleteCompany = async (req, res) => {
   }
 }
 
-module.exports = { getCompanies, createCompany, updateCompany, deleteCompany }
+// suspend or activate a company
+const suspendCompany = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { action } = req.body // 'suspend' or 'activate'
+
+    const newStatus = action === 'suspend' ? 'suspended' : 'active'
+
+    await pool.query(
+      'UPDATE companies SET status = $1 WHERE id = $2',
+      [newStatus, id]
+    )
+
+    res.json({ success: true, message: `Company ${newStatus} successfully` })
+  } catch (err) {
+    console.error('suspendCompany error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+module.exports = { getCompanies, createCompany, updateCompany, deleteCompany, suspendCompany }

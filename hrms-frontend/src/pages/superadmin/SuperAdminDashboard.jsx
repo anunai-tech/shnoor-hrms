@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getCompanies } from '../../services/superadminService'
-import { getContactQueries } from '../../services/superadminService'
+import { getCompanies, getContactQueries, getClients, getSubdomainRequests } from '../../services/superadminService'
 
 function StatCard({ label, value, change }) {
   return (
@@ -14,11 +13,11 @@ function StatCard({ label, value, change }) {
 
 function Badge({ status }) {
   const styles = {
-    'Active':   'bg-green-50 text-green-600',
+    'Active': 'bg-green-50 text-green-600',
     'Inactive': 'bg-red-50 text-red-500',
-    'Unread':   'bg-yellow-50 text-yellow-600',
-    'Read':     'bg-gray-100 text-gray-500',
-    'Replied':  'bg-amber-50 text-amber-700',
+    'Unread': 'bg-yellow-50 text-yellow-600',
+    'Read': 'bg-gray-100 text-gray-500',
+    'Replied': 'bg-amber-50 text-amber-700',
   }
   return (
     <span className={`font-display px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
@@ -30,17 +29,23 @@ function Badge({ status }) {
 function SuperAdminDashboard() {
   const [companies, setCompanies] = useState([])
   const [queries, setQueries] = useState([])
+  const [clients, setClients] = useState([])
+  const [subdomainRequests, setSubdomainRequests] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [companiesRes, queriesRes] = await Promise.all([
+        const [companiesRes, queriesRes, clientsRes, subdomainRes] = await Promise.all([
           getCompanies(),
-          getContactQueries()
+          getContactQueries(),
+          getClients(),
+          getSubdomainRequests()
         ])
         setCompanies(companiesRes.data.data)
         setQueries(queriesRes.data.data)
+        setClients(clientsRes.data.data)
+        setSubdomainRequests(subdomainRes.data.data)
       } catch (err) {
         console.error(err)
       } finally {
@@ -56,10 +61,12 @@ function SuperAdminDashboard() {
   const recentCompanies = companies.slice(0, 4)
   const recentQueries = queries.slice(0, 3)
 
+  const pendingSubdomains = subdomainRequests.filter(r => r.status === 'pending').length
+
   const stats = [
     { label: 'Total Companies', value: companies.length, change: `${activeCompanies} active` },
-    { label: 'Active Companies', value: activeCompanies, change: `${inactiveCompanies} inactive` },
-    { label: 'Contact Queries', value: queries.length, change: `${unreadQueries} unread` },
+    { label: 'Total Clients', value: clients.length, change: `${clients.filter(c => c.is_active).length} active` },
+    { label: 'Subdomain Requests', value: pendingSubdomains, change: pendingSubdomains > 0 ? '⚠ Needs review' : 'All reviewed' },
     { label: 'Unread Queries', value: unreadQueries, change: 'Needs attention' },
   ]
 

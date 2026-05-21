@@ -30,7 +30,6 @@ function AdminManagement() {
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddAdminModal, setShowAddAdminModal] = useState(false)
-  const [showAddManagerModal, setShowAddManagerModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [confirmAction, setConfirmAction] = useState(null)
@@ -189,10 +188,7 @@ function AdminManagement() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="font-display text-base font-semibold text-gray-800">Managers ({managers.length})</h2>
-            <button onClick={() => setShowAddManagerModal(true)}
-              className="font-display bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-              + Add Manager
-            </button>
+            <span className="font-body text-xs text-gray-400">Managed by company clients</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -263,50 +259,6 @@ function AdminManagement() {
           <div className="flex gap-3 mt-6">
             <button onClick={handleAddAdmin} className="font-display flex-1 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Super Admin</button>
             <button onClick={() => setShowAddAdminModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
-          </div>
-        </Modal>
-      )}
-
-      {/* Add Manager Modal */}
-      {showAddManagerModal && (
-        <Modal title="Add New Manager" onClose={() => setShowAddManagerModal(false)}>
-          <div className="space-y-4">
-            {[['first_name','First Name'],['last_name','Last Name'],['email','Email'],['phone','Phone']].map(([name, label]) => (
-              <div key={name}>
-                <label className="font-display block text-sm font-medium text-gray-700 mb-1">{label}</label>
-                <input name={name} value={managerForm[name]} onChange={e => setManagerForm({...managerForm, [e.target.name]: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-              </div>
-            ))}
-            <div>
-              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Designation</label>
-              <input name="designation" value={managerForm.designation} onChange={e => setManagerForm({...managerForm, designation: e.target.value})}
-                placeholder="e.g. HR Manager"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-            </div>
-            <div>
-              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Department</label>
-              <input name="department" value={managerForm.department} onChange={e => setManagerForm({...managerForm, department: e.target.value})}
-                placeholder="e.g. Human Resources"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-            </div>
-            <div>
-              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input name="password" type="password" value={managerForm.password} onChange={e => setManagerForm({...managerForm, password: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-            </div>
-            <div>
-              <label className="font-display block text-sm font-medium text-gray-700 mb-1">Assign Company</label>
-              <select name="company_id" value={managerForm.company_id} onChange={e => setManagerForm({...managerForm, company_id: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                <option value="">Select a company</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-3 mt-6">
-            <button onClick={handleAddManager} className="font-display flex-1 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold py-2.5 rounded-lg transition">Add Manager</button>
-            <button onClick={() => setShowAddManagerModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
           </div>
         </Modal>
       )}

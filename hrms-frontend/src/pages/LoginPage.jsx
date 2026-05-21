@@ -35,10 +35,10 @@ function LoginPage() {
 
       if (user.role === 'superadmin') {
         navigate('/superadmin/dashboard')
-      } else if (user.role === 'manager') {
-        navigate('/manager/dashboard')
       } else if (user.role === 'employee') {
         navigate('/employee/dashboard')
+      } else if (user.role === 'client') {
+        navigate('/client/dashboard')
       }
 
     } catch (err) {
@@ -54,6 +54,17 @@ function LoginPage() {
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
 
         {/* Logo + Title */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/')}
+            className="font-body flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Home
+          </button>
+        </div>
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img
@@ -137,6 +148,19 @@ function LoginPage() {
         </form>
 
         {/* Footer */}
+        <div className="mt-6 text-center">
+          <p className="font-body text-sm text-gray-500">
+            Don't have an account?{' '}
+            <button
+              type="button"
+              onClick={() => navigate('/register')}
+              className="text-primary font-semibold hover:underline"
+            >
+              Get Started Free
+            </button>
+          </p>
+        </div>
+
         <p className="font-body text-center text-xs text-gray-400 mt-4">
           By signing in you agree to our{' '}
           <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a>

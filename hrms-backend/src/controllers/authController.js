@@ -46,6 +46,33 @@ const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     )
+    // check if company is suspended for non-superadmin roles
+    if (['manager', 'employee'].includes(user.role)) {
+      const companyResult = await pool.query(
+        'SELECT status FROM companies WHERE id = $1',
+        [user.company_id]
+      )
+      const company = companyResult.rows[0]
+
+      if (company?.status === 'suspended') {
+        const message = user.role === 'client'
+          ? 'Your account has been suspended. Please contact SHNOOR support.'
+          : 'Your company portal has been suspended. Please contact your company administrator.'
+
+        return res.status(403).json({
+          success: false,
+          message,
+          code: 'ACCOUNT_SUSPENDED'
+        })
+      }
+    }
+
+    const redirectMap = {
+      superadmin: '/superadmin/dashboard',
+      client: '/client/dashboard',
+      manager: '/manager/dashboard',
+      employee: '/employee/dashboard'
+    }
 
     return res.status(200).json({
       success: true,
@@ -59,7 +86,8 @@ const login = async (req, res) => {
           first_name: user.first_name,
           last_name: user.last_name,
           company_id: user.company_id
-        }
+        },
+        redirectTo: redirectMap[user.role] || '/'
       }
     })
 
@@ -72,4 +100,112 @@ const login = async (req, res) => {
   }
 }
 
-module.exports = { login }
+// creates client user + company in single transaction
+const registerClient = async (req, res) => {
+  const { company_name, contact_name, email, password, phone } = req.body
+
+  if (!company_name || !contact_name || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'company_name, contact_name, email and password are required'
+    })
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 8 characters'
+    })
+  }
+
+  const client = await pool.connect()
+
+  try {
+    await client.query('BEGIN')
+
+    const existingUser = await client.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email.toLowerCase()]
+    )
+
+    if (existingUser.rows.length > 0) {
+      await client.query('ROLLBACK')
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this email already exists'
+      })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    const companyResult = await client.query(
+      `INSERT INTO companies (name, email, phone, status)
+   VALUES ($1, $2, $3, 'pending')
+   RETURNING id`,
+      [company_name.trim(), email.toLowerCase(), phone || null]
+    )
+    const companyId = companyResult.rows[0].id
+
+    // split contact_name into first/last for users table schema
+    const nameParts = contact_name.trim().split(' ')
+    const firstName = nameParts[0]
+    const lastName = nameParts.slice(1).join(' ') || ''
+
+    const userResult = await client.query(
+      `INSERT INTO users (first_name, last_name, email, password_hash, role, company_id)
+   VALUES ($1, $2, $3, $4, 'client', $5)
+   RETURNING id, first_name, last_name, email, role, company_id`,
+      [firstName, lastName, email.toLowerCase(), hashedPassword, companyId]
+    )
+
+    const newUser = userResult.rows[0]
+
+    await client.query(
+      'UPDATE companies SET client_id = $1 WHERE id = $2',
+      [newUser.id, companyId]
+    )
+
+    await client.query(
+      `INSERT INTO company_branding (company_id, display_name)
+       VALUES ($1, $2)`,
+      [companyId, company_name.trim()]
+    )
+
+    await client.query('COMMIT')
+
+    const token = jwt.sign(
+      { id: newUser.id, role: newUser.role, company_id: newUser.company_id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN }
+    )
+
+    return res.status(201).json({
+      success: true,
+      message: 'Account created successfully',
+      data: {
+        token,
+        user: {
+          id: newUser.id,
+          first_name: newUser.first_name,
+          last_name: newUser.last_name,
+          email: newUser.email,
+          role: newUser.role,
+          company_id: newUser.company_id
+        },
+        redirectTo: '/client/dashboard'
+      }
+    })
+
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('registerClient error:', err)
+    return res.status(500).json({
+      success: false,
+      message: 'Registration failed. Please try again.'
+    })
+  } finally {
+    client.release()
+  }
+}
+
+module.exports = { login, registerClient }

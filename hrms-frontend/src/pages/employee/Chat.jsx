@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import ChatList from '../../components/chat/ChatList'
 import ChatWindow from '../../components/chat/ChatWindow'
 import MessageInput from '../../components/chat/MessageInput'
@@ -8,6 +9,7 @@ import { useMessagingWorkspace } from '../../hooks/useMessagingWorkspace'
 function EmployeeChat() {
   const { user } = useAuth()
   const { unreadCount } = useMessaging()
+  const [mobileView, setMobileView] = useState('list')
   const {
     conversations,
     activeConversation,
@@ -65,30 +67,54 @@ function EmployeeChat() {
 
       {/* Chat grid — fills remaining space */}
       <div className="flex-1 min-h-0 grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)] px-4 pb-4 md:px-6 md:pb-6">
-        <ChatList
-          title="Manager Conversation"
-          subtitle="Your dedicated one-to-one chat history lives here."
-          conversations={conversations}
-          activeConversationId={activeConversation?.user_id}
-          onSelectConversation={selectConversation}
-          loading={listLoading}
-          emptyMessage="No manager conversation available yet."
-        />
 
-        <section className="flex flex-col min-h-0 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+        {/* Chat list */}
+        <div className={mobileView === 'chat' ? 'hidden xl:block' : 'block'}>
+          <ChatList
+            title="Your Conversations"
+            subtitle="Message your manager or use quick questions below."
+            conversations={conversations}
+            activeConversationId={activeConversation?.user_id}
+            onSelectConversation={(conv) => { selectConversation(conv); setMobileView('chat') }}
+            loading={listLoading}
+            emptyMessage="No conversations yet."
+          />
+        </div>
+
+        {/* Chat window */}
+        <section className={`flex flex-col min-h-0 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm ${mobileView === 'list' ? 'hidden xl:flex' : 'flex'}`}>
+          <div className="xl:hidden flex items-center gap-3 px-4 py-3 border-b border-slate-100 flex-shrink-0">
+            <button
+              onClick={() => setMobileView('list')}
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 font-medium transition"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+          </div>
           <ChatWindow
             conversation={activeConversation}
             messages={messages}
             currentUserId={user?.id}
             loading={conversationLoading}
-            quickQuestions={quickQuestions}
-            onQuickQuestion={sendQuickQuestion}
             onEditMessage={editCurrentMessage}
           />
+          {quickQuestions?.length > 0 && !activeConversation?.last_message && (
+            <div className="flex-shrink-0 px-4 py-3 border-t border-slate-100 flex flex-wrap gap-2">
+              {quickQuestions.map((q, i) => (
+                <button key={i} onClick={() => sendQuickQuestion(q)}
+                  className="font-body text-xs bg-slate-50 border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition">
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
           <MessageInput
             onSend={sendCurrentMessage}
             disabled={!activeConversation}
-            placeholder="Type a message to your manager"
+            placeholder="Type a message..."
           />
         </section>
       </div>

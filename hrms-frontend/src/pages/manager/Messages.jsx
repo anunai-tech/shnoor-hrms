@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import ChatList from '../../components/chat/ChatList'
 import ChatWindow from '../../components/chat/ChatWindow'
 import MessageInput from '../../components/chat/MessageInput'
@@ -8,6 +9,7 @@ import { useMessagingWorkspace } from '../../hooks/useMessagingWorkspace'
 function ManagerMessages() {
   const { user } = useAuth()
   const { unreadCount } = useMessaging()
+  const [mobileView, setMobileView] = useState('list')
   const {
     conversations,
     activeConversation,
@@ -62,18 +64,34 @@ function ManagerMessages() {
       </div>
 
       {/* Chat grid — fills remaining space, inner divs handle their own scroll */}
-      <div className="flex-1 min-h-0 grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)] px-4 pb-4 md:px-6 md:pb-6">
-        <ChatList
-          title="Employee Inbox"
-          subtitle="Every employee conversation is separated and preserved."
-          conversations={conversations}
-          activeConversationId={activeConversation?.user_id}
-          onSelectConversation={selectConversation}
-          loading={listLoading}
-          emptyMessage="No employees found."
-        />
+      <div className="flex-1 min-h-0 grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)] px-4 pb-4 md:px-6 md:pb-6 min-h-0">
+        {/* Chat list — hidden on mobile when chat is open */}
+        <div className={mobileView === 'chat' ? 'hidden xl:block' : 'block'}>
+          <ChatList
+            title="Employee Inbox"
+            subtitle="Every employee conversation is separated and preserved."
+            conversations={conversations}
+            activeConversationId={activeConversation?.user_id}
+            onSelectConversation={(conv) => { selectConversation(conv); setMobileView('chat') }}
+            loading={listLoading}
+            emptyMessage="No employees found."
+          />
+        </div>
 
-        <section className="flex flex-col min-h-0 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+        {/* Chat window — full screen on mobile, side panel on xl */}
+        <section className={`flex flex-col min-h-0 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm ${mobileView === 'list' ? 'hidden xl:flex' : 'flex'}`}>
+          {/* Mobile back button */}
+          <div className="xl:hidden flex items-center gap-3 px-4 py-3 border-b border-slate-100 flex-shrink-0">
+            <button
+              onClick={() => setMobileView('list')}
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 font-medium transition"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Inbox
+            </button>
+          </div>
           <ChatWindow
             conversation={activeConversation}
             messages={messages}

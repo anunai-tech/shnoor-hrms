@@ -39,40 +39,50 @@ router.get('/website-settings', async (req, res) => {
   }
 })
 
-// POST /forgot-password — generate OTP and send email
+// POST /forgot-password — company-aware OTP, validates user scope before sending
 router.post('/forgot-password', async (req, res) => {
   try {
-    const { email } = req.body
+    const { email, company_slug } = req.body
 
-    // Check if user exists
-    const userResult = await pool.query(
-      'SELECT id, first_name FROM users WHERE email = $1', [email]
-    )
+    let userResult
+
+    if (company_slug) {
+      // company subdomain — only send OTP if user belongs to this company
+      userResult = await pool.query(
+        `SELECT u.id, u.first_name FROM users u
+         JOIN companies c ON u.company_id = c.id
+         WHERE u.email = $1
+           AND c.subdomain = $2
+           AND u.role IN ('manager', 'employee')
+           AND u.is_active = true`,
+        [email.toLowerCase(), company_slug.toLowerCase()]
+      )
+    } else {
+      // main site — only superadmin and client
+      userResult = await pool.query(
+        `SELECT id, first_name FROM users
+         WHERE email = $1
+           AND role IN ('superadmin', 'client')
+           AND is_active = true`,
+        [email.toLowerCase()]
+      )
+    }
+
+    // don't reveal whether email exists as security best practice
     if (userResult.rows.length === 0) {
-      // Don't reveal if email exists or not — security best practice
       return res.json({ success: true, message: 'If this email exists, an OTP has been sent.' })
     }
 
     const user = userResult.rows[0]
-
-    // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
-
-    // OTP expires in 10 minutes
     const expires_at = new Date(Date.now() + 10 * 60 * 1000)
 
-    // Invalidate any existing OTPs for this email
-    await pool.query(
-      'UPDATE password_resets SET used = true WHERE email = $1', [email]
-    )
-
-    // Save new OTP
+    await pool.query('UPDATE password_resets SET used = true WHERE email = $1', [email])
     await pool.query(
       'INSERT INTO password_resets (email, otp, expires_at) VALUES ($1, $2, $3)',
       [email, otp, expires_at]
     )
 
-    // Send email
     await transporter.sendMail({
       from: `"SHNOOR HRMS" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -136,6 +146,36 @@ router.post('/reset-password', async (req, res) => {
   } catch (err) {
     console.error(err)
     res.status(500).json({ success: false, message: 'Server error.' })
+  }
+})
+
+// GET /company-info/:subdomain — public endpoint, no auth required
+// used by company landing page to fetch branding before login
+router.get('/company-info/:subdomain', async (req, res) => {
+  try {
+    const { subdomain } = req.params
+
+    const result = await pool.query(
+      `SELECT c.id, c.name, c.subdomain, c.status,
+              cb.display_name, cb.tagline, cb.logo_url, cb.primary_color
+       FROM companies c
+       LEFT JOIN company_branding cb ON cb.company_id = c.id
+       WHERE c.subdomain = $1 AND c.status IN ('active', 'suspended')
+       LIMIT 1`,
+      [subdomain.toLowerCase()]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company portal not found or not yet active'
+      })
+    }
+
+    res.json({ success: true, data: result.rows[0] })
+  } catch (err) {
+    console.error('company-info error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
   }
 })
 

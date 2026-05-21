@@ -2,34 +2,21 @@ import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import ThemeSwitcher from '../components/ThemeSwitcher'
-import api from '../services/api'
 
 const navItems = [
-  { label: 'Dashboard', path: '/superadmin/dashboard' },
-  { label: 'Companies', path: '/superadmin/companies' },
-  { label: 'Subscriptions', path: '/superadmin/subscriptions' },
-  { label: 'Transactions', path: '/superadmin/transactions' },
-  { label: 'Admin Management', path: '/superadmin/admin-management' },
-  { label: 'Clients', path: '/superadmin/clients' },
-  { label: 'Subdomain Requests', path: '/superadmin/subdomain-requests' },
-  { label: 'Contact Queries', path: '/superadmin/contact-queries' },
-  { label: 'Website Settings', path: '/superadmin/website-settings' },
-  { label: 'Settings', path: '/superadmin/settings' },
-  { label: 'Profile', path: '/superadmin/profile' },
+  { label: 'Dashboard', path: '/client/dashboard' },
+  { label: 'Staff', path: '/client/managers' },
+  { label: 'Current Plan', path: '/client/plan' },
+  { label: 'Usage', path: '/client/usage' },
+  { label: 'Settings', path: '/client/settings' },
+  { label: 'Billings', path: '/client/billings' },
+  { label: 'Support', path: '/client/support' },
 ]
 
-function SuperAdminLayout({ children }) {
+function ClientLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768)
-  const { user, setUser, logout } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
-
-  useEffect(() => {
-    api.get('/superadmin/profile')
-      .then(res => {
-        if (res.data?.data) setUser({ ...user, ...res.data.data })
-      })
-      .catch(() => { })
-  }, [])
 
   useEffect(() => {
     const handleResize = () => {
@@ -40,14 +27,8 @@ function SuperAdminLayout({ children }) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
-
-  const handleNavClick = () => {
-    if (window.innerWidth < 768) setSidebarOpen(false)
-  }
+  const handleLogout = () => { logout(); navigate('/login') }
+  const handleNavClick = () => { if (window.innerWidth < 768) setSidebarOpen(false) }
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -59,10 +40,9 @@ function SuperAdminLayout({ children }) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed md:relative z-30 md:z-auto
-        ${sidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full md:w-0 md:translate-x-0'}
-        h-full bg-white border-r border-gray-200
+        fixed md:relative z-30 md:z-auto h-full bg-white border-r border-gray-200
         flex flex-col transition-all duration-300 ease-in-out flex-shrink-0 overflow-hidden
+        ${sidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full md:w-0 md:translate-x-0'}
       `}>
 
         {/* Logo */}
@@ -70,8 +50,8 @@ function SuperAdminLayout({ children }) {
           <div className="flex items-center gap-3">
             <img src="/shnoor-logo.png" alt="SHNOOR" className="h-9 w-auto object-contain" />
             <div>
-              <p className="font-display text-sm font-bold text-gray-800 leading-tight">SHNOOR</p>
-              <p className="font-body text-xs text-gray-400 leading-tight">International LLC</p>
+              <p className="font-display text-sm font-bold text-gray-800 leading-tight">Client Area</p>
+              <p className="font-body text-xs text-primary leading-tight font-medium">SHNOOR HRMS</p>
             </div>
           </div>
         </div>
@@ -82,7 +62,7 @@ function SuperAdminLayout({ children }) {
             <NavLink key={item.path} to={item.path} onClick={handleNavClick}
               className={({ isActive }) => `
                 font-display flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200
-                ${isActive ? 'bg-yellow-50 text-yellow-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}
+                ${isActive ? 'bg-amber-50 text-primary' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}
               `}>
               {item.label}
             </NavLink>
@@ -113,19 +93,16 @@ function SuperAdminLayout({ children }) {
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             <ThemeSwitcher />
             <div className="text-right hidden sm:block min-w-0">
-              <p className="font-display text-sm font-semibold text-gray-800 truncate max-w-[120px] md:max-w-none">
+              <p className="font-display text-sm font-semibold text-gray-800 truncate max-w-[150px] md:max-w-none">
                 {user?.first_name} {user?.last_name}
               </p>
-              <p className="font-body text-xs text-gray-400 capitalize">{user?.role}</p>
+              <p className="font-body text-xs text-primary font-medium">Client Account</p>
             </div>
-            <button onClick={() => navigate('/superadmin/profile')}
-              className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2">
-              {user?.profile_photo ? (
-                <img src={user.profile_photo} alt="avatar" className="w-full h-full object-cover" />
-              ) : (
-                <span className="font-display text-white font-bold text-sm">{user?.first_name?.charAt(0) || 'S'}</span>
-              )}
-            </button>
+            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+              <span className="font-display text-white font-bold text-sm">
+                {user?.first_name?.charAt(0) || 'C'}
+              </span>
+            </div>
           </div>
         </header>
 
@@ -137,4 +114,4 @@ function SuperAdminLayout({ children }) {
   )
 }
 
-export default SuperAdminLayout
+export default ClientLayout
