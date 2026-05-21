@@ -42,15 +42,12 @@ function EmployeeLayout({ children }) {
   }, [])
 
   const handleLogout = () => {
-    const slug = sessionStorage.getItem('companySlug')
-    sessionStorage.removeItem('companySlug')
-    logout()
-    if (slug) {
-      navigate(`/login?company=${slug}`)
-    } else {
-      navigate('/login')
-    }
-  }
+  const slug = sessionStorage.getItem('companySlug')
+  logout()
+  // keep slug in sessionStorage so CompanyLoginPage still works
+  navigate(slug ? `/login?company=${slug}` : '/login')
+}
+
   const handleNavClick = () => { if (window.innerWidth < 768) setSidebarOpen(false) }
 
   return (

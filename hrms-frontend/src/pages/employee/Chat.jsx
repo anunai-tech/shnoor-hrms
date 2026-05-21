@@ -106,11 +106,11 @@ function EmployeeChat() {
               {quickQuestions.map((q, i) => (
                 <button key={i} onClick={() => sendQuickQuestion(q)}
                   className="font-body text-xs bg-slate-50 border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition">
-                  {q}
+                  {typeof q === 'string' ? q : q?.text || q?.question || ''}
                 </button>
               ))}
             </div>
-          )}
+          )}git add .
           <MessageInput
             onSend={sendCurrentMessage}
             disabled={!activeConversation}
