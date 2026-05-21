@@ -273,20 +273,20 @@ function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section ref={homeRef} className="pt-28 pb-20 px-6 bg-gray-50">
+      <section ref={homeRef} className="pt-20 sm:pt-28 pb-12 sm:pb-20 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             <div>
               <div className="font-display inline-block bg-secondary/30 border border-secondary text-primary text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
                 HR Management Software
               </div>
-              <h1 className="font-display text-5xl font-black text-gray-900 leading-tight mb-6">
+              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight mb-6">
                 {settings.hero_title}
               </h1>
               <p className="font-body text-gray-500 text-sm leading-relaxed mb-8">
                 {settings.hero_subtitle}
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button onClick={() => navigate(settings.cta_button_link || '/login')}
                   className="font-display bg-primary hover:opacity-90 text-quaternary font-bold px-6 py-3 rounded-lg text-sm transition flex items-center gap-2">
                   {settings.cta_button_text} →
@@ -316,11 +316,11 @@ function LandingPage() {
       </section>
 
       {/* Features */}
-      <section ref={featuresRef} className="py-24 px-6 bg-white">
+      <section ref={featuresRef} className="py-12 sm:py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <p className="font-display text-primary text-sm font-semibold uppercase tracking-widest mb-3">Features</p>
-            <h2 className="font-display text-4xl font-black text-gray-900 mb-4">Everything You Need To<br />Manage Your Team</h2>
+            <h2 className="font-display text-2xl sm:text-4xl font-black text-gray-900 mb-4">Everything You Need To<br className="hidden sm:block" /> Manage Your Team</h2>
             <p className="font-body text-gray-500 max-w-xl mx-auto text-sm">A complete suite of HR tools designed to save time, reduce paperwork, and keep your team happy.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -335,11 +335,11 @@ function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section ref={pricingRef} className="py-24 px-6 bg-gray-50">
+      <section ref={pricingRef} className="py-12 sm:py-24 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <p className="font-display text-primary text-sm font-semibold uppercase tracking-widest mb-3">Pricing</p>
-            <h2 className="font-display text-4xl font-black text-gray-900 mb-4">Simple, Transparent Pricing</h2>
+            <h2 className="font-display text-2xl sm:text-4xl font-black text-gray-900 mb-4">Simple, Transparent Pricing</h2>
             <p className="font-body text-gray-500 max-w-xl mx-auto text-sm mb-8">Choose the plan that works for your company. No hidden fees, no surprises.</p>
             <div className="inline-flex items-center bg-white border border-gray-200 rounded-xl p-1">
               <button onClick={() => setBillingPeriod('monthly')}
@@ -352,7 +352,7 @@ function LandingPage() {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {plans.map((plan) => (
               <div key={plan.name}
                 className={`rounded-2xl p-8 border transition-all duration-300 ${plan.highlighted ? 'bg-primary border-primary shadow-lg scale-105' : 'bg-white border-gray-200 hover:border-primary hover:shadow-sm'}`}>

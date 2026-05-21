@@ -19,7 +19,6 @@ function Modal({ title, onClose, children }) {
 }
 
 function StatusBadge({ status, isActive }) {
-  // prefer new status column, fallback to is_active
   const s = status || (isActive ? 'active' : 'inactive')
   const styles = {
     active: 'bg-green-50 text-green-600',
@@ -46,14 +45,12 @@ function Companies() {
   const [error, setError] = useState('')
   const [actionLoading, setActionLoading] = useState(null)
 
-  // add form (createClient — same as Clients page)
   const [addForm, setAddForm] = useState({
     first_name: '', last_name: '', email: '',
     phone: '', password: '', company_name: ''
   })
   const [addError, setAddError] = useState('')
 
-  // edit form
   const [editForm, setEditForm] = useState({
     name: '', email: '', phone: '', subscription_id: '', is_active: true
   })
@@ -245,9 +242,13 @@ function Companies() {
             </tbody>
           </table>
         </div>
+
+        <div className="px-6 py-3 border-t border-gray-100">
+          <p className="font-body text-xs text-gray-400">Showing {filtered.length} of {companies.length} companies</p>
+        </div>
       </div>
 
-      {/* Add Company Modal — same as Add Client */}
+      {/* Add Company Modal */}
       {showAddModal && (
         <Modal title="Add New Company" onClose={() => { setShowAddModal(false); setAddError('') }}>
           <p className="font-body text-sm text-gray-500 mb-4">
@@ -328,8 +329,7 @@ function Companies() {
       {showDeleteModal && (
         <Modal title="Delete Company" onClose={() => setShowDeleteModal(false)}>
           <p className="font-body text-sm text-gray-600 mb-6">
-            Are you sure you want to delete <span className="font-semibold text-gray-800">{selectedCompany?.name}</span>?
-            This action cannot be undone.
+            Are you sure you want to delete <span className="font-semibold text-gray-800">{selectedCompany?.name}</span>? This cannot be undone.
           </p>
           <div className="flex gap-3">
             <button onClick={handleDelete}
