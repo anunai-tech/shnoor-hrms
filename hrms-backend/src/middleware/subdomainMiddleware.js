@@ -7,10 +7,12 @@ const pool = require('../config/db')
 const subdomainMiddleware = async (req, res, next) => {
   try {
     const hostname = req.hostname
+    // Skip middleware for localhost, plain IPs, and non-shnoor hosts (Render, etc.)
     if (
       hostname === 'localhost' ||
       hostname === '127.0.0.1' ||
-      !hostname.includes('.')
+      !hostname.includes('.') ||
+      !hostname.includes('.shnoor.')
     ) {
       req.company = null
       return next()
