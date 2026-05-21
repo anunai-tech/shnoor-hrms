@@ -3,14 +3,16 @@ const router = express.Router()
 const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
 
-const { getCompanies, createCompany, updateCompany, deleteCompany } = require('../controllers/companyController')
+const { getCompanies, createCompany, updateCompany, deleteCompany, suspendCompany } = require('../controllers/companyController')
 const {
   getSubscriptions, createSubscription, updateSubscription, deleteSubscription,
   getTransactions,
   getAdmins, getManagers, createAdmin, createManager, deleteUser, activateUser,
   getContactQueries, updateQueryStatus,
   getWebsiteSettings, updateWebsiteSettings,
-  getProfile, updateProfile, changePassword
+  getProfile, updateProfile, changePassword,
+  getClients, createClient, getCompanyManagers,
+  getSubdomainRequests, approveSubdomainRequest, rejectSubdomainRequest
 } = require('../controllers/superadminController')
 
 router.use(authenticate)
@@ -51,5 +53,18 @@ router.put('/website-settings', updateWebsiteSettings)
 router.get('/profile', getProfile)
 router.put('/profile', updateProfile)
 router.put('/change-password', changePassword)
+
+// Company suspend/activate + managers view
+router.put('/companies/:id/suspend', suspendCompany)
+router.get('/companies/:id/managers', getCompanyManagers)
+
+// Clients
+router.get('/clients', getClients)
+router.post('/clients', createClient)
+
+// Subdomain Requests
+router.get('/subdomain-requests', getSubdomainRequests)
+router.put('/subdomain-requests/:id/approve', approveSubdomainRequest)
+router.put('/subdomain-requests/:id/reject', rejectSubdomainRequest)
 
 module.exports = router

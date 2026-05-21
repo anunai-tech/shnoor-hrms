@@ -12,7 +12,11 @@ const {
   updateBranding,
   changePassword,
   getTransactions,
-  createSupportTicket
+  createSupportTicket,
+  getManagers,
+  createManager,
+  toggleManager,
+  getEmployees
 } = require('../controllers/clientController')
 
 router.use(authenticate)
@@ -27,6 +31,10 @@ router.get('/branding', getBranding)
 router.put('/branding', updateBranding)
 router.put('/password', changePassword)
 router.get('/transactions', getTransactions)
-router.post('/support', createSupportTicket)
+// Manager management
+router.get('/managers', getManagers)
+router.get('/employees', getEmployees)
+router.post('/managers', createManager)
+router.put('/managers/:id/toggle', toggleManager)
 
 module.exports = router

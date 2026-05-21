@@ -20,7 +20,50 @@ function ClientDashboard() {
         </div>
     )
 
+    // suspended company — show full-page notice instead of normal dashboard
+    if (data?.company?.status === 'suspended') return (
+        <div className="space-y-6">
+            <div>
+                <h1 className="font-display text-2xl font-bold text-gray-800">Dashboard</h1>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+                <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-7 h-7 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    </svg>
+                </div>
+                <h2 className="font-display text-xl font-bold text-red-700 mb-2">Account Suspended</h2>
+                <p className="font-body text-sm text-red-600 mb-1">
+                    Your company portal has been suspended by SHNOOR administration.
+                </p>
+                <p className="font-body text-sm text-red-500 mb-6">
+                    Your managers and employees cannot access the portal until this is resolved.
+                </p>
+
+                <a href="mailto:support@shnoor.com" className="font-display inline-block bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition">Contact Support</a>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h3 className="font-display text-sm font-semibold text-gray-700 mb-1">What can you still do?</h3>
+                <ul className="font-body text-sm text-gray-500 space-y-1 mt-2 list-disc list-inside">
+                    <li>View your current plan and billing history</li>
+                    <li>Contact SHNOOR support via the Support page</li>
+                    <li>Your data is safe and preserved</li>
+                </ul>
+            </div>
+        </div >
+    )
+
     const { company, stats, subdomainRequest, portalActive } = data || {}
+
+    // env-aware portal URL — .shnoor.test:5173 in dev, .shnoor.com in prod
+    const getPortalUrl = (subdomain, path = '') => {
+        const isDev = window.location.hostname.includes('.test') || window.location.hostname === 'localhost'
+        const base = isDev
+            ? `http://${subdomain}.shnoor.test:5173`
+            : `https://${subdomain}.shnoor.com`
+        return `${base}${path}`
+    }
 
     const getPortalSection = () => {
         if (portalActive) {
@@ -37,12 +80,12 @@ function ClientDashboard() {
                     </p>
                     <div className="grid grid-cols-2 gap-3">
 
-                        <a href={`http://${company?.subdomain}.shnoor.com`} target="_blank" rel="noreferrer" className="font-display flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                        <a href={getPortalUrl(company?.subdomain)} target="_blank" rel="noreferrer" className="font-display flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                             Portal Homepage
                         </a>
 
-                        <a href={`http://${company?.subdomain}.shnoor.com/login`} target="_blank" rel="noreferrer" className="font-display flex items-center justify-center gap-2 bg-primary text-white rounded-lg py-2.5 text-sm font-medium hover:opacity-90 transition">
-                            Admin Login
+                        <a href={getPortalUrl(company?.subdomain, '/login')} target="_blank" rel="noreferrer" className="font-display flex items-center justify-center gap-2 bg-primary text-white rounded-lg py-2.5 text-sm font-medium hover:opacity-90 transition">
+                            Staff Portal
                         </a>
                     </div>
                 </div >

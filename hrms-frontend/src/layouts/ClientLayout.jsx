@@ -5,6 +5,7 @@ import ThemeSwitcher from '../components/ThemeSwitcher'
 
 const navItems = [
   { label: 'Dashboard', path: '/client/dashboard' },
+  { label: 'Staff', path: '/client/managers' },
   { label: 'Current Plan', path: '/client/plan' },
   { label: 'Usage', path: '/client/usage' },
   { label: 'Settings', path: '/client/settings' },

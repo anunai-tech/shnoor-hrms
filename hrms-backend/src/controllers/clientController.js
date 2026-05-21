@@ -338,15 +338,130 @@ const createSupportTicket = async (req, res) => {
   }
 }
 
+// get all managers for this client's company
+const getManagers = async (req, res) => {
+  try {
+    const companyId = req.user.company_id
+
+    const result = await pool.query(
+      `SELECT id, first_name, last_name, email, phone,
+              designation, department, is_active, created_at
+       FROM users
+       WHERE company_id = $1 AND role = 'manager'
+       ORDER BY created_at DESC`,
+      [companyId]
+    )
+
+    res.json({ success: true, data: result.rows })
+  } catch (err) {
+    console.error('getManagers error:', err)
+    res.status(500).json({ success: false, message: 'Failed to load managers' })
+  }
+}
+
+// create a manager for this client's company
+const createManager = async (req, res) => {
+  try {
+    const companyId = req.user.company_id
+    const { first_name, last_name, email, phone, password, designation, department } = req.body
+
+    if (!first_name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'First name, email and password are required'
+      })
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters'
+      })
+    }
+
+    const password_hash = await bcrypt.hash(password, 12)
+
+    const result = await pool.query(
+      `INSERT INTO users
+        (first_name, last_name, email, phone, password_hash, role, company_id, designation, department)
+       VALUES ($1,$2,$3,$4,$5,'manager',$6,$7,$8)
+       RETURNING id, first_name, last_name, email, designation, department`,
+      [
+        first_name.trim(), last_name?.trim() || '',
+        email.toLowerCase(), phone || null,
+        password_hash, companyId,
+        designation || null, department || null
+      ]
+    )
+
+    res.status(201).json({ success: true, data: result.rows[0] })
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ success: false, message: 'A user with this email already exists' })
+    }
+    console.error('createManager error:', err)
+    res.status(500).json({ success: false, message: 'Failed to create manager' })
+  }
+}
+
+// toggle manager active/inactive status
+const toggleManager = async (req, res) => {
+  try {
+    const companyId = req.user.company_id
+    const { id } = req.params
+
+    // verify manager belongs to this company before updating
+    const check = await pool.query(
+      `SELECT id, is_active FROM users
+       WHERE id = $1 AND company_id = $2 AND role = 'manager'`,
+      [id, companyId]
+    )
+
+    if (check.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Manager not found' })
+    }
+
+    const newStatus = !check.rows[0].is_active
+
+    await pool.query(
+      'UPDATE users SET is_active = $1 WHERE id = $2',
+      [newStatus, id]
+    )
+
+    res.json({
+      success: true,
+      message: `Manager ${newStatus ? 'activated' : 'deactivated'} successfully`
+    })
+  } catch (err) {
+    console.error('toggleManager error:', err)
+    res.status(500).json({ success: false, message: 'Failed to update manager status' })
+  }
+}
+
+// get all employees for this client's company (read-only view)
+const getEmployees = async (req, res) => {
+  try {
+    const companyId = req.user.company_id
+    const result = await pool.query(
+      `SELECT id, first_name, last_name, email, phone,
+              designation, department, is_active, joining_date, created_at
+       FROM users
+       WHERE company_id = $1 AND role = 'employee'
+       ORDER BY created_at DESC`,
+      [companyId]
+    )
+    res.json({ success: true, data: result.rows })
+  } catch (err) {
+    console.error('getEmployees error:', err)
+    res.status(500).json({ success: false, message: 'Failed to load employees' })
+  }
+}
+
 module.exports = {
-  getDashboard,
-  getCurrentPlan,
-  getUsage,
-  getSubdomainRequest,
-  createSubdomainRequest,
-  getBranding,
-  updateBranding,
-  changePassword,
-  getTransactions,
-  createSupportTicket
+  getDashboard, getCurrentPlan, getUsage,
+  getSubdomainRequest, createSubdomainRequest,
+  getBranding, updateBranding, changePassword,
+  getTransactions, createSupportTicket,
+  getManagers, createManager, toggleManager,
+  getEmployees
 }

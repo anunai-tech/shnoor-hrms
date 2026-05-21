@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import useSubdomain from '../hooks/useSubdomain'
 
 function ForgotPassword() {
   const navigate = useNavigate()
+  const { isCompany, companySlug } = useSubdomain()
   const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
@@ -18,7 +20,10 @@ function ForgotPassword() {
     setError('')
     setLoading(true)
     try {
-      await api.post('/public/forgot-password', { email })
+      await api.post('/public/forgot-password', {
+        email,
+        company_slug: isCompany ? companySlug : null
+      })
       setStep(2)
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP. Try again.')
@@ -54,7 +59,16 @@ function ForgotPassword() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full max-w-md p-8">
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-8 flex-col items-center gap-4">
+          <button
+            onClick={() => navigate('/login')}
+            className="font-body self-start flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Login
+          </button>
           <img src="/shnoor-logo.png" alt="SHNOOR" className="h-12 w-auto object-contain" />
         </div>
 

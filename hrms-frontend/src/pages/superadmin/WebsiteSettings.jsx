@@ -29,16 +29,25 @@ function WebsiteSettings() {
     setSaved(false)
   }
 
-  const handleLogoUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setFormData({ ...formData, logo_url: event.target.result })
-        setSaved(false)
-      }
-      reader.readAsDataURL(file)
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleLogoFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setFormData({ ...formData, logo_url: event.target.result })
+      setSaved(false)
     }
+    reader.readAsDataURL(file)
+  }
+
+  const handleLogoUpload = (e) => handleLogoFile(e.target.files[0])
+  const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true) }
+  const handleDragLeave = () => setIsDragging(false)
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    handleLogoFile(e.dataTransfer.files[0])
   }
 
   const handleSave = async () => {
@@ -94,10 +103,18 @@ function WebsiteSettings() {
           <div className="flex-1">
             <p className="font-display text-sm font-medium text-gray-700 mb-2">Upload New Logo</p>
             <p className="font-body text-xs text-gray-400 mb-4">Recommended: PNG with transparent background, min 200x200px</p>
-            <label className="font-display cursor-pointer inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-              Choose File
-              <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-            </label>
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('logo-upload').click()}
+              className={`mt-2 border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition
+    ${isDragging ? 'border-primary bg-amber-50' : 'border-gray-300 hover:border-primary hover:bg-gray-50'}`}
+            >
+              <p className="font-display text-sm font-medium text-gray-600">Drop logo here or click to upload</p>
+              <p className="font-body text-xs text-gray-400 mt-1">PNG, JPG, SVG — max 2MB</p>
+              <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+            </div>
           </div>
         </div>
       </div>

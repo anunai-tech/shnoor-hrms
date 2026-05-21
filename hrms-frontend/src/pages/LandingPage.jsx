@@ -196,7 +196,7 @@ function LandingPage() {
     hero_title: 'Next Generation HR Management For Your Company',
     hero_subtitle: 'Best-rated HR management application for small to large scale business. Manage employees, attendance, leaves, payroll, and more — all in one place.',
     cta_button_text: 'Get Started Free',
-    cta_button_link: '/login',
+    cta_button_link: '/register',
     contact_email: 'info@shnoorintl.com',
     contact_phone: '+91 98765 43210',
     footer_text: '© 2026 SHNOOR INTERNATIONAL LLC. All rights reserved.',
@@ -264,7 +264,7 @@ function LandingPage() {
               className="font-display text-sm font-medium text-gray-600 hover:text-gray-900 transition px-4 py-2">
               Login
             </button>
-            <button onClick={() => navigate(settings.cta_button_link || '/login')}
+            <button onClick={() => navigate('/register')}
               className="font-display bg-primary hover:opacity-90 text-quaternary text-sm font-semibold px-5 py-2 rounded-lg transition">
               {settings.cta_button_text}
             </button>
@@ -372,7 +372,7 @@ function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <button onClick={() => navigate('/login')}
+                <button onClick={() => navigate('/register')}
                   className={`font-display w-full py-3 rounded-xl text-sm font-bold transition ${plan.highlighted ? 'bg-quaternary text-primary hover:opacity-90' : 'bg-primary text-quaternary hover:opacity-90'}`}>
                   {plan.cta}
                 </button>

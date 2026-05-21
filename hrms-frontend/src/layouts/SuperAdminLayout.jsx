@@ -10,6 +10,8 @@ const navItems = [
   { label: 'Subscriptions', path: '/superadmin/subscriptions' },
   { label: 'Transactions', path: '/superadmin/transactions' },
   { label: 'Admin Management', path: '/superadmin/admin-management' },
+  { label: 'Clients', path: '/superadmin/clients' },
+  { label: 'Subdomain Requests', path: '/superadmin/subdomain-requests' },
   { label: 'Contact Queries', path: '/superadmin/contact-queries' },
   { label: 'Website Settings', path: '/superadmin/website-settings' },
   { label: 'Settings', path: '/superadmin/settings' },
@@ -26,7 +28,7 @@ function SuperAdminLayout({ children }) {
       .then(res => {
         if (res.data?.data) setUser({ ...user, ...res.data.data })
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   useEffect(() => {

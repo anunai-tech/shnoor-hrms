@@ -46,6 +46,27 @@ const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     )
+    // check if company is suspended for non-superadmin roles
+    if (['manager', 'employee'].includes(user.role)) {
+      const companyResult = await pool.query(
+        'SELECT status FROM companies WHERE id = $1',
+        [user.company_id]
+      )
+      const company = companyResult.rows[0]
+
+      if (company?.status === 'suspended') {
+        const message = user.role === 'client'
+          ? 'Your account has been suspended. Please contact SHNOOR support.'
+          : 'Your company portal has been suspended. Please contact your company administrator.'
+
+        return res.status(403).json({
+          success: false,
+          message,
+          code: 'ACCOUNT_SUSPENDED'
+        })
+      }
+    }
+
     const redirectMap = {
       superadmin: '/superadmin/dashboard',
       client: '/client/dashboard',

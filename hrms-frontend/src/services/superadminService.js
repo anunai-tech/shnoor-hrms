@@ -35,3 +35,16 @@ export const updateWebsiteSettings = (data) => api.put('/superadmin/website-sett
 export const getSuperAdminProfile = () => api.get('/superadmin/profile')
 export const updateSuperAdminProfile = (data) => api.put('/superadmin/profile', data)
 export const changePassword = (data) => api.put('/superadmin/change-password', data)
+
+// Company actions
+export const suspendCompany = (id, action) => api.put(`/superadmin/companies/${id}/suspend`, { action })
+export const getCompanyManagers = (id) => api.get(`/superadmin/companies/${id}/managers`)
+
+// Clients
+export const getClients = () => api.get('/superadmin/clients')
+export const createClient = (data) => api.post('/superadmin/clients', data)
+
+// Subdomain Requests
+export const getSubdomainRequests = () => api.get('/superadmin/subdomain-requests')
+export const approveSubdomainRequest = (id) => api.put(`/superadmin/subdomain-requests/${id}/approve`)
+export const rejectSubdomainRequest = (id, reason) => api.put(`/superadmin/subdomain-requests/${id}/reject`, { reason })

@@ -12,6 +12,7 @@ const publicRoutes = require('./routes/public')
 const profilePictureRoutes = require('./routes/profilePicture')
 const clientRoutes = require('./routes/client')
 const subdomainMiddleware = require('./middleware/subdomainMiddleware')
+const verifyCompanyAccess = require('./middleware/verifyCompanyAccess')
 
 const app = express()
 
@@ -43,10 +44,10 @@ app.use('/api/v1/client', clientRoutes)
 app.use('/api/v1/public', publicRoutes)
 app.use('/api/v1/profile-picture', profilePictureRoutes)
 
-// Company subdomain routes — subdomain check runs first
-app.use('/api/v1/manager', subdomainMiddleware, managerRoutes)
-app.use('/api/v1/employee', subdomainMiddleware, employeeRoutes)
-app.use('/api/v1/messages', subdomainMiddleware, messageRoutes)
+// Company subdomain routes — subdomain resolved, then company access verified per request
+app.use('/api/v1/manager', subdomainMiddleware, verifyCompanyAccess, managerRoutes)
+app.use('/api/v1/employee', subdomainMiddleware, verifyCompanyAccess, employeeRoutes)
+app.use('/api/v1/messages', subdomainMiddleware, verifyCompanyAccess, messageRoutes)
 
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'SHNOOR HRMS API is running' })

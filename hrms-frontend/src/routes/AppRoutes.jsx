@@ -24,6 +24,7 @@ import ClientDashboard from '../pages/client/ClientDashboard'
 import CurrentPlan from '../pages/client/CurrentPlan'
 import Usage from '../pages/client/Usage'
 import ClientSettings from '../pages/client/Settings'
+import Staff from '../pages/client/Managers'
 import Billings from '../pages/client/Billings'
 import Support from '../pages/client/Support'
 import CompanyLoginPage from '../pages/company/CompanyLoginPage'
@@ -38,6 +39,8 @@ import ContactQueries from '../pages/superadmin/ContactQueries'
 import WebsiteSettings from '../pages/superadmin/WebsiteSettings'
 import SuperAdminSettings from '../pages/superadmin/Settings'
 import SuperAdminProfile from '../pages/superadmin/Profile'
+import Clients from '../pages/superadmin/Clients'
+import SubdomainRequests from '../pages/superadmin/SubdomainRequests'
 
 // Manager pages
 import ManagerDashboard from '../pages/manager/ManagerDashboard'
@@ -189,9 +192,12 @@ function MainSiteRoutes() {
         <Route path="/superadmin/website-settings" element={<SuperAdminPage component={WebsiteSettings} />} />
         <Route path="/superadmin/settings" element={<SuperAdminPage component={SuperAdminSettings} />} />
         <Route path="/superadmin/profile" element={<SuperAdminPage component={SuperAdminProfile} />} />
+        <Route path="/superadmin/clients" element={<SuperAdminPage component={Clients} />} />
+        <Route path="/superadmin/subdomain-requests" element={<SuperAdminPage component={SubdomainRequests} />} />
 
         {/* Client Area */}
         <Route path="/client/dashboard" element={<ClientPage component={ClientDashboard} />} />
+        <Route path="/client/managers" element={<ClientPage component={Staff} />} />
         <Route path="/client/plan" element={<ClientPage component={CurrentPlan} />} />
         <Route path="/client/usage" element={<ClientPage component={Usage} />} />
         <Route path="/client/settings" element={<ClientPage component={ClientSettings} />} />
