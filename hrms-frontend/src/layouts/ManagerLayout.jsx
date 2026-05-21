@@ -56,7 +56,16 @@ function ManagerLayout({ children }) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const handleLogout = () => { logout(); navigate('/login') }
+  const handleLogout = () => {
+    const slug = sessionStorage.getItem('companySlug')
+    sessionStorage.removeItem('companySlug')
+    logout()
+    if (slug) {
+      navigate(`/login?company=${slug}`)
+    } else {
+      navigate('/login')
+    }
+  }
   const handleNavClick = () => { if (window.innerWidth < 768) setSidebarOpen(false) }
   const currentNavItems = activeTab === 'manager' ? managerNavItems : selfNavItems
 
