@@ -154,7 +154,7 @@ function CompanyLanding() {
           {isSuspended ? (
             <div className="flex flex-col items-center gap-3">
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate(`/login${window.location.search}`)}
                 className="font-display inline-flex items-center gap-2 text-sm font-semibold px-8 py-4 rounded-xl transition opacity-50 cursor-not-allowed text-white border border-gray-700"
                 disabled
               >
@@ -164,7 +164,7 @@ function CompanyLanding() {
             </div>
           ) : (
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(`/login${window.location.search}`)}
               className="font-display inline-flex items-center gap-2 text-sm font-semibold px-8 py-4 rounded-xl transition shadow-lg hover:shadow-xl hover:opacity-90 text-white"
               style={{ backgroundColor: primaryColor }}
             >

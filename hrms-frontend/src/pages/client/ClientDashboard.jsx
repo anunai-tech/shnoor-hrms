@@ -58,11 +58,20 @@ function ClientDashboard() {
 
     // env-aware portal URL — .shnoor.test:5173 in dev, .shnoor.com in prod
     const getPortalUrl = (subdomain, path = '') => {
-        const isDev = window.location.hostname.includes('.test') || window.location.hostname === 'localhost'
-        const base = isDev
-            ? `http://${subdomain}.shnoor.test:5173`
-            : `https://${subdomain}.shnoor.com`
-        return `${base}${path}`
+        const hostname = window.location.hostname
+        const isDev = hostname === 'localhost' || hostname.includes('.test')
+        const isRender = hostname.includes('.onrender.com')
+
+        if (isDev) {
+            return `http://${subdomain}.shnoor.test:5173${path}`
+        }
+        if (isRender) {
+            // use query param for Render testing
+            const base = `${window.location.origin}${path || '/'}`
+            return `${base}${path ? '?' : '?'}company=${subdomain}`
+        }
+        // real shnoor.com domain
+        return `https://${subdomain}.shnoor.com${path}`
     }
 
     const getPortalSection = () => {

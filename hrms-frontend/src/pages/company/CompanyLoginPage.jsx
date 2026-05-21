@@ -28,6 +28,26 @@ function CompanyLoginPage() {
   const primaryColor = branding?.primary_color || '#D97706'
   const isSuspended = branding?.status === 'suspended'
 
+  // if no company context at all, redirect to main login
+  if (!companySlug && !branding) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <p className="font-display text-gray-800 font-semibold mb-2">No company portal specified</p>
+          <p className="font-body text-sm text-gray-500 mb-4">
+            Please access this page via your company portal URL.
+          </p>
+          <button
+            onClick={() => navigate('/login')}
+            className="font-display text-sm bg-primary text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition"
+          >
+            Go to Main Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
