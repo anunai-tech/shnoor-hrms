@@ -1,22 +1,21 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import api from '../services/api'
+import { useAuth } from '../../context/AuthContext'
+import api from '../../services/api'
+import useSubdomain from '../../hooks/useSubdomain'
 
-function LoginPage() {
-
-  // State Variables 
+// login page served on company subdomains — manager + employee only
+function CompanyLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  //  Hooks 
   const { login } = useAuth()
   const navigate = useNavigate()
+  const { companySlug } = useSubdomain()
 
-  // Form Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -27,23 +26,26 @@ function LoginPage() {
     }
 
     setIsLoading(true)
-
     try {
       const response = await api.post('/auth/login', { email, password })
       const { token, user } = response.data.data
+
+      // only manager and employee can access company portals
+      if (user.role !== 'manager' && user.role !== 'employee') {
+        setError('This portal is for company staff only. Please use the main portal.')
+        return
+      }
+
       login(user, token)
 
-      if (user.role === 'superadmin') {
-        navigate('/superadmin/dashboard')
-      } else if (user.role === 'employee') {
+      if (user.role === 'manager') {
+        navigate('/manager/dashboard')
+      } else {
         navigate('/employee/dashboard')
-      } else if (user.role === 'client') {
-        navigate('/client/dashboard')
       }
 
     } catch (err) {
-      const message = err.response?.data?.message || 'Login failed. Please try again.'
-      setError(message)
+      setError(err.response?.data?.message || 'Login failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -53,32 +55,23 @@ function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
 
-        {/* Logo + Title */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <img
-              src="/shnoor-logo.png"
-              alt="SHNOOR"
-              className="h-16 w-auto object-contain cursor-pointer hover:opacity-80 transition"
-              onClick={() => navigate('/')}
-            />
+          <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-white font-display font-bold text-xl uppercase">
+              {companySlug?.[0] || 'C'}
+            </span>
           </div>
-          <h1
-            className="font-display text-2xl font-bold text-gray-800 cursor-pointer hover:text-primary transition"
-            onClick={() => navigate('/')}
-          >
-            SHNOOR HRMS
+          <h1 className="font-display text-2xl font-bold text-gray-800 capitalize">
+            {companySlug} Portal
           </h1>
           <p className="font-body text-gray-500 text-sm mt-1">Login to your account</p>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 mb-6">
             {error}
           </div>
         )}
-
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -116,7 +109,7 @@ function LoginPage() {
             </div>
           </div>
 
-          <div className="flex justify-end mt-1 mb-4">
+          <div className="flex justify-end">
             <button
               type="button"
               onClick={() => navigate('/forgot-password')}
@@ -133,37 +126,17 @@ function LoginPage() {
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
-
         </form>
 
-        {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="font-body text-sm text-gray-500">
-            Don't have an account?{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/register')}
-              className="text-primary font-semibold hover:underline"
-            >
-              Get Started Free
-            </button>
-          </p>
-        </div>
-
-        <p className="font-body text-center text-xs text-gray-400 mt-4">
-          By signing in you agree to our{' '}
-          <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a>
-          {' '}and{' '}
-          <a href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</a>
-        </p>
-
         <p className="font-body text-center text-xs text-gray-400 mt-8">
-          © 2026 SHNOOR International LLC. All rights reserved.
+          Powered by{' '}
+          <a href="https://shnoor.com" target="_blank" rel="noreferrer" className="text-primary hover:underline">
+            SHNOOR HRMS
+          </a>
         </p>
-
       </div>
     </div>
   )
 }
 
-export default LoginPage
+export default CompanyLoginPage
