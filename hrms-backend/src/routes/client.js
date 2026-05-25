@@ -31,6 +31,7 @@ router.get('/branding', getBranding)
 router.put('/branding', updateBranding)
 router.put('/password', changePassword)
 router.get('/transactions', getTransactions)
+router.post('/support', createSupportTicket)
 // Manager management
 router.get('/managers', getManagers)
 router.get('/employees', getEmployees)

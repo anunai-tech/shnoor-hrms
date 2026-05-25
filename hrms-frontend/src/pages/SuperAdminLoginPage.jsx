@@ -3,20 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 
-function LoginPage() {
-
-  // State Variables 
+function SuperAdminLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  //  Hooks 
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  // Form Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -29,18 +25,10 @@ function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await api.post('/auth/login', { email, password })
+      const response = await api.post('/auth/sa-login', { email, password })
       const { token, user } = response.data.data
       login(user, token)
-
-      if (user.role === 'superadmin') {
-        navigate('/superadmin/dashboard')
-      } else if (user.role === 'employee') {
-        navigate('/employee/dashboard')
-      } else if (user.role === 'client') {
-        navigate('/client/dashboard')
-      }
-
+      navigate('/superadmin/dashboard')
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed. Please try again.'
       setError(message)
@@ -53,7 +41,6 @@ function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
 
-        {/* Logo + Title */}
         <div className="mb-6">
           <button
             onClick={() => navigate('/')}
@@ -65,6 +52,7 @@ function LoginPage() {
             Back to Home
           </button>
         </div>
+
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img
@@ -83,13 +71,11 @@ function LoginPage() {
           <p className="font-body text-gray-500 text-sm mt-1">Login to your account</p>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 mb-6">
             {error}
           </div>
         )}
-
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -144,10 +130,8 @@ function LoginPage() {
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
-
         </form>
 
-        {/* Footer */}
         <div className="mt-6 text-center">
           <p className="font-body text-sm text-gray-500">
             Don't have an account?{' '}
@@ -177,4 +161,4 @@ function LoginPage() {
   )
 }
 
-export default LoginPage
+export default SuperAdminLoginPage

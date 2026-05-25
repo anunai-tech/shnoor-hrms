@@ -192,7 +192,7 @@ function CompanyLoginPage() {
             ) : (
               <>
                 {error && (
-                  <div className="bg-red-500 bg-opacity-10 border border-red-500 border-opacity-30 text-red-400 text-sm font-body rounded-xl px-4 py-3 mb-5">
+                  <div className="bg-red-950 border border-red-800 text-red-200 text-sm font-body rounded-xl px-4 py-3 mb-5">
                     {error}
                   </div>
                 )}
