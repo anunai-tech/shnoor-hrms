@@ -216,9 +216,11 @@ function Employees() {
                           className={`text-xs font-medium hover:underline ${emp.is_active ? 'text-yellow-500' : 'text-green-600'}`}>
                           {emp.is_active ? 'Deactivate' : 'Activate'}
                         </button>
+                        {/* Delete button hidden — employee records should be preserved for compliance
                         <span className="text-gray-300">|</span>
                         <button onClick={() => { setSelectedEmployee(emp); setShowDeleteModal(true) }}
                           className="text-xs text-red-500 hover:underline font-medium">Delete</button>
+                        */}
                       </div>
                     </td>
                   </tr>

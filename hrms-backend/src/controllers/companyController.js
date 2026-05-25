@@ -96,23 +96,63 @@ const updateCompany = async (req, res) => {
   }
 }
 
-// DELETE company — clears FK references before deleting
+// DELETE company — removes all related records before deleting
 const deleteCompany = async (req, res) => {
   const client = await pool.connect()
   try {
     const { id } = req.params
     await client.query('BEGIN')
+
+    // get all user IDs belonging to this company first
+    const usersResult = await client.query(
+      'SELECT id FROM users WHERE company_id = $1', [id]
+    )
+    const userIds = usersResult.rows.map(r => r.id)
+
+    if (userIds.length > 0) {
+      // delete all user-related records
+      const tables = [
+        'attendance', 'leaves', 'expenses', 'salaries',
+        'payslips', 'letters', 'offboarding_requests',
+        'messages', 'complaints', 'profile_pictures'
+      ]
+      for (const table of tables) {
+        await client.query(
+          `DELETE FROM ${table} WHERE user_id = ANY($1::int[])`,
+          [userIds]
+        ).catch(() => {})
+        // also try employee_id and manager_id columns
+        await client.query(
+          `DELETE FROM ${table} WHERE employee_id = ANY($1::int[])`,
+          [userIds]
+        ).catch(() => {})
+      }
+    }
+
+    // delete company-scoped records
+    const companyTables = [
+      'holidays', 'company_policies', 'transactions'
+    ]
+    for (const table of companyTables) {
+      await client.query(
+        `DELETE FROM ${table} WHERE company_id = $1`, [id]
+      ).catch(() => {})
+    }
+
+    // deactivate and detach users
     await client.query(
       'UPDATE users SET company_id = NULL, is_active = false WHERE company_id = $1', [id]
     )
-    await client.query('DELETE FROM transactions WHERE company_id = $1', [id])
+
+    // delete company — branding + subdomain_requests cascade automatically
     await client.query('DELETE FROM companies WHERE id = $1', [id])
+
     await client.query('COMMIT')
     res.json({ success: true, message: 'Company deleted' })
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('deleteCompany error:', err)
-    res.status(500).json({ success: false, message: 'Server error' })
+    res.status(500).json({ success: false, message: 'Server error', detail: err.message })
   } finally {
     client.release()
   }

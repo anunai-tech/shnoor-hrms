@@ -12,6 +12,7 @@ import LandingPage from '../pages/LandingPage'
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
 import ForgotPassword from '../pages/ForgotPassword'
+import SuperAdminLoginPage from '../pages/SuperAdminLoginPage'
 import PrivacyPolicy from '../pages/PrivacyPolicy'
 import Terms from '../pages/Terms'
 
@@ -177,6 +178,7 @@ function MainSiteRoutes() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/sa-portal/login" element={<SuperAdminLoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
