@@ -3,10 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
-import {
-  getInvoices, getPendingPayments,
-  verifyManualPayment, rejectManualPayment, downloadInvoicePDF
-} from '../../services/superadminService'
+import { getInvoices, downloadInvoicePDF, getWebsiteSettings, updateWebsiteSettings } from '../../services/superadminService'
 
 function Badge({ status }) {
   const styles = {
@@ -383,15 +380,160 @@ function PendingVerification({ onVerified }) {
   )
 }
 
-function Invoices() {
-  const [activeTab, setActiveTab] = useState('invoices')
-  const [pendingCount, setPendingCount] = useState(0)
+function InvoiceSettings() {
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+  const [form, setForm] = useState({
+    invoice_company_name: '',
+    invoice_address: '',
+    invoice_rep_office: '',
+    invoice_email: '',
+    invoice_phone: '',
+    invoice_website: '',
+    invoice_gstin: '',
+    gst_rate: 18,
+    invoice_prefix: 'SHNOOR-INV',
+  })
 
   useEffect(() => {
-    getPendingPayments()
-      .then(res => setPendingCount(res.data.data?.length || 0))
-      .catch(() => {})
+    getWebsiteSettings()
+      .then(res => {
+        if (res.data.data) {
+          const d = res.data.data
+          setForm(prev => ({
+            ...prev,
+            invoice_company_name: d.invoice_company_name || '',
+            invoice_address: d.invoice_address || '',
+            invoice_rep_office: d.invoice_rep_office || '',
+            invoice_email: d.invoice_email || '',
+            invoice_phone: d.invoice_phone || '',
+            invoice_website: d.invoice_website || '',
+            invoice_gstin: d.invoice_gstin || '',
+            gst_rate: d.gst_rate || 18,
+            invoice_prefix: d.invoice_prefix || 'SHNOOR-INV',
+          }))
+        }
+      })
+      .catch(() => setError('Failed to load invoice settings'))
+      .finally(() => setLoading(false))
   }, [])
+
+  const handleChange = (e) => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    setSaved(false)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    setError('')
+    try {
+      // Fetch current website settings first to preserve other fields.
+      const current = await getWebsiteSettings()
+      const merged = { ...current.data.data, ...form }
+      await updateWebsiteSettings(merged)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setError('Failed to save. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-40">
+      <p className="font-body text-gray-400 text-sm">Loading...</p>
+    </div>
+  )
+
+  return (
+    <div className="space-y-5">
+      <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4">
+        <p className="font-body text-xs text-blue-700">
+          These details appear on every generated invoice PDF. Changes take effect on the next invoice generated.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">Company Legal Name</label>
+            <input name="invoice_company_name" value={form.invoice_company_name} onChange={handleChange}
+              placeholder="SHNOOR International LLC"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+          <div>
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">Invoice Email</label>
+            <input name="invoice_email" value={form.invoice_email} onChange={handleChange}
+              placeholder="vivek@shnoor.com"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">Head Office Address</label>
+            <input name="invoice_address" value={form.invoice_address} onChange={handleChange}
+              placeholder="10009 Mount Tabor Road, Odessa, Missouri, USA"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">Representative Office</label>
+            <input name="invoice_rep_office" value={form.invoice_rep_office} onChange={handleChange}
+              placeholder="Building No. 25, Al Khuwair St, Muscat 133, Oman"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+          <div>
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">Phone</label>
+            <input name="invoice_phone" value={form.invoice_phone} onChange={handleChange}
+              placeholder="+968-98764627 (Oman)"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+          <div>
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">Website</label>
+            <input name="invoice_website" value={form.invoice_website} onChange={handleChange}
+              placeholder="www.shnoor.com"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+          <div>
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">GSTIN (optional)</label>
+            <input name="invoice_gstin" value={form.invoice_gstin} onChange={handleChange}
+              placeholder="Leave blank if not applicable"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+          <div>
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">Invoice Number Prefix</label>
+            <input name="invoice_prefix" value={form.invoice_prefix} onChange={handleChange}
+              placeholder="SHNOOR-INV"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+          <div>
+            <label className="font-display block text-xs font-medium text-gray-500 mb-1.5">GST Rate (%)</label>
+            <input name="gst_rate" type="number" min="0" max="100"
+              value={form.gst_rate} onChange={handleChange}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 font-body" />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            {saved && <p className="font-body text-sm text-green-600">Invoice settings saved.</p>}
+            {error && <p className="font-body text-sm text-red-500">{error}</p>}
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="font-display bg-yellow-400 hover:bg-yellow-500 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition"
+          >
+            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Invoice Settings'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Invoices() {
+  const [activeTab, setActiveTab] = useState('invoices')
 
   return (
     <div className="space-y-6">
@@ -405,33 +547,24 @@ function Invoices() {
       <div className="flex gap-2 border-b border-gray-200">
         {[
           { key: 'invoices', label: 'All Invoices' },
-          { key: 'pending', label: 'Pending Verification', count: pendingCount },
+          { key: 'settings', label: 'Invoice Settings' },
         ].map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`font-display flex items-center gap-2 px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px transition ${
+            className={`font-display px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px transition ${
               activeTab === tab.key
                 ? 'border-yellow-400 text-yellow-600'
                 : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}
           >
             {tab.label}
-            {tab.count > 0 && (
-              <span className="bg-yellow-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                {tab.count}
-              </span>
-            )}
           </button>
         ))}
       </div>
 
       {activeTab === 'invoices' && <AllInvoices />}
-      {activeTab === 'pending' && (
-        <PendingVerification
-          onVerified={() => setPendingCount(prev => Math.max(0, prev - 1))}
-        />
-      )}
+      {activeTab === 'settings' && <InvoiceSettings />}
     </div>
   )
 }

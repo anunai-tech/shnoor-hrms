@@ -177,24 +177,56 @@ const getWebsiteSettings = async (req, res) => {
   }
 }
 
+// Updates website settings including invoice config fields added in migration_002.
 const updateWebsiteSettings = async (req, res) => {
   try {
-    const { logo_url, hero_title, hero_subtitle, cta_button_text, cta_button_link, contact_email, contact_phone, footer_text } = req.body
+    const {
+      logo_url, hero_title, hero_subtitle, cta_button_text, cta_button_link,
+      contact_email, contact_phone, footer_text,
+      invoice_company_name, invoice_address, invoice_rep_office,
+      invoice_email, invoice_phone, invoice_website,
+      invoice_gstin, gst_rate, invoice_prefix
+    } = req.body
+
     const existing = await pool.query('SELECT id FROM website_settings LIMIT 1')
     let result
+
     if (existing.rows.length > 0) {
       result = await pool.query(
         `UPDATE website_settings
          SET logo_url=$1, hero_title=$2, hero_subtitle=$3, cta_button_text=$4,
-             cta_button_link=$5, contact_email=$6, contact_phone=$7, footer_text=$8, updated_at=NOW()
-         WHERE id=$9 RETURNING *`,
-        [logo_url, hero_title, hero_subtitle, cta_button_text, cta_button_link, contact_email, contact_phone, footer_text, existing.rows[0].id]
+             cta_button_link=$5, contact_email=$6, contact_phone=$7, footer_text=$8,
+             invoice_company_name=$9, invoice_address=$10, invoice_rep_office=$11,
+             invoice_email=$12, invoice_phone=$13, invoice_website=$14,
+             invoice_gstin=$15, gst_rate=$16, invoice_prefix=$17,
+             updated_at=NOW()
+         WHERE id=$18 RETURNING *`,
+        [
+          logo_url, hero_title, hero_subtitle, cta_button_text,
+          cta_button_link, contact_email, contact_phone, footer_text,
+          invoice_company_name, invoice_address, invoice_rep_office,
+          invoice_email, invoice_phone, invoice_website,
+          invoice_gstin || null, gst_rate || 18, invoice_prefix || 'SHNOOR-INV',
+          existing.rows[0].id
+        ]
       )
     } else {
       result = await pool.query(
-        `INSERT INTO website_settings (logo_url, hero_title, hero_subtitle, cta_button_text, cta_button_link, contact_email, contact_phone, footer_text)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-        [logo_url, hero_title, hero_subtitle, cta_button_text, cta_button_link, contact_email, contact_phone, footer_text]
+        `INSERT INTO website_settings
+         (logo_url, hero_title, hero_subtitle, cta_button_text, cta_button_link,
+          contact_email, contact_phone, footer_text,
+          invoice_company_name, invoice_address, invoice_rep_office,
+          invoice_email, invoice_phone, invoice_website,
+          invoice_gstin, gst_rate, invoice_prefix)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+         RETURNING *`,
+        [
+          logo_url, hero_title, hero_subtitle, cta_button_text,
+          cta_button_link, contact_email, contact_phone, footer_text,
+          invoice_company_name, invoice_address, invoice_rep_office,
+          invoice_email, invoice_phone, invoice_website,
+          invoice_gstin || null, gst_rate || 18, invoice_prefix || 'SHNOOR-INV'
+        ]
       )
     }
     res.json({ success: true, data: result.rows[0] })

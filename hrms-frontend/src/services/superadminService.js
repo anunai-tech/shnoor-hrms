@@ -44,6 +44,8 @@ export const getCompanyManagers = (id) => api.get(`/superadmin/companies/${id}/m
 export const getClients = () => api.get('/superadmin/clients')
 export const createClient = (data) => api.post('/superadmin/clients', data)
 
+export const uploadPaymentScreenshot = (data) => api.post('/client/payment/screenshot', data)
+
 // Invoices and manual payment verification
 export const getInvoices = (query = '') => api.get(`/superadmin/invoices${query}`)
 export const downloadInvoicePDF = (id) => api.get(`/superadmin/invoices/${id}/download`, { responseType: 'blob' })

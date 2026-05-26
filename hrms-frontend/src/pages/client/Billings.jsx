@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { QRCodeSVG } from 'qrcode.react'
 import api from '../../services/api'
 import {
   getActiveGateways,
@@ -6,7 +7,8 @@ import {
   verifyPayment as verifyPaymentApi,
   initiateManualPayment,
   getClientInvoices,
-  downloadClientInvoice
+  downloadClientInvoice,
+  uploadPaymentScreenshot
 } from '../../services/clientService'
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
@@ -21,9 +23,9 @@ const Badge = ({ children, color = 'amber' }) => {
   const colors = {
     amber: 'bg-amber-100 text-amber-800',
     green: 'bg-green-100 text-green-800',
-    red:   'bg-red-100 text-red-800',
-    gray:  'bg-gray-100 text-gray-600',
-    blue:  'bg-blue-100 text-blue-800',
+    red: 'bg-red-100 text-red-800',
+    gray: 'bg-gray-100 text-gray-600',
+    blue: 'bg-blue-100 text-blue-800',
   }
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${colors[color] || colors.gray}`}>
@@ -42,32 +44,47 @@ const SectionCard = ({ children, className = '' }) => (
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function Billings() {
-  const [currentPlan, setCurrentPlan]   = useState(null)
-  const [plans, setPlans]               = useState([])
-  const [gateways, setGateways]         = useState({ automatic: [], upi: false, netbanking: false })
-  const [invoices, setInvoices]         = useState([])
+  const [currentPlan, setCurrentPlan] = useState(null)
+  const [plans, setPlans] = useState([])
+  const [gateways, setGateways] = useState({ automatic: [], upi: false, netbanking: false })
+  const [invoices, setInvoices] = useState([])
 
-  const [loadingPlan, setLoadingPlan]   = useState(true)
+  const [loadingPlan, setLoadingPlan] = useState(true)
   const [loadingPlans, setLoadingPlans] = useState(true)
   const [loadingInvoices, setLoadingInvoices] = useState(true)
 
-  const [billing, setBilling]       = useState('monthly')
-  const [selPlan, setSelPlan]       = useState(null)
+  const [billing, setBilling] = useState('monthly')
+  const [selPlan, setSelPlan] = useState(null)
   const [selGateway, setSelGateway] = useState(null)
-  const [payStep, setPayStep]       = useState('select')
+  const [payStep, setPayStep] = useState('select')
   const [manualData, setManualData] = useState(null)
-  const [error, setError]           = useState('')
-  const [success, setSuccess]       = useState('')
-  const [paying, setPaying]         = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [paying, setPaying] = useState(false)
+  const [failedGateway, setFailedGateway] = useState(null)
 
   const gatewayRef = useRef(null)
   const successRef = useRef(null)
+
+// Detect PayU redirect return — ?payu=success or ?payu=failed in URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const payuStatus = params.get('payu')
+    if (payuStatus === 'success') {
+      setSuccess('PayU payment completed. Our team will verify and activate your subscription shortly.')
+      loadInvoices()
+      window.history.replaceState({}, '', '/client/billings')
+    } else if (payuStatus === 'failed') {
+      setError('PayU payment failed or was cancelled. Please try again.')
+      window.history.replaceState({}, '', '/client/billings')
+    }
+  }, [])
 
   // ── Independent loaders ───────────────────────────────────────────────────
   useEffect(() => {
     api.get('/client/plan')
       .then(r => { if (r.data.success) setCurrentPlan(r.data.data) })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingPlan(false))
   }, [])
 
@@ -75,26 +92,26 @@ export default function Billings() {
     // /public/plans — no auth needed, but api instance is fine too
     api.get('/public/plans')
       .then(r => { if (r.data.success) setPlans(r.data.data || []) })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingPlans(false))
   }, [])
 
   useEffect(() => {
-  getActiveGateways()
-    .then(r => {
-      console.log('GATEWAYS RESPONSE:', JSON.stringify(r.data))
-      if (r.data.success) setGateways(r.data.data)
-    })
-    .catch(err => {
-      console.error('GATEWAYS ERROR:', err.message, err.response?.status, JSON.stringify(err.response?.data))
-    })
-}, [])
+    getActiveGateways()
+      .then(r => {
+        console.log('GATEWAYS RESPONSE:', JSON.stringify(r.data))
+        if (r.data.success) setGateways(r.data.data)
+      })
+      .catch(err => {
+        console.error('GATEWAYS ERROR:', err.message, err.response?.status, JSON.stringify(err.response?.data))
+      })
+  }, [])
 
   const loadInvoices = useCallback(() => {
     setLoadingInvoices(true)
     getClientInvoices()
       .then(r => { if (r.data.success) setInvoices(r.data.data || []) })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingInvoices(false))
   }, [])
 
@@ -133,9 +150,11 @@ export default function Billings() {
       if (selGateway === 'razorpay') await launchRazorpay(od)
       else if (selGateway === 'cashfree') await launchCashfree(od)
       else if (selGateway === 'paypal') launchPayPal(od)
+      else if (selGateway === 'payu') launchPayU(od)
       else throw new Error(`${selGateway} checkout not wired — ask admin.`)
     } catch (e) {
-      setError(e.message || 'Payment failed. Try again.')
+      setFailedGateway(selGateway)
+      setError(`Payment via ${selGateway} failed. Please select another method and try again.`)
       setPayStep('select')
     }
     setPaying(false)
@@ -201,16 +220,54 @@ export default function Billings() {
   })
 
   const launchPayPal = (od) => {
-    window.open(`https://www.paypal.com/checkoutnow?token=${od.order_id}`, '_blank')
-    setError('PayPal opened in a new tab. After completing payment, contact support to activate your subscription.')
+    const baseUrl = od.paypal_env === 'production'
+      ? 'https://www.paypal.com'
+      : 'https://www.sandbox.paypal.com'
+    window.open(`${baseUrl}/checkoutnow?token=${od.order_id}`, '_blank')
+    setError('PayPal sandbox opened in a new tab. Complete payment there, then contact admin to activate subscription.')
     setPayStep('select')
     setPaying(false)
+  }
+
+  // PayU uses redirect-based checkout — dynamically creates and submits an HTML form.
+  // After payment, PayU redirects back to surl (success) or furl (failure).
+  const launchPayU = (od) => {
+    const payuUrl = 'https://test.payu.in/_payment'
+
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = payuUrl
+
+    const fields = {
+      key:         od.key,
+      txnid:       od.txnid,
+      amount:      od.amount,
+      productinfo: od.productinfo,
+      firstname:   od.firstname,
+      email:       od.email,
+      phone:       '9999999999',
+      surl:        `${window.location.origin}/client/billings?payu=success&txnid=${od.txnid}`,
+      furl:        `${window.location.origin}/client/billings?payu=failed&txnid=${od.txnid}`,
+      hash:        od.hash,
+    }
+
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = document.createElement('input')
+      input.type = 'hidden'
+      input.name = name
+      input.value = value
+      form.appendChild(input)
+    })
+
+    document.body.appendChild(form)
+    form.submit()
+    // Page redirects to PayU — no further JS runs after this.
   }
 
   const onPaymentSuccess = () => {
     setSuccess('Payment successful! Your subscription is now active.')
     setSelPlan(null); setSelGateway(null); setPayStep('select')
-    api.get('/client/plan').then(r => { if (r.data.success) setCurrentPlan(r.data.data) }).catch(() => {})
+    api.get('/client/plan').then(r => { if (r.data.success) setCurrentPlan(r.data.data) }).catch(() => { })
     loadInvoices()
     setTimeout(() => successRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
@@ -343,11 +400,11 @@ export default function Billings() {
 
           {loadingPlans ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[1,2,3].map(i => (
+              {[1, 2, 3].map(i => (
                 <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3 animate-pulse">
                   <div className="h-5 bg-gray-100 rounded w-1/3" />
                   <div className="h-8 bg-gray-100 rounded w-1/2" />
-                  {[1,2,3].map(j => <div key={j} className="h-3 bg-gray-100 rounded" />)}
+                  {[1, 2, 3].map(j => <div key={j} className="h-3 bg-gray-100 rounded" />)}
                 </div>
               ))}
             </div>
@@ -364,10 +421,10 @@ export default function Billings() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {plans.map(plan => {
-                const isActive   = currentPlan?.id === plan.id
+                const isActive = currentPlan?.id === plan.id
                 const isSelected = selPlan?.id === plan.id
-                const price      = planPrice(plan)
-                const features   = Array.isArray(plan.features)
+                const price = planPrice(plan)
+                const features = Array.isArray(plan.features)
                   ? plan.features
                   : (plan.features ? JSON.parse(plan.features) : [])
 
@@ -614,58 +671,102 @@ export default function Billings() {
   )
 }
 
-// ─── Gateway Icon ─────────────────────────────────────────────────────────────
 function GatewayIcon({ name }) {
   const icons = {
     razorpay: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M13.5 2L4 13h7.5L8 22l12-13h-7.5L13.5 2z" />
+      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill="#072654"/>
+        <path d="M22 6L12.5 20H19L16 30 25.5 16H19L22 6z" fill="#3D88F5"/>
       </svg>
     ),
     cashfree: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill="#00C365"/>
+        <path d="M24 14.5c-1.5-2-3.8-3-6-2.8-3.5.3-6 3.2-6 6.8s2.5 6.5 6 6.8c2.2.2 4.5-.8 6-2.8" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
+        <path d="M13 18.5h8" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
       </svg>
     ),
     payu: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill="#FF5722"/>
+        <path d="M10 13v5.5c0 2.5 1.5 4.5 4.5 4.5s4.5-2 4.5-4.5V13" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
+        <circle cx="25" cy="19.5" r="3.5" stroke="white" strokeWidth="2.2" fill="none"/>
+        <path d="M25 23v4" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
       </svg>
     ),
     paytm: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill="#002970"/>
+        <rect x="8" y="12" width="9" height="12" rx="1.5" fill="#00B9F2"/>
+        <rect x="19" y="12" width="9" height="12" rx="1.5" fill="white"/>
+        <rect x="8" y="12" width="20" height="5" rx="1.5" fill="#00B9F2"/>
       </svg>
     ),
     paypal: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M7.076 21.337H2.47a.641.641 0 01-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 00-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.244-8.993 6.244H9.39l-1.169 7.428h3.043c.459 0 .848-.333.921-.786l.038-.199.73-4.629.047-.255c.073-.453.462-.786.921-.786h.58c3.757 0 6.696-1.526 7.552-5.94.36-1.837.174-3.374-.83-4.79z" />
+      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill="#003087"/>
+        <path d="M20.5 8h-7.5L10 26h4l.8-5h4.2c4 0 7-2.2 7.8-6.5.7-4-1.5-6.5-6.3-6.5z" fill="#009CDE"/>
+        <path d="M17 11h-5L9.5 27h3.5l.8-5h3.7c3.5 0 6.2-2 7-5.8.6-3.5-1.3-5.7-5.5-5.2-.7.1-1.5.5-2 1z" fill="white" opacity="0.9"/>
       </svg>
     ),
     upi: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 18.75h.75v.75h-.75v-.75zM18 13.5h.75v.75H18v-.75zM18 18.75h.75v.75H18v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill="#6B21A8"/>
+        <path d="M18 9l5 9h-3v9h-4V18h-3L18 9z" fill="white"/>
+        <path d="M12 24h12" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
     ),
     netbanking: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill="#1E3A5F"/>
+        <path d="M18 8L6 14h24L18 8z" fill="white"/>
+        <rect x="8" y="16" width="3" height="8" rx="1" fill="white"/>
+        <rect x="13.5" y="16" width="3" height="8" rx="1" fill="white"/>
+        <rect x="19.5" y="16" width="3" height="8" rx="1" fill="white"/>
+        <rect x="25" y="16" width="3" height="8" rx="1" fill="white"/>
+        <rect x="6" y="25" width="24" height="2.5" rx="1" fill="white"/>
       </svg>
     ),
   }
   return icons[name] || (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
+      <rect width="36" height="36" rx="8" fill="#374151"/>
+      <path d="M6 14h24M10 26h16a2 2 0 002-2V12a2 2 0 00-2-2H10a2 2 0 00-2 2v12a2 2 0 002 2z"
+        stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   )
 }
 
-// ─── Manual Payment Pending ───────────────────────────────────────────────────
+// Manual Payment Pending 
 function ManualPending({ data, gateway, onDone }) {
   const [copied, setCopied] = useState(false)
+  const [screenshot, setScreenshot] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadDone, setUploadDone] = useState(false)
+
   const copy = (text) => {
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+
+  // Convert selected image to base64 and upload to server.
+  const handleScreenshot = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      const base64 = ev.target.result
+      setScreenshot(base64)
+      setUploading(true)
+      try {
+        await uploadPaymentScreenshot({ transaction_id: data.transaction_id, screenshot_url: base64 })
+        setUploadDone(true)
+      } catch {
+        // Screenshot upload failure is non-blocking — payment still proceeds.
+      } finally {
+        setUploading(false)
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -698,7 +799,12 @@ function ManualPending({ data, gateway, onDone }) {
           <p className="text-sm font-medium text-gray-700">Pay to UPI ID</p>
           <div className="flex items-center justify-center gap-2">
             <code className="text-gray-700 font-mono text-sm bg-gray-100 px-3 py-2 rounded-lg">{data.upi_id}</code>
-            <button onClick={() => copy(data.upi_id)} className="text-xs text-gray-400 hover:text-gray-700 px-2 py-2 border rounded-lg">📋</button>
+            <button onClick={() => copy(data.upi_id)} className="text-gray-400 hover:text-gray-700 px-2 py-2 border rounded-lg transition-colors">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
           </div>
           <p className="text-xs text-gray-400">UPI Name: {data.upi_name}</p>
           {data.qr_data && <QRFallback value={data.qr_data} />}
@@ -713,6 +819,28 @@ function ManualPending({ data, gateway, onDone }) {
           <InfoRow label="Account Holder" value={data.bank_holder} />
         </div>
       )}
+
+      {/* Screenshot upload — optional but recommended */}
+      <div className="border border-dashed border-gray-300 rounded-xl p-4">
+        <p className="text-xs font-semibold text-gray-600 mb-2">
+          Upload Payment Screenshot <span className="font-normal text-gray-400">(recommended)</span>
+        </p>
+        {screenshot ? (
+          <div className="space-y-2">
+            <img src={screenshot} alt="Payment proof" className="w-full max-h-40 object-contain rounded-lg border border-gray-200" />
+            {uploading && <p className="text-xs text-gray-400 text-center">Uploading...</p>}
+            {uploadDone && <p className="text-xs text-green-600 text-center">✓ Screenshot submitted</p>}
+          </div>
+        ) : (
+          <label className="flex flex-col items-center gap-2 cursor-pointer">
+            <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-xs text-gray-400">Click to upload screenshot</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleScreenshot} />
+          </label>
+        )}
+      </div>
 
       <p className="text-xs text-gray-400 text-center leading-relaxed">
         After making the payment, click Done. Our team will verify and activate your plan within 24 hours.
@@ -733,24 +861,23 @@ function InfoRow({ label, value, onCopy }) {
     <div className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2.5">
       <span className="text-xs text-gray-400 font-medium w-28 shrink-0">{label}</span>
       <span className="text-sm text-gray-800 font-medium flex-1 text-right">{value || '—'}</span>
-      {onCopy && <button onClick={onCopy} className="ml-3 text-gray-400 hover:text-gray-700 text-xs">📋</button>}
+      {onCopy && (
+        <button onClick={onCopy} className="ml-3 text-gray-400 hover:text-gray-700 transition-colors">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
 
 function QRFallback({ value }) {
-  try {
-    const { QRCodeSVG } = require('qrcode.react')
-    return (
-      <div className="inline-flex p-3 bg-white border border-gray-200 rounded-xl shadow-sm">
-        <QRCodeSVG value={value} size={150} />
-      </div>
-    )
-  } catch {
-    return (
-      <p className="text-xs text-gray-400">
-        Open your UPI app and pay to the ID above.
-      </p>
-    )
-  }
+  if (!value) return null
+  return (
+    <div className="inline-flex p-3 bg-white border border-gray-200 rounded-xl shadow-sm">
+      <QRCodeSVG value={value} size={150} />
+    </div>
+  )
 }

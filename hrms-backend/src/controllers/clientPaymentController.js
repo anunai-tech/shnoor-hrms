@@ -4,51 +4,7 @@ const PDFDocument = require('pdfkit')
 
 const ALGORITHM = 'aes-256-gcm'
 
-const getKey = () => {
-  const hex = process.env.ENCRYPTION_KEY
-  if (!hex || hex.length !== 64) throw new Error('ENCRYPTION_KEY must be a 64-char hex string in .env')
-  return Buffer.from(hex, 'hex')
-}
-
-const decrypt = (stored) => {
-  const key = getKey()
-  const [ivHex, authTagHex, encHex] = stored.split(':')
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, Buffer.from(ivHex, 'hex'))
-  decipher.setAuthTag(Buffer.from(authTagHex, 'hex'))
-  return Buffer.concat([
-    decipher.update(Buffer.from(encHex, 'hex')),
-    decipher.final()
-  ]).toString('utf8')
-}
-
-const generateInvoiceNumber = async (dbClient, prefix = 'SHNOOR-INV') => {
-  const seq = await dbClient.query("SELECT nextval('invoice_number_seq') as num")
-  const num = seq.rows[0].num.toString().padStart(4, '0')
-  return `${prefix}-${new Date().getFullYear()}-${num}`
-}
-
-const createInvoiceRecord = async (dbClient, {
-  invoiceNumber, companyId, transactionId, planId, billingType,
-  baseAmount, gstRate, currency, exchangeRate, gatewayUsed, periodStart, periodEnd
-}) => {
-  const gstAmount = parseFloat((baseAmount * gstRate / 100).toFixed(2))
-  const totalAmount = parseFloat((baseAmount + gstAmount).toFixed(2))
-  const result = await dbClient.query(
-    `INSERT INTO invoices
-     (invoice_number, company_id, transaction_id, plan_id, billing_type,
-      base_amount, gst_rate, gst_amount, total_amount, currency, exchange_rate,
-      gateway_used, status, period_start, period_end)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'paid',$13,$14)
-     RETURNING *`,
-    [
-      invoiceNumber, companyId, transactionId, planId, billingType,
-      baseAmount, gstRate, gstAmount, totalAmount,
-      currency || 'INR', exchangeRate || 1,
-      gatewayUsed, periodStart, periodEnd
-    ]
-  )
-  return result.rows[0]
-}
+const { decrypt, generateInvoiceNumber, createInvoiceRecord } = require('../utils/paymentUtils')
 
 // Returns active gateways without exposing any secrets.
 const getActiveGateways = async (req, res) => {
@@ -170,30 +126,47 @@ const createOrder = async (req, res) => {
     }
 
     if (gateway === 'cashfree') {
-      const { Cashfree } = require('cashfree-pg')
+      // cashfree-pg SDK is ES-module only and incompatible with CommonJS require.
+      // Using Cashfree REST API directly instead — same result, no SDK dependency.
       const extraConfig = gw.extra_config || {}
-      Cashfree.XClientId = gw.public_key
-      Cashfree.XClientSecret = secret
-      Cashfree.XEnvironment = extraConfig.environment === 'production'
-        ? Cashfree.Environment.PRODUCTION
-        : Cashfree.Environment.SANDBOX
+      const baseUrl = extraConfig.environment === 'production'
+        ? 'https://api.cashfree.com'
+        : 'https://sandbox.cashfree.com'
 
-      const orderPayload = {
-        order_id: `ord_${companyId}_${Date.now()}`,
-        order_amount: totalAmount,
-        order_currency: 'INR',
-        customer_details: {
-          customer_id: `cmp_${companyId}`,
-          customer_email: req.user.email,
-          customer_phone: '9999999999'
-        }
+      const orderId = `ord_${companyId}_${Date.now()}`
+
+      const cfRes = await fetch(`${baseUrl}/pg/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-client-id': gw.public_key,
+          'x-client-secret': secret,
+          'x-api-version': '2023-08-01'
+        },
+        body: JSON.stringify({
+          order_id: orderId,
+          order_amount: totalAmount,
+          order_currency: 'INR',
+          customer_details: {
+            customer_id: `cmp_${companyId}`,
+            customer_email: req.user.email,
+            customer_phone: '9999999999'
+          }
+        })
+      })
+
+      const cfData = await cfRes.json()
+
+      if (!cfRes.ok) {
+        console.error('Cashfree order error:', cfData)
+        throw new Error(cfData.message || 'Cashfree order creation failed')
       }
-      const response = await Cashfree.PGCreateOrder('2023-08-01', orderPayload)
+
       return res.json({
         success: true,
         data: {
-          order_id: response.data.order_id,
-          payment_session_id: response.data.payment_session_id,
+          order_id: cfData.order_id,
+          payment_session_id: cfData.payment_session_id,
           amount: totalAmount,
           currency: 'INR',
           base_amount: baseAmount,
@@ -293,6 +266,7 @@ const createOrder = async (req, res) => {
           amount_inr: totalAmount,
           currency: 'USD',
           exchange_rate: exchangeRate,
+          paypal_env: extraConfig.environment || 'sandbox',
           base_amount: baseAmount,
           gst_amount: gstAmount,
           total_amount: totalAmount,
@@ -598,7 +572,7 @@ const downloadClientInvoice = async (req, res) => {
     }
 
     const inv = result.rows[0]
-    const curr = inv.currency === 'USD' ? '$' : '₹'
+    const curr = inv.currency === 'USD' ? 'USD ' : 'Rs.'
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' })
     res.setHeader('Content-Type', 'application/pdf')
@@ -620,11 +594,11 @@ const downloadClientInvoice = async (req, res) => {
       .text(inv.invoice_company_name || 'SHNOOR International LLC', 50, 130)
     doc.fillColor('#64748b').fontSize(9).font('Helvetica')
       .text(inv.invoice_address || '', 50, 145, { width: 240 })
-    doc.text(inv.invoice_email || '', 50, 195)
-    doc.text(inv.invoice_phone || '', 50, 210)
-    doc.text(inv.invoice_website || '', 50, 225)
+    doc.text(inv.invoice_email || '', 50, 195, { width: 230 })
+    doc.text(inv.invoice_phone || '', 50, 210, { width: 230 })
+    doc.text(inv.invoice_website || '', 50, 225, { width: 230 })
     if (inv.invoice_gstin) {
-      doc.text(`GSTIN: ${inv.invoice_gstin}`, 50, 240)
+      doc.text(`GSTIN: ${inv.invoice_gstin}`, 50, 240, { width: 230 })
     }
 
     doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text('BILL TO', 320, 115)
@@ -703,15 +677,15 @@ const downloadClientInvoice = async (req, res) => {
     doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text('STATUS', 200, payTop + 12)
     doc.fillColor('#16a34a').fontSize(9).font('Helvetica-Bold').text('PAID', 200, payTop + 25)
 
-    doc.rect(0, 762, 595, 80).fill('#f8fafc')
+    doc.rect(0, 748, 595, 88).fill('#f8fafc')
     doc.fillColor('#94a3b8').fontSize(8).font('Helvetica')
       .text(
         'This is a system-generated invoice. For queries contact support@shnoor.com',
-        50, 778, { align: 'center', width: 495 }
+        50, 764, { align: 'center', width: 495 }
       )
       .text(
         `© ${new Date().getFullYear()} SHNOOR International LLC. All rights reserved.`,
-        50, 793, { align: 'center', width: 495 }
+        50, 779, { align: 'center', width: 495 }
       )
 
     doc.end()
@@ -723,6 +697,29 @@ const downloadClientInvoice = async (req, res) => {
   }
 }
 
+// Stores base64 screenshot on a pending transaction belonging to this company.
+const uploadPaymentScreenshot = async (req, res) => {
+  try {
+    const { transaction_id, screenshot_url } = req.body
+    if (!transaction_id || !screenshot_url) {
+      return res.status(400).json({ success: false, message: 'transaction_id and screenshot_url required' })
+    }
+    const result = await pool.query(
+      `UPDATE transactions SET screenshot_url = $1
+       WHERE id = $2 AND company_id = $3 AND status = 'Pending'
+       RETURNING id`,
+      [screenshot_url, transaction_id, req.user.company_id]
+    )
+    if (!result.rows.length) {
+      return res.status(404).json({ success: false, message: 'Transaction not found or not pending' })
+    }
+    res.json({ success: true, message: 'Screenshot uploaded' })
+  } catch (err) {
+    console.error('uploadPaymentScreenshot error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
 module.exports = {
   getActiveGateways,
   getManualPaymentDetails,
@@ -730,5 +727,6 @@ module.exports = {
   verifyPayment,
   initiateManualPayment,
   getClientInvoices,
-  downloadClientInvoice
+  downloadClientInvoice,
+  uploadPaymentScreenshot
 }

@@ -7,70 +7,9 @@ const PDFDocument = require('pdfkit')
 
 const ALGORITHM = 'aes-256-gcm'
 
-// Reads ENCRYPTION_KEY from env and converts to 32-byte buffer for AES-256.
-const getKey = () => {
-  const hex = process.env.ENCRYPTION_KEY
-  if (!hex || hex.length !== 64) {
-    throw new Error('ENCRYPTION_KEY must be a 64-char hex string in .env')
-  }
-  return Buffer.from(hex, 'hex')
-}
+const { encrypt, decrypt, generateInvoiceNumber, createInvoiceRecord } = require('../utils/paymentUtils')
 
-// Encrypts plaintext with AES-256-GCM — stores as iv:authTag:ciphertext hex string.
-const encrypt = (text) => {
-  const key = getKey()
-  const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
-  const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()])
-  const authTag = cipher.getAuthTag()
-  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted.toString('hex')}`
-}
-
-// Decrypts AES-256-GCM stored value back to plaintext.
-const decrypt = (stored) => {
-  const key = getKey()
-  const [ivHex, authTagHex, encHex] = stored.split(':')
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, Buffer.from(ivHex, 'hex'))
-  decipher.setAuthTag(Buffer.from(authTagHex, 'hex'))
-  return Buffer.concat([
-    decipher.update(Buffer.from(encHex, 'hex')),
-    decipher.final()
-  ]).toString('utf8')
-}
-
-// Returns first 6 chars + dots — safe to display without exposing the key.
 const maskKey = (key) => key ? key.substring(0, 6) + '••••••••••••' : null
-
-// Pulls next value from the DB sequence and formats as SHNOOR-INV-2026-0042.
-const generateInvoiceNumber = async (dbClient, prefix = 'SHNOOR-INV') => {
-  const seq = await dbClient.query("SELECT nextval('invoice_number_seq') as num")
-  const num = seq.rows[0].num.toString().padStart(4, '0')
-  return `${prefix}-${new Date().getFullYear()}-${num}`
-}
-
-// Inserts a completed invoice row — called inside a transaction after payment verified.
-const createInvoiceRecord = async (dbClient, {
-  invoiceNumber, companyId, transactionId, planId, billingType,
-  baseAmount, gstRate, currency, exchangeRate, gatewayUsed, periodStart, periodEnd
-}) => {
-  const gstAmount = parseFloat((baseAmount * gstRate / 100).toFixed(2))
-  const totalAmount = parseFloat((baseAmount + gstAmount).toFixed(2))
-  const result = await dbClient.query(
-    `INSERT INTO invoices
-     (invoice_number, company_id, transaction_id, plan_id, billing_type,
-      base_amount, gst_rate, gst_amount, total_amount, currency, exchange_rate,
-      gateway_used, status, period_start, period_end)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'paid',$13,$14)
-     RETURNING *`,
-    [
-      invoiceNumber, companyId, transactionId, planId, billingType,
-      baseAmount, gstRate, gstAmount, totalAmount,
-      currency || 'INR', exchangeRate || 1,
-      gatewayUsed, periodStart, periodEnd
-    ]
-  )
-  return result.rows[0]
-}
 
 // Get all gateways — secrets never leave server, only masked public keys returned.
 const getGateways = async (req, res) => {
@@ -119,7 +58,7 @@ const updateGateway = async (req, res) => {
            extra_config = COALESCE($4, extra_config), updated_at = NOW()
        WHERE gateway_name = $5`,
       [is_active ?? false, public_key?.trim() || null, secretEncrypted,
-       extra_config ? JSON.stringify(extra_config) : null, gateway_name]
+      extra_config ? JSON.stringify(extra_config) : null, gateway_name]
     )
     res.json({ success: true, message: `${gateway_name} updated successfully` })
   } catch (err) {
@@ -187,8 +126,8 @@ const updateManualSettings = async (req, res) => {
         bank_holder=$7, bank_is_active=$8, updated_at=NOW()
        WHERE id=1`,
       [upi_id || null, upi_name || null, upi_is_active ?? false,
-       bank_name || null, encryptedAccount, bank_ifsc || null,
-       bank_holder || null, bank_is_active ?? false]
+      bank_name || null, encryptedAccount, bank_ifsc || null,
+      bank_holder || null, bank_is_active ?? false]
     )
     res.json({ success: true, message: 'Manual payment settings updated successfully' })
   } catch (err) {
@@ -258,7 +197,7 @@ const downloadInvoice = async (req, res) => {
     }
 
     const inv = result.rows[0]
-    const curr = inv.currency === 'USD' ? '$' : '₹'
+    const curr = inv.currency === 'USD' ? 'USD ' : 'Rs.'
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' })
     res.setHeader('Content-Type', 'application/pdf')
@@ -282,11 +221,11 @@ const downloadInvoice = async (req, res) => {
       .text(inv.invoice_company_name || 'SHNOOR International LLC', 50, 130)
     doc.fillColor('#64748b').fontSize(9).font('Helvetica')
       .text(inv.invoice_address || '', 50, 145, { width: 240 })
-    doc.text(inv.invoice_email || '', 50, 195)
-    doc.text(inv.invoice_phone || '', 50, 210)
-    doc.text(inv.invoice_website || '', 50, 225)
+    doc.text(inv.invoice_email || '', 50, 195, { width: 230 })
+    doc.text(inv.invoice_phone || '', 50, 210, { width: 230 })
+    doc.text(inv.invoice_website || '', 50, 225, { width: 230 })
     if (inv.invoice_gstin) {
-      doc.text(`GSTIN: ${inv.invoice_gstin}`, 50, 240)
+      doc.text(`GSTIN: ${inv.invoice_gstin}`, 50, 240, { width: 230 })
     }
 
     // Bill To section
@@ -374,15 +313,15 @@ const downloadInvoice = async (req, res) => {
     doc.fillColor('#16a34a').fontSize(9).font('Helvetica-Bold').text('PAID', 200, payTop + 25)
 
     // Footer
-    doc.rect(0, 762, 595, 80).fill('#f8fafc')
+    doc.rect(0, 748, 595, 88).fill('#f8fafc')
     doc.fillColor('#94a3b8').fontSize(8).font('Helvetica')
       .text(
         'This is a system-generated invoice. For queries contact support@shnoor.com',
-        50, 778, { align: 'center', width: 495 }
+        50, 764, { align: 'center', width: 495 }
       )
       .text(
         `© ${new Date().getFullYear()} SHNOOR International LLC. All rights reserved.`,
-        50, 793, { align: 'center', width: 495 }
+        50, 779, { align: 'center', width: 495 }
       )
 
     doc.end()
@@ -399,7 +338,7 @@ const getPendingPayments = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT t.id, t.company_id, t.amount, t.plan, t.billing_type,
-              t.gateway, t.gateway_order_id, t.payment_date, t.created_at,
+              t.gateway, t.gateway_order_id,t.screenshot_url, t.status, t.payment_date, t.created_at,
               c.name as company_name, c.email as company_email
        FROM transactions t
        LEFT JOIN companies c ON t.company_id = c.id

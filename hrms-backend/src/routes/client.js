@@ -25,7 +25,8 @@ const {
   verifyPayment,
   initiateManualPayment,
   getClientInvoices,
-  downloadClientInvoice
+  downloadClientInvoice,
+  uploadPaymentScreenshot
 } = require('../controllers/clientPaymentController')
 
 router.use(authenticate)
@@ -51,6 +52,7 @@ router.get('/payment/manual-details', getManualPaymentDetails)
 router.post('/payment/create-order', createOrder)
 router.post('/payment/verify', verifyPayment)
 router.post('/payment/manual/initiate', initiateManualPayment)
+router.post('/payment/screenshot', uploadPaymentScreenshot)
 router.get('/invoices', getClientInvoices)
 router.get('/invoices/:id/download', downloadClientInvoice)
 

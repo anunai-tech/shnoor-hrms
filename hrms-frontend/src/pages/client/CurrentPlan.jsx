@@ -83,9 +83,19 @@ function CurrentPlan() {
                 Active
               </span>
             </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-50">
+              <span className="font-body text-sm text-gray-500">Billing Type</span>
+              <span className="font-display text-sm font-semibold text-gray-800 capitalize">
+                {plan?.billing_type || 'Monthly'}
+              </span>
+            </div>
             <div className="flex justify-between items-center py-2">
-              <span className="font-body text-sm text-gray-500">Next Payment</span>
-              <span className="font-display text-sm font-semibold text-gray-400">Gateway pending</span>
+              <span className="font-body text-sm text-gray-500">Renewal Date</span>
+              <span className={`font-display text-sm font-semibold ${plan?.end_date ? 'text-gray-800' : 'text-gray-400'}`}>
+                {plan?.end_date
+                  ? new Date(plan.end_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                  : '—'}
+              </span>
             </div>
           </div>
         </div>
@@ -115,8 +125,8 @@ function CurrentPlan() {
           <p className="font-body text-xs text-amber-600 mt-0.5">Upgrade your plan to unlock more users and advanced features.</p>
         </div>
         <button
-          disabled
-          className="font-display text-sm bg-primary text-white px-5 py-2.5 rounded-lg opacity-50 cursor-not-allowed"
+          onClick={() => window.location.href = '/client/billings'}
+          className="font-display text-sm bg-primary text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition"
         >
           Upgrade Plan
         </button>
