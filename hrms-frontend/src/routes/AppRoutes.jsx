@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import useSubdomain from '../hooks/useSubdomain'
 import ProtectedRoute from './ProtectedRoute'
+import GuestRoute from './GuestRoute'
 
 // Layouts
 import SuperAdminLayout from '../layouts/SuperAdminLayout'
@@ -122,7 +123,7 @@ function CompanyRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<CompanyLanding />} />
-        <Route path="/login" element={<CompanyLoginPage />} />
+        <Route path="/login" element={<GuestRoute><CompanyLoginPage /></GuestRoute>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Manager */}
@@ -177,9 +178,9 @@ function MainSiteRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/superadmin/login" element={<SuperAdminLoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+        <Route path="/superadmin/login" element={<GuestRoute><SuperAdminLoginPage /></GuestRoute>} />
+        <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<Terms />} />
