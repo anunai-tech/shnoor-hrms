@@ -3,6 +3,11 @@ const router = express.Router()
 const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
 
+const {
+  getGateways, updateGateway, getManualSettings, updateManualSettings,
+  getInvoices, downloadInvoice,
+  getPendingPayments, verifyManualPayment, rejectManualPayment
+} = require('../controllers/paymentController')
 const { getCompanies, createCompany, updateCompany, deleteCompany, suspendCompany } = require('../controllers/companyController')
 const {
   getSubscriptions, createSubscription, updateSubscription, deleteSubscription,
@@ -61,6 +66,21 @@ router.get('/companies/:id/managers', getCompanyManagers)
 // Clients
 router.get('/clients', getClients)
 router.post('/clients', createClient)
+
+// Payment Gateways — manual routes defined first to avoid conflict with /:gateway_name param.
+router.get('/payment-gateways/manual', getManualSettings)
+router.put('/payment-gateways/manual', updateManualSettings)
+router.get('/payment-gateways', getGateways)
+router.put('/payment-gateways/:gateway_name', updateGateway)
+
+// Invoices — superadmin can list all invoices (?company_id filter) and download PDF.
+router.get('/invoices', getInvoices)
+router.get('/invoices/:id/download', downloadInvoice)
+
+// Manual payment verification — list pending, verify or reject.
+router.get('/pending-payments', getPendingPayments)
+router.put('/pending-payments/:id/verify', verifyManualPayment)
+router.put('/pending-payments/:id/reject', rejectManualPayment)
 
 // Subdomain Requests
 router.get('/subdomain-requests', getSubdomainRequests)
