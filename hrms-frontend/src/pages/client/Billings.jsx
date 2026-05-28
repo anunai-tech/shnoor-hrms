@@ -15,9 +15,6 @@ import {
 const fmt = (n, cur = 'INR') =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(n)
 
-const fmtDate = (d) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
-
 const Badge = ({ children, color = 'amber' }) => {
   const colors = {
     amber: 'bg-amber-100 text-amber-800',
@@ -50,7 +47,6 @@ export default function Billings() {
 
   const [loadingPlan, setLoadingPlan] = useState(true)
   const [loadingPlans, setLoadingPlans] = useState(true)
-  const [loadingInvoices, setLoadingInvoices] = useState(true)
 
   const [billing, setBilling] = useState('monthly')
   const [selPlan, setSelPlan] = useState(null)
@@ -126,7 +122,6 @@ export default function Billings() {
   }, [])
 
   const loadInvoices = useCallback(() => {
-    setLoadingInvoices(true)
     getClientInvoices()
       .then(r => { if (r.data.success) setInvoices(r.data.data || []) })
       .catch(() => { })
@@ -714,74 +709,6 @@ export default function Billings() {
           </div>
         )}
 
-        {/* Invoice History */}
-        <SectionCard>
-          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Invoice History</h2>
-            <button onClick={loadInvoices} className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
-          </div>
-
-          {loadingInvoices ? (
-            <div className="flex justify-center py-10"><Spinner /></div>
-          ) : invoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-                </svg>
-              </div>
-              <p className="text-sm font-medium text-gray-500">No invoices yet</p>
-              <p className="text-xs text-gray-400 mt-1">Invoices appear here after your first payment.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    {['Invoice #', 'Plan', 'Billing', 'Amount', 'Gateway', 'Date', 'Status', ''].map(h => (
-                      <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {invoices.map(inv => (
-                    <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-xs text-gray-600 whitespace-nowrap">{inv.invoice_number}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{inv.plan_name || '—'}</td>
-                      <td className="px-6 py-4 capitalize text-gray-600">{inv.billing_type || '—'}</td>
-                      <td className="px-6 py-4 font-semibold text-gray-900 whitespace-nowrap">{fmt(inv.total_amount, inv.currency || 'INR')}</td>
-                      <td className="px-6 py-4 capitalize text-gray-500">{inv.gateway_used || '—'}</td>
-                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{fmtDate(inv.generated_at)}</td>
-                      <td className="px-6 py-4">
-                        <Badge color={inv.status === 'paid' ? 'green' : inv.status === 'pending' ? 'amber' : 'red'}>
-                          {inv.status}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        {inv.status === 'paid' && (
-                          <button
-                            onClick={() => handleDownload(inv)}
-                            className="text-amber-600 hover:text-amber-800 font-medium text-xs flex items-center gap-1"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            PDF
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </SectionCard>
         {/* Payment Result Modal */}
         {paymentResult && (
           <PaymentResultModal

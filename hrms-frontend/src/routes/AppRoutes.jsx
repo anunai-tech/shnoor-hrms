@@ -28,6 +28,8 @@ import Usage from '../pages/client/Usage'
 import ClientSettings from '../pages/client/Settings'
 import Staff from '../pages/client/Managers'
 import Billings from '../pages/client/Billings'
+import ClientInvoices from '../pages/client/ClientInvoices'
+import ClientTransactions from '../pages/client/ClientTransactions'
 import Support from '../pages/client/Support'
 import CompanyLoginPage from '../pages/company/CompanyLoginPage'
 
@@ -209,6 +211,8 @@ function MainSiteRoutes() {
         <Route path="/client/usage" element={<ClientPage component={Usage} />} />
         <Route path="/client/settings" element={<ClientPage component={ClientSettings} />} />
         <Route path="/client/billings" element={<ClientPage component={Billings} />} />
+        <Route path="/client/invoices" element={<ClientPage component={ClientInvoices} />} />
+        <Route path="/client/transactions" element={<ClientPage component={ClientTransactions} />} />
         <Route path="/client/support" element={<ClientPage component={Support} />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -454,9 +454,10 @@ const verifyManualPayment = async (req, res) => {
 const rejectManualPayment = async (req, res) => {
   try {
     const { id } = req.params
+    const { reason } = req.body
     const result = await pool.query(
-      "UPDATE transactions SET status='Failed' WHERE id=$1 AND status='Pending' RETURNING id",
-      [id]
+      "UPDATE transactions SET status='Failed', rejection_reason=$1 WHERE id=$2 AND status='Pending' RETURNING id",
+      [reason || null, id]
     )
     if (result.rows.length === 0) {
       return res.status(404).json({
