@@ -3,6 +3,7 @@ import api from './api'
 // Plan 
 export const getCurrentPlan     = ()       => api.get('/client/plan')
 export const getClientInvoices  = ()       => api.get('/client/invoices')
+export const getClientTransactions = ()    => api.get('/client/transactions')
 export const downloadClientInvoice = (id)  => api.get(`/client/invoices/${id}/download`, { responseType: 'blob' })
 
 // Payment Gateways 

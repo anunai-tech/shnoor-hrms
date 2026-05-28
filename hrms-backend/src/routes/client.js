@@ -11,7 +11,6 @@ const {
   getBranding,
   updateBranding,
   changePassword,
-  getTransactions,
   createSupportTicket,
   getManagers,
   createManager,
@@ -22,6 +21,7 @@ const {
 const {
   getActiveGateways,
   getManualPaymentDetails,
+  getClientTransactions,
   createOrder,
   verifyPayment,
   initiateManualPayment,
@@ -42,7 +42,7 @@ router.post('/subdomain-request', createSubdomainRequest)
 router.get('/branding', getBranding)
 router.put('/branding', updateBranding)
 router.put('/password', changePassword)
-router.get('/transactions', getTransactions)
+router.get('/transactions', getClientTransactions)
 router.post('/support', createSupportTicket)
 router.get('/managers', getManagers)
 router.get('/employees', getEmployees)

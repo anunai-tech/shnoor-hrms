@@ -639,6 +639,26 @@ const initiateManualPayment = async (req, res) => {
   }
 }
 
+// All transactions for this company — every payment attempt with status and rejection details.
+const getClientTransactions = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT t.id, t.amount, t.plan, t.billing_type,
+              COALESCE(t.gateway, t.type) as gateway,
+              t.gateway_order_id, t.status, t.rejection_reason,
+              COALESCE(t.payment_date, t.created_at) as tx_date
+       FROM transactions t
+       WHERE t.company_id = $1
+       ORDER BY COALESCE(t.payment_date, t.created_at) DESC`,
+      [req.user.company_id]
+    )
+    res.json({ success: true, data: result.rows })
+  } catch (err) {
+    console.error('getClientTransactions error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
 // Returns invoices for this company only — ordered newest first.
 const getClientInvoices = async (req, res) => {
   try {
@@ -860,6 +880,7 @@ const getPaypalConfig = async (req, res) => {
 module.exports = {
   getActiveGateways,
   getManualPaymentDetails,
+  getClientTransactions,
   createOrder,
   verifyPayment,
   initiateManualPayment,

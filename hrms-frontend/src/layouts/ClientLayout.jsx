@@ -10,6 +10,8 @@ const navItems = [
   { label: 'Usage', path: '/client/usage' },
   { label: 'Settings', path: '/client/settings' },
   { label: 'Billings', path: '/client/billings' },
+  { label: 'Invoices', path: '/client/invoices' },
+  { label: 'Transactions', path: '/client/transactions' },
   { label: 'Support', path: '/client/support' },
 ]
 
