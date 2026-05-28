@@ -18,6 +18,7 @@ const {
   toggleManager,
   getEmployees
 } = require('../controllers/clientController')
+
 const {
   getActiveGateways,
   getManualPaymentDetails,
@@ -26,7 +27,8 @@ const {
   initiateManualPayment,
   getClientInvoices,
   downloadClientInvoice,
-  uploadPaymentScreenshot
+  uploadPaymentScreenshot,
+  getPaypalConfig
 } = require('../controllers/clientPaymentController')
 
 router.use(authenticate)
@@ -53,6 +55,7 @@ router.post('/payment/create-order', createOrder)
 router.post('/payment/verify', verifyPayment)
 router.post('/payment/manual/initiate', initiateManualPayment)
 router.post('/payment/screenshot', uploadPaymentScreenshot)
+router.get('/payment/paypal-config', getPaypalConfig)
 router.get('/invoices', getClientInvoices)
 router.get('/invoices/:id/download', downloadClientInvoice)
 

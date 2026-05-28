@@ -38,11 +38,17 @@ function GatewayCard({ gateway, onChange, onSave, saving }) {
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
       <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center font-display font-bold text-white text-xs"
-            style={{ backgroundColor: info.accent }}
-          >
-            {info.label.slice(0, 2).toUpperCase()}
+          <div className="w-12 h-10 rounded-lg flex items-center justify-center bg-gray-50 border border-gray-100 overflow-hidden px-1">
+            <img
+              src={`/logos/${gateway.gateway_name}.png`}
+              alt={info.label}
+              className="w-full h-6 object-contain"
+              onError={e => {
+                e.currentTarget.style.display = 'none'
+                e.currentTarget.parentElement.style.backgroundColor = info.accent
+                e.currentTarget.parentElement.innerHTML = `<span style="color:white;font-size:11px;font-weight:700">${info.label.slice(0,2).toUpperCase()}</span>`
+              }}
+            />
           </div>
           <div>
             <p className="font-display text-sm font-semibold text-gray-800">{info.label}</p>

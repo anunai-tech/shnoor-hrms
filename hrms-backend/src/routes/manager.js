@@ -12,6 +12,9 @@ const { getHolidays, createHoliday, deleteHoliday, getPolicies, createPolicy, de
 const { generateLetter, getLetters, getMyLetters } = require('../controllers/lettersController')
 const { getOffboardingRequests, updateOffboardingStatus, deactivateEmployee, getComplaints, respondToComplaint } = require('../controllers/offboardingController')
 
+const pool = require('../config/db')
+const bcrypt = require('bcryptjs')
+
 router.use(authenticate)
 router.use(authorize('manager'))
 
@@ -73,7 +76,7 @@ router.put('/offboarding/deactivate/:employee_id', deactivateEmployee)
 
 // Manager-initiated offboarding — check for existing active request before creating
 router.post('/offboarding-requests', async (req, res) => {
-  const pool = require('../config/db')
+  
   try {
     const { employee_id, type, reason, last_working_day, manager_notes, requested_by, status } = req.body
 
@@ -121,8 +124,8 @@ router.get('/self/profile', getProfile)
 router.put('/self/profile', updateProfile)
 
 router.put('/self/change-password', async (req, res) => {
-  const pool = require('../config/db')
-  const bcrypt = require('bcryptjs')
+  
+  
   try {
     const { current_password, new_password } = req.body
     const result = await pool.query('SELECT password_hash FROM users WHERE id=$1', [req.user.id])
@@ -138,7 +141,7 @@ router.put('/self/change-password', async (req, res) => {
 
 // Manager mark attendance for an employee
 router.post('/attendance/mark', async (req, res) => {
-  const pool = require('../config/db')
+  
   try {
     const { user_id, date, status, clock_in, clock_out } = req.body
     const clockInVal = (status === 'Present' || status === 'Late') ? clock_in : null
@@ -169,7 +172,7 @@ router.post('/attendance/mark', async (req, res) => {
 
 // Manager edit an existing attendance record
 router.put('/attendance/:id', async (req, res) => {
-  const pool = require('../config/db')
+  
   try {
     const { clock_in, clock_out, status } = req.body
     const result = await pool.query(

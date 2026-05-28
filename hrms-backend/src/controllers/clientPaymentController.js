@@ -126,98 +126,166 @@ const createOrder = async (req, res) => {
     }
 
     if (gateway === 'cashfree') {
-      // cashfree-pg SDK is ES-module only and incompatible with CommonJS require.
-      // Using Cashfree REST API directly instead — same result, no SDK dependency.
       const extraConfig = gw.extra_config || {}
-      const baseUrl = extraConfig.environment === 'production'
+      const baseUrl   = extraConfig.environment === 'production'
         ? 'https://api.cashfree.com'
         : 'https://sandbox.cashfree.com'
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000'
+      const orderId    = `ord_${companyId}_${Date.now()}`
+      const returnUrl  = `${backendUrl}/api/v1/payment-return/cashfree?order_id=${orderId}`
 
-      const orderId = `ord_${companyId}_${Date.now()}`
-
-      const cfRes = await fetch(`${baseUrl}/pg/orders`, {
+      const cfRes  = await fetch(`${baseUrl}/pg/orders`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-client-id': gw.public_key,
+          'Content-Type':    'application/json',
+          'x-client-id':     gw.public_key,
           'x-client-secret': secret,
-          'x-api-version': '2023-08-01'
+          'x-api-version':   '2023-08-01'
         },
         body: JSON.stringify({
-          order_id: orderId,
+          order_id:     orderId,
           order_amount: totalAmount,
           order_currency: 'INR',
+          order_meta:   { return_url: returnUrl },
           customer_details: {
-            customer_id: `cmp_${companyId}`,
+            customer_id:    `cmp_${companyId}`,
             customer_email: req.user.email,
             customer_phone: '9999999999'
           }
         })
       })
-
       const cfData = await cfRes.json()
+      if (!cfRes.ok) throw new Error(cfData.message || 'Cashfree order creation failed')
 
-      if (!cfRes.ok) {
-        console.error('Cashfree order error:', cfData)
-        throw new Error(cfData.message || 'Cashfree order creation failed')
-      }
+      // Create Pending transaction — return handler will update it to Paid after verification
+      await pool.query(
+        `INSERT INTO transactions
+         (company_id, amount, plan, billing_type, type, gateway, gateway_order_id, status, currency, exchange_rate)
+         VALUES ($1,$2,$3,$4,'subscription','cashfree',$5,'Pending','INR',1)`,
+        [companyId, totalAmount, plan.name, billing_type, orderId]
+      )
 
       return res.json({
         success: true,
         data: {
-          order_id: cfData.order_id,
+          order_id:          cfData.order_id,
           payment_session_id: cfData.payment_session_id,
-          amount: totalAmount,
-          currency: 'INR',
-          base_amount: baseAmount,
-          gst_amount: gstAmount,
-          total_amount: totalAmount,
-          gst_rate: gstRate,
-          plan_name: plan.name
+          environment:       extraConfig.environment || 'sandbox',
+          amount:            totalAmount,
+          currency:          'INR',
+          base_amount:       baseAmount,
+          gst_amount:        gstAmount,
+          total_amount:      totalAmount,
+          gst_rate:          gstRate,
+          plan_name:         plan.name
         }
       })
     }
 
     if (gateway === 'payu') {
-      const txnId = `PAYU_${companyId}_${Date.now()}`
-      const hashString = `${gw.public_key}|${txnId}|${totalAmount}|${plan.name}|${req.user.name || 'User'}|${req.user.email}|||||||||||${secret}`
-      const hash = crypto.createHash('sha512').update(hashString).digest('hex')
+      const backendUrl  = process.env.BACKEND_URL || 'http://localhost:5000'
+      const txnId       = `PAYU_${companyId}_${Date.now()}`
+      const firstName   = req.user.first_name || 'User'
+      const surl        = `${backendUrl}/api/v1/payment-return/payu`
+      const furl        = `${backendUrl}/api/v1/payment-return/payu`
+      const hashString  = `${gw.public_key}|${txnId}|${totalAmount}|${plan.name}|${firstName}|${req.user.email}|||||||||||${secret}`
+      const hash        = crypto.createHash('sha512').update(hashString).digest('hex')
+
+      // Create Pending transaction — return handler will update to Paid after verification
+      await pool.query(
+        `INSERT INTO transactions
+         (company_id, amount, plan, billing_type, type, gateway, gateway_order_id, status, currency, exchange_rate)
+         VALUES ($1,$2,$3,$4,'subscription','payu',$5,'Pending','INR',1)`,
+        [companyId, totalAmount, plan.name, billing_type, txnId]
+      )
+
       return res.json({
         success: true,
         data: {
-          txnid: txnId,
-          key: gw.public_key,
-          amount: totalAmount,
+          txnid:       txnId,
+          key:         gw.public_key,
+          amount:      totalAmount,
           productinfo: plan.name,
-          firstname: req.user.name || 'User',
-          email: req.user.email,
+          firstname:   firstName,
+          email:       req.user.email,
+          phone:       req.user.phone || '9999999999',
           hash,
-          base_amount: baseAmount,
-          gst_amount: gstAmount,
+          surl,
+          furl,
+          base_amount:  baseAmount,
+          gst_amount:   gstAmount,
           total_amount: totalAmount,
-          gst_rate: gstRate,
-          plan_name: plan.name
+          gst_rate:     gstRate,
+          plan_name:    plan.name
         }
       })
     }
 
     if (gateway === 'paytm') {
-      const extraConfig = gw.extra_config || {}
-      const orderId = `PAYTM_${companyId}_${Date.now()}`
+      const paytmChecksum = require('paytmchecksum')
+      const extraConfig   = gw.extra_config || {}
+      const mid           = gw.public_key
+      const orderId       = `PAYTM_${companyId}_${Date.now()}`
+      const backendUrl    = process.env.BACKEND_URL || 'http://localhost:5000'
+      const isProduction  = extraConfig.environment === 'production'
+      const gatewayUrl    = isProduction
+        ? 'https://securegw.paytm.in'
+        : 'https://securegw-stage.paytm.in'
+      const callbackUrl   = `${backendUrl}/api/v1/payment-return/paytm`
+
+      const paytmParams = {
+        body: {
+          requestType: 'Payment',
+          mid,
+          websiteName: extraConfig.website || 'WEBSTAGING',
+          orderId,
+          callbackUrl,
+          txnAmount:   { value: totalAmount.toString(), currency: 'INR' },
+          userInfo:    { custId: `cmp_${companyId}` }
+        }
+      }
+
+      const checksum = await paytmChecksum.generateSignatureByString(
+        JSON.stringify(paytmParams.body), secret
+      )
+      paytmParams.head = { signature: checksum }
+
+      const initRes  = await fetch(
+        `${gatewayUrl}/theia/api/v1/initiateTransaction?mid=${mid}&orderId=${orderId}`,
+        {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(paytmParams)
+        }
+      )
+      const initData = await initRes.json()
+
+      if (initData.body?.resultInfo?.resultStatus === 'F') {
+        throw new Error(initData.body.resultInfo.resultMsg || 'Paytm initialization failed')
+      }
+
+      // Create Pending transaction for fallback redirect handler
+      await pool.query(
+        `INSERT INTO transactions
+         (company_id, amount, plan, billing_type, type, gateway, gateway_order_id, status, currency, exchange_rate)
+         VALUES ($1,$2,$3,$4,'subscription','paytm',$5,'Pending','INR',1)`,
+        [companyId, totalAmount, plan.name, billing_type, orderId]
+      )
+
       return res.json({
         success: true,
         data: {
-          order_id: orderId,
-          mid: gw.public_key,
-          amount: totalAmount.toString(),
-          website: extraConfig.website || 'DEFAULT',
-          industry_type_id: extraConfig.industry_type_id || 'Retail',
-          channel_id: extraConfig.channel_id || 'WEB',
-          base_amount: baseAmount,
-          gst_amount: gstAmount,
+          txn_token:    initData.body.txnToken,
+          order_id:     orderId,
+          mid,
+          is_production: isProduction,
+          gateway_url:  gatewayUrl,
+          amount:       totalAmount,
+          base_amount:  baseAmount,
+          gst_amount:   gstAmount,
           total_amount: totalAmount,
-          gst_rate: gstRate,
-          plan_name: plan.name
+          gst_rate:     gstRate,
+          plan_name:    plan.name
         }
       })
     }
@@ -340,6 +408,38 @@ const verifyPayment = async (req, res) => {
       if (expected !== payment_id) {
         return res.status(400).json({ success: false, message: 'Invalid payment signature' })
       }
+
+      } else if (gateway === 'paytm') {
+      const paytmChecksum = require('paytmchecksum')
+      const extraConfig   = gwResult.rows[0].extra_config || {}
+      const isProduction  = extraConfig.environment === 'production'
+      const gatewayUrl    = isProduction ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in'
+
+      const gwFull2 = await pool.query(
+        'SELECT public_key FROM payment_gateways WHERE gateway_name = $1', [gateway]
+      )
+      const mid = gwFull2.rows[0].public_key
+
+      const statusBody = { body: { mid, orderId: order_id } }
+      const chk = await paytmChecksum.generateSignatureByString(
+        JSON.stringify(statusBody.body), secret
+      )
+      statusBody.head = { signature: chk }
+
+      const statusRes  = await fetch(`${gatewayUrl}/v3/order/status`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(statusBody)
+      })
+      const statusData = await statusRes.json()
+
+      if (statusData.body?.resultInfo?.resultStatus !== 'TXN_SUCCESS') {
+        return res.status(400).json({
+          success: false,
+          message: statusData.body?.resultInfo?.resultMsg || 'Paytm payment not successful'
+        })
+      }
+
     } else if (gateway === 'paypal') {
       // PayPal capture verification happens via API call
       const extraConfig = gwResult.rows[0].extra_config || {}
@@ -422,7 +522,20 @@ const verifyPayment = async (req, res) => {
     })
 
     await dbClient.query('COMMIT')
-    res.json({ success: true, message: 'Payment verified and subscription activated' })
+    res.json({
+      success: true,
+      message: 'Payment verified and subscription activated',
+      data: {
+        plan_name:      plan.name,
+        amount:         totalAmount,
+        invoice_number: invoiceNumber,
+        invoice_id:     (await pool.query(
+          'SELECT id FROM invoices WHERE invoice_number=$1 LIMIT 1', [invoiceNumber]
+        )).rows[0]?.id,
+        billing_type,
+        end_date:       endDate.toISOString().split('T')[0]
+      }
+    })
   } catch (err) {
     await dbClient.query('ROLLBACK')
     console.error('verifyPayment error:', err)
@@ -720,6 +833,30 @@ const uploadPaymentScreenshot = async (req, res) => {
   }
 }
 
+// Returns PayPal public client_id — safe to expose to frontend for SDK initialization
+const getPaypalConfig = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT public_key, extra_config
+       FROM payment_gateways WHERE gateway_name = 'paypal' AND is_active = true LIMIT 1`
+    )
+    if (!result.rows.length) {
+      return res.json({ success: false, message: 'PayPal not configured' })
+    }
+    const extraConfig = result.rows[0].extra_config || {}
+    res.json({
+      success: true,
+      data: {
+        client_id:   result.rows[0].public_key,
+        environment: extraConfig.environment || 'sandbox'
+      }
+    })
+  } catch (err) {
+    console.error('getPaypalConfig error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
 module.exports = {
   getActiveGateways,
   getManualPaymentDetails,
@@ -728,5 +865,6 @@ module.exports = {
   initiateManualPayment,
   getClientInvoices,
   downloadClientInvoice,
-  uploadPaymentScreenshot
+  uploadPaymentScreenshot,
+  getPaypalConfig
 }

@@ -13,3 +13,5 @@ export const createPaymentOrder = (body)   => api.post('/client/payment/create-o
 export const verifyPayment      = (body)   => api.post('/client/payment/verify', body)
 export const initiateManualPayment = (body)=> api.post('/client/payment/manual/initiate', body)
 export const uploadPaymentScreenshot = (data) => api.post('/client/payment/screenshot', data)
+export const getPaypalConfig = () => api.get('/client/payment/paypal-config')
+

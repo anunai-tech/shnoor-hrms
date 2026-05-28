@@ -8,17 +8,16 @@ import {
   initiateManualPayment,
   getClientInvoices,
   downloadClientInvoice,
-  uploadPaymentScreenshot
+  uploadPaymentScreenshot,
+  getPaypalConfig
 } from '../../services/clientService'
 
-// ─── Formatters ──────────────────────────────────────────────────────────────
 const fmt = (n, cur = 'INR') =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(n)
 
 const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
 
-// ─── Tiny UI primitives ──────────────────────────────────────────────────────
 const Badge = ({ children, color = 'amber' }) => {
   const colors = {
     amber: 'bg-amber-100 text-amber-800',
@@ -62,20 +61,39 @@ export default function Billings() {
   const [success, setSuccess] = useState('')
   const [paying, setPaying] = useState(false)
   const [failedGateway, setFailedGateway] = useState(null)
+  const [paymentResult, setPaymentResult] = useState(null)
 
   const gatewayRef = useRef(null)
   const successRef = useRef(null)
 
-// Detect PayU redirect return — ?payu=success or ?payu=failed in URL.
+  // Detect redirect gateway returns — PayU, Cashfree, Paytm all redirect here with ?payment_status=...
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const payuStatus = params.get('payu')
-    if (payuStatus === 'success') {
-      setSuccess('PayU payment completed. Our team will verify and activate your subscription shortly.')
+    const paymentStatus = params.get('payment_status')
+
+    if (paymentStatus === 'success') {
+      setPaymentResult({
+        status: 'success',
+        gateway: params.get('gateway'),
+        plan: params.get('plan'),
+        amount: params.get('amount'),
+        invoice: params.get('invoice'),
+        invoice_id: params.get('invoice_id'),
+        end_date: params.get('end_date')
+      })
+      // Refresh plan + invoices in the background
+      api.get('/client/plan')
+        .then(r => { if (r.data.success) setCurrentPlan(r.data.data) })
+        .catch(() => { })
       loadInvoices()
       window.history.replaceState({}, '', '/client/billings')
-    } else if (payuStatus === 'failed') {
-      setError('PayU payment failed or was cancelled. Please try again.')
+    } else if (paymentStatus === 'failed') {
+      const rawReason = params.get('reason') || 'Payment was not completed'
+      setPaymentResult({
+        status: 'failed',
+        gateway: params.get('gateway'),
+        reason: rawReason.replace(/\+/g, ' ')
+      })
       window.history.replaceState({}, '', '/client/billings')
     }
   }, [])
@@ -129,6 +147,7 @@ export default function Billings() {
   // ── Pay ───────────────────────────────────────────────────────────────────
   const handlePay = async () => {
     if (!selPlan || !selGateway) { setError('Please select a plan and a payment method.'); return }
+    if (selGateway === 'paypal') return // PayPal handled by PayPalButtonContainer
     setError('')
     setPaying(true)
     setPayStep('processing')
@@ -147,11 +166,28 @@ export default function Billings() {
       if (!orderRes.data.success) throw new Error(orderRes.data.message || 'Could not create order')
       const od = orderRes.data.data
 
-      if (selGateway === 'razorpay') await launchRazorpay(od)
-      else if (selGateway === 'cashfree') await launchCashfree(od)
-      else if (selGateway === 'paypal') launchPayPal(od)
-      else if (selGateway === 'payu') launchPayU(od)
-      else throw new Error(`${selGateway} checkout not wired — ask admin.`)
+      if (selGateway === 'razorpay') {
+        const result = await launchRazorpay(od)
+        onPaymentSuccess(result)
+      } else if (selGateway === 'cashfree') {
+        // Redirect gateway — page navigates away to Cashfree
+        // Return handler backend verifies and redirects back
+        launchCashfree(od).catch(e => {
+          setError(e.message)
+          setPayStep('select')
+          setPaying(false)
+        })
+        return // keep spinner while redirecting
+      } else if (selGateway === 'payu') {
+        // Redirect gateway — form POST navigates away to PayU
+        launchPayU(od)
+        return // keep spinner while redirecting
+      } else if (selGateway === 'paytm') {
+        const result = await launchPaytm(od)
+        onPaymentSuccess(result)
+      } else {
+        throw new Error(`${selGateway} checkout not wired — contact admin.`)
+      }
     } catch (e) {
       setFailedGateway(selGateway)
       setError(`Payment via ${selGateway} failed. Please select another method and try again.`)
@@ -180,7 +216,7 @@ export default function Billings() {
             billing_type: billing
           })
           if (!vd.data.success) throw new Error(vd.data.message)
-          onPaymentSuccess(); resolve()
+          resolve(vd.data.data)
         } catch (e) { reject(e) }
       },
       modal: { ondismiss: () => { setPayStep('select'); setPaying(false) } },
@@ -189,45 +225,89 @@ export default function Billings() {
     rzp.open()
   })
 
-  const launchCashfree = (od) => new Promise((resolve, reject) => {
-    const init = () => {
-      if (!window.Cashfree) return reject(new Error('Cashfree SDK failed to load'))
-      const cashfree = window.Cashfree({ mode: 'sandbox' })
-      cashfree.checkout({ paymentSessionId: od.payment_session_id })
-        .then(async (result) => {
-          if (result.error) { setError(result.error.message); setPayStep('select'); resolve(); return }
-          try {
-            const vd = await verifyPaymentApi({
-              gateway: 'cashfree',
-              order_id: od.order_id,
-              payment_id: result.paymentDetails?.paymentMessage || '',
-              signature: result.paymentDetails?.signature || '',
-              plan_id: selPlan.id,
-              billing_type: billing
-            })
-            if (vd.data.success) onPaymentSuccess()
-            else setError(vd.data.message || 'Verification failed')
-          } catch (e) { setError(e.message) }
-          setPayStep('select'); resolve()
-        })
+  // Cashfree: redirect mode — page navigates to Cashfree checkout.
+  // Backend handles return via /api/v1/payment-return/cashfree.
+  const launchCashfree = async (od) => {
+    if (!window.Cashfree) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script')
+        s.src = 'https://sdk.cashfree.com/js/v3/cashfree.js'
+        s.onload = resolve
+        s.onerror = () => reject(new Error('Failed to load Cashfree SDK'))
+        document.head.appendChild(s)
+      })
     }
-    if (window.Cashfree) { init(); return }
+    const mode = od.environment === 'production' ? 'production' : 'sandbox'
+    const cashfree = window.Cashfree({ mode })
+    // redirectTarget: '_self' navigates the current tab to Cashfree hosted checkout
+    await cashfree.checkout({
+      paymentSessionId: od.payment_session_id,
+      redirectTarget: '_self'
+    })
+    // If we reach here, redirect didn't happen — treat as error
+    throw new Error('Cashfree redirect did not occur')
+  }
+
+  // Paytm CheckoutJS popup — opens Paytm payment modal on current page
+  const launchPaytm = (od) => new Promise((resolve, reject) => {
+    const sdkUrl = od.is_production
+      ? `https://securegw.paytm.in/merchantpgpui/checkoutjs/merchants/${od.mid}.js`
+      : `https://securegw-stage.paytm.in/merchantpgpui/checkoutjs/merchants/${od.mid}.js`
+
+    const openCheckout = () => {
+      const config = {
+        root: '',
+        flow: 'DEFAULT',
+        data: {
+          orderId: od.order_id,
+          token: od.txn_token,
+          tokenType: 'TXN_TOKEN',
+          amount: od.amount.toString()
+        },
+        merchant: { mid: od.mid, redirect: false },
+        handler: {
+          transactionStatus: async (paymentStatus) => {
+            window.Paytm?.CheckoutJS?.close()
+            if (paymentStatus.STATUS === 'TXN_SUCCESS') {
+              try {
+                const vd = await verifyPaymentApi({
+                  gateway: 'paytm',
+                  order_id: od.order_id,
+                  payment_id: paymentStatus.TXNID || '',
+                  plan_id: selPlan.id,
+                  billing_type: billing
+                })
+                if (vd.data.success) resolve(vd.data.data)
+                else reject(new Error(vd.data.message || 'Paytm verification failed'))
+              } catch (e) { reject(e) }
+            } else {
+              reject(new Error(paymentStatus.RESPMSG || 'Paytm payment failed'))
+            }
+          },
+          notifyMerchant: (eventName) => {
+            if (eventName === 'SESSION_EXPIRED') {
+              reject(new Error('Paytm session expired. Please try again.'))
+            }
+          }
+        }
+      }
+
+      window.Paytm.CheckoutJS.onLoad(() => {
+        window.Paytm.CheckoutJS.init(config)
+          .then(() => window.Paytm.CheckoutJS.invoke())
+          .catch(e => reject(new Error('Paytm checkout initialization failed')))
+      })
+    }
+
+    if (window.Paytm?.CheckoutJS) { openCheckout(); return }
+
     const s = document.createElement('script')
-    s.src = 'https://sdk.cashfree.com/js/v3/cashfree.js'
-    s.onload = init
-    s.onerror = () => reject(new Error('Failed to load Cashfree SDK'))
+    s.src = sdkUrl
+    s.crossOrigin = 'anonymous'
+    s.onload = openCheckout
+    s.onerror = () => reject(new Error('Failed to load Paytm SDK'))
     document.head.appendChild(s)
   })
-
-  const launchPayPal = (od) => {
-    const baseUrl = od.paypal_env === 'production'
-      ? 'https://www.paypal.com'
-      : 'https://www.sandbox.paypal.com'
-    window.open(`${baseUrl}/checkoutnow?token=${od.order_id}`, '_blank')
-    setError('PayPal sandbox opened in a new tab. Complete payment there, then contact admin to activate subscription.')
-    setPayStep('select')
-    setPaying(false)
-  }
 
   // PayU uses redirect-based checkout — dynamically creates and submits an HTML form.
   // After payment, PayU redirects back to surl (success) or furl (failure).
@@ -245,9 +325,9 @@ export default function Billings() {
       productinfo: od.productinfo,
       firstname:   od.firstname,
       email:       od.email,
-      phone:       '9999999999',
-      surl:        `${window.location.origin}/client/billings?payu=success&txnid=${od.txnid}`,
-      furl:        `${window.location.origin}/client/billings?payu=failed&txnid=${od.txnid}`,
+      phone:       od.phone || '9999999999',
+      surl:        od.surl,  // backend return handler URL — verified server-side
+      furl:        od.furl,  // backend return handler URL — verified server-side
       hash:        od.hash,
     }
 
@@ -264,12 +344,18 @@ export default function Billings() {
     // Page redirects to PayU — no further JS runs after this.
   }
 
-  const onPaymentSuccess = () => {
-    setSuccess('Payment successful! Your subscription is now active.')
+  const onPaymentSuccess = (data) => {
+    setPaymentResult({
+      status: 'success',
+      plan: data?.plan_name,
+      amount: data?.amount,
+      invoice: data?.invoice_number,
+      invoice_id: data?.invoice_id,
+      end_date: data?.end_date
+    })
     setSelPlan(null); setSelGateway(null); setPayStep('select')
     api.get('/client/plan').then(r => { if (r.data.success) setCurrentPlan(r.data.data) }).catch(() => { })
     loadInvoices()
-    setTimeout(() => successRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
   const handleDownload = async (inv) => {
@@ -281,6 +367,24 @@ export default function Billings() {
       document.body.appendChild(a); a.click()
       document.body.removeChild(a); URL.revokeObjectURL(url)
     } catch { alert('Failed to download invoice') }
+  }
+
+  const handleModalDownload = async () => {
+    if (!paymentResult?.invoice_id) {
+      // Try to find in loaded invoices by invoice number
+      const found = invoices.find(inv => inv.invoice_number === paymentResult?.invoice)
+      if (found) { handleDownload(found); return }
+      return
+    }
+    try {
+      const r = await downloadClientInvoice(paymentResult.invoice_id)
+      const url = URL.createObjectURL(r.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${paymentResult.invoice || 'invoice'}.pdf`
+      document.body.appendChild(a); a.click()
+      document.body.removeChild(a); URL.revokeObjectURL(url)
+    } catch { setError('Invoice download failed. Please try from the Invoice History table.') }
   }
 
   const planPrice = (plan) =>
@@ -510,16 +614,17 @@ export default function Billings() {
                   {gateways.automatic.length > 0 && (
                     <div className="mb-4">
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Online Payment</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="grid grid-cols-5 gap-2">
                         {gateways.automatic.map(gw => (
                           <button
                             key={gw}
                             onClick={() => setSelGateway(gw)}
-                            className={`flex flex-col items-center justify-center py-4 px-3 rounded-xl border-2 text-sm font-medium capitalize transition-all
-                              ${selGateway === gw ? 'border-amber-500 bg-amber-50 text-amber-800' : 'border-gray-100 hover:border-gray-300 text-gray-700'}`}
+                            className={`flex items-center justify-center py-5 px-3 rounded-xl border-2 transition-all
+                              ${selGateway === gw
+                                ? 'border-amber-500 bg-amber-50 shadow-sm'
+                                : 'border-gray-100 hover:border-amber-200 hover:bg-amber-50/30'}`}
                           >
                             <GatewayIcon name={gw} />
-                            <span className="mt-2">{gw}</span>
                           </button>
                         ))}
                       </div>
@@ -556,6 +661,7 @@ export default function Billings() {
 
                   {selGateway && payStep !== 'manual_pending' && (
                     <>
+                      {/* Price summary */}
                       <div className="bg-gray-50 rounded-xl p-4 mb-4">
                         <div className="flex justify-between text-sm text-gray-600 mb-1">
                           <span>Subtotal</span><span>{fmt(planPrice(selPlan))}</span>
@@ -568,16 +674,27 @@ export default function Billings() {
                           <span className="text-amber-600">{fmt(planPrice(selPlan) * 1.18)}</span>
                         </div>
                       </div>
-                      <button
-                        onClick={handlePay}
-                        disabled={paying}
-                        className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
-                      >
-                        {paying
-                          ? <><Spinner sm /> Processing…</>
-                          : `Pay ${fmt(planPrice(selPlan) * 1.18)} via ${selGateway.charAt(0).toUpperCase() + selGateway.slice(1)}`
-                        }
-                      </button>
+
+                      {/* PayPal renders its own button — all others use standard Pay button */}
+                      {selGateway === 'paypal' ? (
+                        <PayPalButtonContainer
+                          plan={selPlan}
+                          billing={billing}
+                          onSuccess={onPaymentSuccess}
+                          onError={(msg) => { setError(msg); setPayStep('select') }}
+                        />
+                      ) : (
+                        <button
+                          onClick={handlePay}
+                          disabled={paying}
+                          className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
+                        >
+                          {paying
+                            ? <><Spinner sm /> Processing…</>
+                            : `Pay ${fmt(planPrice(selPlan) * 1.18)} via ${selGateway.charAt(0).toUpperCase() + selGateway.slice(1)}`
+                          }
+                        </button>
+                      )}
                     </>
                   )}
                 </>
@@ -665,74 +782,311 @@ export default function Billings() {
             </div>
           )}
         </SectionCard>
-
+        {/* Payment Result Modal */}
+        {paymentResult && (
+          <PaymentResultModal
+            result={paymentResult}
+            onClose={() => setPaymentResult(null)}
+            onDownload={handleModalDownload}
+          />
+        )}
       </div>
     </div>
   )
 }
 
+// ─── Payment Result Modal ─────────────────────────────────────────────────────
+function PaymentResultModal({ result, onClose, onDownload }) {
+  const isSuccess = result.status === 'success'
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+
+        {/* Top accent bar */}
+        <div className={`h-1.5 ${isSuccess
+          ? 'bg-gradient-to-r from-green-400 to-emerald-500'
+          : 'bg-gradient-to-r from-red-400 to-rose-500'}`}
+        />
+
+        <div className="p-8 text-center">
+
+          {/* Icon */}
+          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5
+            ${isSuccess ? 'bg-green-50' : 'bg-red-50'}`}>
+            {isSuccess ? (
+              <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+          </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">
+            {isSuccess ? 'Payment Successful!' : 'Payment Failed'}
+          </h2>
+
+          {isSuccess ? (
+            <>
+              <p className="text-gray-400 text-sm mb-6">
+                Your subscription is now active via {result.gateway?.charAt(0).toUpperCase() + result.gateway?.slice(1)}.
+              </p>
+
+              <div className="bg-gray-50 rounded-2xl p-5 text-left space-y-3 mb-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Plan Activated</span>
+                  <span className="text-sm font-semibold text-gray-800">{result.plan}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Amount Paid</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    ₹{result.amount ? Number(result.amount).toLocaleString('en-IN') : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Invoice</span>
+                  <span className="text-xs font-mono text-amber-600">{result.invoice || '—'}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                  <span className="text-sm text-gray-400">Valid Until</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    {result.end_date
+                      ? new Date(result.end_date).toLocaleDateString('en-IN', {
+                          day: '2-digit', month: 'short', year: 'numeric'
+                        })
+                      : '—'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={onDownload}
+                  className="flex-1 py-2.5 border border-amber-200 text-amber-600 text-sm font-semibold
+                             rounded-xl hover:bg-amber-50 transition flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                  Invoice PDF
+                </button>
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition"
+                >
+                  Continue
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-500 text-sm mb-1">
+                {result.reason || 'Something went wrong with your payment.'}
+              </p>
+              <p className="text-gray-400 text-xs mb-6">No amount was charged to your account.</p>
+              <button
+                onClick={onClose}
+                className="w-full py-3 bg-gray-800 hover:bg-gray-900 text-white text-sm font-semibold rounded-xl transition"
+              >
+                Try Another Method
+              </button>
+            </>
+          )}
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── PayPal Button Container ───────────────────────────────────────────────────
+// Loads PayPal JS SDK, renders official PayPal button, handles popup payment.
+function PayPalButtonContainer({ plan, billing, onSuccess, onError }) {
+  const containerRef  = useRef(null)
+  const [loading, setLoading] = useState(true)
+  const [sdkReady, setSdkReady] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+
+    const init = async () => {
+      try {
+        const configRes = await api.get('/client/payment/paypal-config')
+        if (!configRes.data.success) throw new Error(configRes.data.message || 'PayPal not configured')
+        const { client_id } = configRes.data.data
+
+        if (!window.paypal) {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script')
+            s.src = `https://www.paypal.com/sdk/js?client-id=${client_id}&currency=USD&intent=capture&disable-funding=credit,card`
+            s.onload  = resolve
+            s.onerror = () => reject(new Error('Failed to load PayPal SDK'))
+            document.head.appendChild(s)
+          })
+        }
+
+        if (!mounted) return
+        setLoading(false)
+        setSdkReady(true)
+      } catch (err) {
+        if (mounted) { setLoading(false); onError(err.message) }
+      }
+    }
+
+    init()
+    return () => { mounted = false }
+  }, [])
+
+  useEffect(() => {
+    if (!sdkReady || !containerRef.current || !window.paypal) return
+
+    window.paypal.Buttons({
+      style: { shape: 'rect', color: 'gold', layout: 'horizontal', label: 'pay', height: 44 },
+
+      createOrder: async () => {
+        const res = await createPaymentOrder({ plan_id: plan.id, billing_type: billing, gateway: 'paypal' })
+        if (!res.data.success) throw new Error(res.data.message || 'Could not create PayPal order')
+        return res.data.data.order_id
+      },
+
+      onApprove: async (data) => {
+        try {
+          const vd = await verifyPaymentApi({
+            gateway:      'paypal',
+            order_id:     data.orderID,
+            payment_id:   data.payerID,
+            plan_id:      plan.id,
+            billing_type: billing
+          })
+          if (vd.data.success) onSuccess(vd.data.data)
+          else onError(vd.data.message || 'PayPal verification failed')
+        } catch (e) {
+          onError('PayPal verification error. Please contact support.')
+        }
+      },
+
+      onError: () => {
+        onError('PayPal encountered an error. Please try another payment method.')
+      },
+
+      onCancel: () => {
+        // User closed PayPal popup — no error, just dismiss silently
+      }
+    }).render(containerRef.current)
+  }, [sdkReady])
+
+  return (
+    <div className="mt-2">
+      {loading ? (
+        <div className="flex items-center justify-center gap-2 py-4 text-gray-400">
+          <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Loading PayPal...</span>
+        </div>
+      ) : (
+        <div ref={containerRef} />
+      )}
+    </div>
+  )
+}
+
 function GatewayIcon({ name }) {
-  const icons = {
-    razorpay: (
-      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#072654"/>
-        <path d="M22 6L12.5 20H19L16 30 25.5 16H19L22 6z" fill="#3D88F5"/>
-      </svg>
-    ),
-    cashfree: (
-      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#00C365"/>
-        <path d="M24 14.5c-1.5-2-3.8-3-6-2.8-3.5.3-6 3.2-6 6.8s2.5 6.5 6 6.8c2.2.2 4.5-.8 6-2.8" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
-        <path d="M13 18.5h8" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
-      </svg>
-    ),
-    payu: (
-      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#FF5722"/>
-        <path d="M10 13v5.5c0 2.5 1.5 4.5 4.5 4.5s4.5-2 4.5-4.5V13" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
-        <circle cx="25" cy="19.5" r="3.5" stroke="white" strokeWidth="2.2" fill="none"/>
-        <path d="M25 23v4" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
-      </svg>
-    ),
-    paytm: (
-      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#002970"/>
-        <rect x="8" y="12" width="9" height="12" rx="1.5" fill="#00B9F2"/>
-        <rect x="19" y="12" width="9" height="12" rx="1.5" fill="white"/>
-        <rect x="8" y="12" width="20" height="5" rx="1.5" fill="#00B9F2"/>
-      </svg>
-    ),
-    paypal: (
-      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#003087"/>
-        <path d="M20.5 8h-7.5L10 26h4l.8-5h4.2c4 0 7-2.2 7.8-6.5.7-4-1.5-6.5-6.3-6.5z" fill="#009CDE"/>
-        <path d="M17 11h-5L9.5 27h3.5l.8-5h3.7c3.5 0 6.2-2 7-5.8.6-3.5-1.3-5.7-5.5-5.2-.7.1-1.5.5-2 1z" fill="white" opacity="0.9"/>
-      </svg>
-    ),
-    upi: (
-      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#6B21A8"/>
-        <path d="M18 9l5 9h-3v9h-4V18h-3L18 9z" fill="white"/>
-        <path d="M12 24h12" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-    netbanking: (
-      <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#1E3A5F"/>
-        <path d="M18 8L6 14h24L18 8z" fill="white"/>
-        <rect x="8" y="16" width="3" height="8" rx="1" fill="white"/>
-        <rect x="13.5" y="16" width="3" height="8" rx="1" fill="white"/>
-        <rect x="19.5" y="16" width="3" height="8" rx="1" fill="white"/>
-        <rect x="25" y="16" width="3" height="8" rx="1" fill="white"/>
-        <rect x="6" y="25" width="24" height="2.5" rx="1" fill="white"/>
-      </svg>
-    ),
+  // Payment gateway brand logos — images from public/logos/
+  const logoMap = {
+    razorpay: '/logos/razorpay.png',
+    cashfree: '/logos/cashfree.png',
+    paypal: '/logos/paypal.png',
+    payu: '/logos/payu.png',
+    paytm: '/logos/paytm.png',
   }
-  return icons[name] || (
-    <svg className="w-9 h-9" viewBox="0 0 36 36" fill="none">
-      <rect width="36" height="36" rx="8" fill="#374151"/>
-      <path d="M6 14h24M10 26h16a2 2 0 002-2V12a2 2 0 00-2-2H10a2 2 0 00-2 2v12a2 2 0 002 2z"
-        stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+
+  if (logoMap[name]) {
+    return (
+      <img
+        src={logoMap[name]}
+        alt={name}
+        className="h-9 w-auto max-w-[100px] object-contain"
+        onError={e => { e.currentTarget.style.display = 'none' }}
+      />
+    )
+  }
+
+  // UPI — phone + QR code icon
+  if (name === 'upi') {
+    return (
+      <svg className="w-10 h-10" viewBox="0 0 56 40" fill="none">
+        {/* Phone */}
+        <rect x="1" y="1" width="20" height="33" rx="3"
+          stroke="#374151" strokeWidth="1.6" />
+        <line x1="5" y1="7" x2="17" y2="7"
+          stroke="#374151" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="5" y1="10" x2="13" y2="10"
+          stroke="#374151" strokeWidth="1.2" strokeLinecap="round" />
+        <circle cx="11" cy="22" r="5"
+          stroke="#374151" strokeWidth="1.5" />
+        <path d="M8.5 22l2 2 3.5-3.5"
+          stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        {/* QR Code */}
+        <rect x="28" y="3" width="27" height="27" rx="2"
+          stroke="#374151" strokeWidth="1.6" />
+        {/* Top-left square */}
+        <rect x="31" y="6" width="6" height="6" rx="1"
+          stroke="#374151" strokeWidth="1.4" />
+        <rect x="33" y="8" width="2" height="2" fill="#374151" />
+        {/* Top-right square */}
+        <rect x="46" y="6" width="6" height="6" rx="1"
+          stroke="#374151" strokeWidth="1.4" />
+        <rect x="48" y="8" width="2" height="2" fill="#374151" />
+        {/* Bottom-left square */}
+        <rect x="31" y="21" width="6" height="6" rx="1"
+          stroke="#374151" strokeWidth="1.4" />
+        <rect x="33" y="23" width="2" height="2" fill="#374151" />
+        {/* QR dots */}
+        <rect x="39" y="6" width="2" height="2" rx="0.3" fill="#374151" />
+        <rect x="42" y="6" width="2" height="2" rx="0.3" fill="#374151" />
+        <rect x="39" y="10" width="2" height="2" rx="0.3" fill="#374151" />
+        <rect x="42" y="13" width="2" height="2" rx="0.3" fill="#374151" />
+        <rect x="39" y="13" width="2" height="2" rx="0.3" fill="#374151" />
+        <rect x="46" y="21" width="2" height="2" rx="0.3" fill="#374151" />
+        <rect x="50" y="21" width="2" height="2" rx="0.3" fill="#374151" />
+        <rect x="46" y="25" width="6" height="2" rx="0.5" fill="#374151" />
+        <rect x="39" y="21" width="2" height="6" rx="0.3" fill="#374151" />
+        <rect x="43" y="23" width="2" height="2" rx="0.3" fill="#374151" />
+      </svg>
+    )
+  }
+
+  // Net Banking — bank building icon
+  if (name === 'netbanking') {
+    return (
+      <svg className="w-10 h-10" viewBox="0 0 48 44" fill="none"
+        stroke="#374151" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        {/* Roof */}
+        <polyline points="2,17 24,4 46,17" />
+        <line x1="2" y1="17" x2="46" y2="17" />
+        {/* Columns */}
+        <line x1="8" y1="20" x2="8" y2="35" />
+        <line x1="15" y1="20" x2="15" y2="35" />
+        <line x1="24" y1="20" x2="24" y2="35" />
+        <line x1="33" y1="20" x2="33" y2="35" />
+        <line x1="40" y1="20" x2="40" y2="35" />
+        {/* Base */}
+        <line x1="2" y1="35" x2="46" y2="35" />
+        <line x1="1" y1="38" x2="47" y2="38" />
+        <rect x="1" y="38" width="46" height="3" rx="1"
+          fill="#374151" stroke="none" />
+      </svg>
+    )
+  }
+
+  // Fallback
+  return (
+    <svg className="w-8 h-8" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
     </svg>
   )
 }
