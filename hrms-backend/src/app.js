@@ -11,6 +11,7 @@ const messageRoutes = require('./routes/messages')
 const publicRoutes = require('./routes/public')
 const profilePictureRoutes = require('./routes/profilePicture')
 const clientRoutes = require('./routes/client')
+const paymentReturnRoutes = require('./routes/paymentReturn')
 const subdomainMiddleware = require('./middleware/subdomainMiddleware')
 const verifyCompanyAccess = require('./middleware/verifyCompanyAccess')
 
@@ -29,7 +30,12 @@ app.use(cors({
       allowedOriginPattern.test(origin) ||
       origin === 'http://localhost:5173' ||
       origin === renderFrontend ||
-      origin.endsWith('.onrender.com')
+      origin.endsWith('.onrender.com') ||
+      origin.endsWith('.payu.in') ||
+      origin.endsWith('.cashfree.com') ||
+      origin.endsWith('.paytm.in') ||
+      origin.endsWith('.ngrok-free.app') ||
+      origin.endsWith('.ngrok-free.dev')
     ) {
       callback(null, true)
     } else {
@@ -47,6 +53,15 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')))
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/superadmin', superadminRoutes)
 app.use('/api/v1/client', clientRoutes)
+// Payment return routes — called by gateway servers (PayU, Cashfree, Paytm)
+// Must bypass CORS — these are server-to-server POST/GET requests, not browser requests
+app.use('/api/v1/payment-return', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.header('Access-Control-Allow-Headers', 'Content-Type')
+  if (req.method === 'OPTIONS') return res.sendStatus(200)
+  next()
+}, paymentReturnRoutes)
 app.use('/api/v1/public', publicRoutes)
 app.use('/api/v1/profile-picture', profilePictureRoutes)
 

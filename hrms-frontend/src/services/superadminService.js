@@ -44,6 +44,21 @@ export const getCompanyManagers = (id) => api.get(`/superadmin/companies/${id}/m
 export const getClients = () => api.get('/superadmin/clients')
 export const createClient = (data) => api.post('/superadmin/clients', data)
 
+export const uploadPaymentScreenshot = (data) => api.post('/client/payment/screenshot', data)
+
+// Invoices and manual payment verification
+export const getInvoices = (query = '') => api.get(`/superadmin/invoices${query}`)
+export const downloadInvoicePDF = (id) => api.get(`/superadmin/invoices/${id}/download`, { responseType: 'blob' })
+export const getPendingPayments = () => api.get('/superadmin/pending-payments')
+export const verifyManualPayment = (id) => api.put(`/superadmin/pending-payments/${id}/verify`)
+export const rejectManualPayment = (id, reason) => api.put(`/superadmin/pending-payments/${id}/reject`, { reason })
+
+// Payment Gateways
+export const getPaymentGateways = () => api.get('/superadmin/payment-gateways')
+export const updatePaymentGateway = (name, data) => api.put(`/superadmin/payment-gateways/${name}`, data)
+export const getManualPaymentSettings = () => api.get('/superadmin/payment-gateways/manual')
+export const updateManualPaymentSettings = (data) => api.put('/superadmin/payment-gateways/manual', data)
+
 // Subdomain Requests
 export const getSubdomainRequests = () => api.get('/superadmin/subdomain-requests')
 export const approveSubdomainRequest = (id) => api.put(`/superadmin/subdomain-requests/${id}/approve`)

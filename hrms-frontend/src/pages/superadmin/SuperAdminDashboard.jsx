@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getCompanies, getContactQueries, getClients, getSubdomainRequests } from '../../services/superadminService'
+import { getCompanies, getContactQueries, getClients, getSubdomainRequests, getPendingPayments } from '../../services/superadminService'
 
 function StatCard({ label, value, change }) {
   return (
@@ -31,21 +31,24 @@ function SuperAdminDashboard() {
   const [queries, setQueries] = useState([])
   const [clients, setClients] = useState([])
   const [subdomainRequests, setSubdomainRequests] = useState([])
+  const [pendingPayments, setPendingPayments] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [companiesRes, queriesRes, clientsRes, subdomainRes] = await Promise.all([
+        const [companiesRes, queriesRes, clientsRes, subdomainRes, pendingRes] = await Promise.all([
           getCompanies(),
           getContactQueries(),
           getClients(),
-          getSubdomainRequests()
+          getSubdomainRequests(),
+          getPendingPayments()
         ])
         setCompanies(companiesRes.data.data)
         setQueries(queriesRes.data.data)
         setClients(clientsRes.data.data)
         setSubdomainRequests(subdomainRes.data.data)
+        setPendingPayments(pendingRes.data.data || [])
       } catch (err) {
         console.error(err)
       } finally {
@@ -68,6 +71,7 @@ function SuperAdminDashboard() {
     { label: 'Total Clients', value: clients.length, change: `${clients.filter(c => c.is_active).length} active` },
     { label: 'Subdomain Requests', value: pendingSubdomains, change: pendingSubdomains > 0 ? '⚠ Needs review' : 'All reviewed' },
     { label: 'Unread Queries', value: unreadQueries, change: 'Needs attention' },
+    { label: 'Pending Verifications', value: pendingPayments.length, change: pendingPayments.length > 0 ? '⚠ Payments awaiting review' : 'All clear' },
   ]
 
   if (loading) return (
@@ -86,11 +90,46 @@ function SuperAdminDashboard() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {stats.map((stat) => (
           <StatCard key={stat.label} label={stat.label} value={stat.value} change={stat.change} />
         ))}
       </div>
+
+      {pendingPayments.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+              <h2 className="font-display text-base font-semibold text-yellow-800">
+                {pendingPayments.length} Manual Payment{pendingPayments.length > 1 ? 's' : ''} Awaiting Verification
+              </h2>
+            </div>
+            <a href="/superadmin/transactions" className="font-display text-xs text-yellow-700 hover:underline font-semibold">
+              Review all →
+            </a>
+          </div>
+          <div className="space-y-2">
+            {pendingPayments.slice(0, 3).map(p => (
+              <div key={p.id} className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-yellow-100">
+                <div>
+                  <p className="font-display text-sm font-semibold text-gray-800">{p.company_name}</p>
+                  <p className="font-body text-xs text-gray-400">{p.plan} · {p.billing_type} · via {p.gateway?.toUpperCase()}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-display text-sm font-bold text-gray-800">₹{Number(p.amount).toLocaleString('en-IN')}</p>
+                  <p className="font-body text-xs text-gray-400">{new Date(p.created_at).toLocaleDateString('en-GB')}</p>
+                </div>
+              </div>
+            ))}
+            {pendingPayments.length > 3 && (
+              <p className="font-body text-xs text-yellow-600 text-center pt-1">
+                +{pendingPayments.length - 3} more — <a href="/superadmin/transactions" className="underline">view all</a>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 

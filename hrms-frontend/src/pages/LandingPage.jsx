@@ -12,29 +12,30 @@ const features = [
   { title: 'Multi-Company Support', description: 'Built for scale. Manage multiple companies under one platform with complete data isolation.' },
 ]
 
-const plans = [
-  {
-    name: 'Basic', monthly: 0, annual: 0, maxUsers: 50,
+// Fallback plan features shown if DB doesn't have them yet (pre-migration safety net).
+const PLAN_FEATURE_DEFAULTS = {
+  Basic: {
     features: ['Up to 50 employees', 'Attendance tracking', 'Leave management', 'Basic reports', 'Email support'],
-    highlighted: false, cta: 'Get Started Free',
+    highlighted: false,
+    cta: 'Get Started Free',
   },
-  {
-    name: 'Pro', monthly: 499, annual: 3500, maxUsers: 50,
+  Pro: {
     features: ['Up to 50 employees', 'All Basic features', 'Expense management', 'Company policies', 'Priority support'],
-    highlighted: true, cta: 'Start Pro Plan',
+    highlighted: true,
+    cta: 'Start Pro Plan',
   },
-  {
-    name: 'Enterprise', monthly: 3500, annual: 30000, maxUsers: 1000,
+  Enterprise: {
     features: ['Up to 1000 employees', 'All Pro features', 'Multi-company support', 'Custom integrations', 'Dedicated support'],
-    highlighted: false, cta: 'Contact Sales',
+    highlighted: false,
+    cta: 'Contact Sales',
   },
-]
+}
 
 const faqs = [
   { question: 'What is SHNOOR HRMS?', answer: 'SHNOOR HRMS is a full-featured Human Resource Management System built for businesses of all sizes. It covers employee management, attendance tracking, leave management, payroll, expense claims, company policies, and more — all in one unified platform.' },
-  { question: 'How much does it cost?', answer: 'We offer three plans. The Basic plan is completely free and supports up to 50 employees. The Pro plan is ₹499/month (or ₹3,500/year) with advanced features. The Enterprise plan is ₹3,500/month (or ₹30,000/year) for up to 1,000 employees with full multi-company support.' },
+  { question: 'How much does it cost?', answer: 'We offer three plans — Basic (free), Pro, and Enterprise. Please check our Pricing section above for current pricing. Plans differ in employee limits, features, and support levels.' },
   { question: 'Is there a free plan?', answer: 'Yes! Our Basic plan is free forever with no credit card required. It supports up to 50 employees and includes attendance tracking, leave management, and basic reporting — a great starting point for small teams.' },
-  { question: 'How many employees can I manage?', answer: 'The Basic and Pro plans support up to 50 employees. The Enterprise plan scales up to 1,000 employees and also supports managing multiple companies under a single account.' },
+  { question: 'How many employees can I manage?', answer: 'Our plans support different employee limits. Check the Pricing section above for the latest limits per plan. The Enterprise plan also supports managing multiple companies under one account.' },
   { question: 'What features are included?', answer: 'SHNOOR HRMS includes employee profiles, attendance clock-in/out, leave applications and approvals, expense submissions, salary management with payslip generation, company policy documents, offboarding workflows, and a dynamic public landing page — all manageable from a clean dashboard.' },
   { question: 'How do I get started?', answer: 'Getting started is simple. Reach out to us through the Contact form below — our team will set up your company account and provide login credentials to your designated HR Manager. From there, your manager can onboard employees, configure salary structures, and begin operations immediately.' },
   { question: 'Is my data secure?', answer: "Absolutely. SHNOOR HRMS uses JWT-based authentication, bcrypt password hashing, and role-based access control to ensure only authorised users can access data. Each company's data is fully isolated — no cross-company data access is possible." },
@@ -184,6 +185,8 @@ function LandingPage() {
   const navigate = useNavigate()
   const homeRef = useRef(null)
   const featuresRef = useRef(null)
+  // Plans fetched from DB — prices stay in sync when superadmin updates them.
+  const [plans, setPlans] = useState([])
   const pricingRef = useRef(null)
   const contactRef = useRef(null)
 
@@ -202,6 +205,13 @@ function LandingPage() {
     footer_text: '© 2026 SHNOOR INTERNATIONAL LLC. All rights reserved.',
     logo_url: null,
   })
+
+  // Fetch live subscription plans from DB on mount.
+  useEffect(() => {
+    api.get('/public/plans')
+      .then(res => setPlans(res.data.data || []))
+      .catch(() => { })
+  }, [])
 
   useEffect(() => {
     api.get('/public/website-settings')
@@ -353,31 +363,45 @@ function LandingPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {plans.map((plan) => (
-              <div key={plan.name}
-                className={`rounded-2xl p-8 border transition-all duration-300 ${plan.highlighted ? 'bg-primary border-primary shadow-lg scale-105' : 'bg-white border-gray-200 hover:border-primary hover:shadow-sm'}`}>
-                <p className={`font-display text-xs font-bold uppercase tracking-widest mb-3 ${plan.highlighted ? 'text-quaternary' : 'text-primary'}`}>{plan.name}</p>
-                <div className="mb-6">
-                  <span className={`font-display text-4xl font-black ${plan.highlighted ? 'text-quaternary' : 'text-gray-900'}`}>
-                    ₹{billingPeriod === 'monthly' ? plan.monthly.toLocaleString('en-IN') : plan.annual.toLocaleString('en-IN')}
-                  </span>
-                  <span className={`font-body text-sm ml-2 ${plan.highlighted ? 'text-secondary' : 'text-gray-400'}`}>/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
+            {plans.map((plan) => {
+              // Resolve display values — use DB fields, fall back to defaults if migration not yet run.
+              const isHighlighted = plan.is_highlighted ?? PLAN_FEATURE_DEFAULTS[plan.name]?.highlighted ?? false
+              const planFeatures = plan.features || PLAN_FEATURE_DEFAULTS[plan.name]?.features || []
+              const planCta = plan.cta_text || PLAN_FEATURE_DEFAULTS[plan.name]?.cta || 'Get Started'
+              const price = billingPeriod === 'monthly'
+                ? Number(plan.monthly_price)
+                : Number(plan.annual_price)
+
+              return (
+                <div key={plan.name}
+                  className={`rounded-2xl p-8 border transition-all duration-300 ${isHighlighted ? 'bg-primary border-primary shadow-lg scale-105' : 'bg-white border-gray-200 hover:border-primary hover:shadow-sm'}`}>
+                  <p className={`font-display text-xs font-bold uppercase tracking-widest mb-3 ${isHighlighted ? 'text-quaternary' : 'text-primary'}`}>{plan.name}</p>
+                  <div className="mb-6">
+                    <span className={`font-display text-4xl font-black ${isHighlighted ? 'text-quaternary' : 'text-gray-900'}`}>
+                      ₹{price.toLocaleString('en-IN')}
+                    </span>
+                    <span className={`font-body text-sm ml-2 ${isHighlighted ? 'text-secondary' : 'text-gray-400'}`}>
+                      /{billingPeriod === 'monthly' ? 'month' : 'year'}
+                    </span>
+                  </div>
+                  <p className={`font-body text-xs mb-6 ${isHighlighted ? 'text-secondary' : 'text-gray-400'}`}>
+                    Up to {plan.max_users} employees
+                  </p>
+                  <ul className="space-y-3 mb-8">
+                    {planFeatures.map((f) => (
+                      <li key={f} className="flex items-center gap-3">
+                        <span className={`font-display text-sm ${isHighlighted ? 'text-secondary' : 'text-primary'}`}>✓</span>
+                        <span className={`font-body text-sm ${isHighlighted ? 'text-quaternary' : 'text-gray-600'}`}>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={() => navigate('/register')}
+                    className={`font-display w-full py-3 rounded-xl text-sm font-bold transition ${isHighlighted ? 'bg-quaternary text-primary hover:opacity-90' : 'bg-primary text-quaternary hover:opacity-90'}`}>
+                    {planCta}
+                  </button>
                 </div>
-                <p className={`font-body text-xs mb-6 ${plan.highlighted ? 'text-secondary' : 'text-gray-400'}`}>Up to {plan.maxUsers} employees</p>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-3">
-                      <span className={`font-display text-sm ${plan.highlighted ? 'text-secondary' : 'text-primary'}`}>✓</span>
-                      <span className={`font-body text-sm ${plan.highlighted ? 'text-quaternary' : 'text-gray-600'}`}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button onClick={() => navigate('/register')}
-                  className={`font-display w-full py-3 rounded-xl text-sm font-bold transition ${plan.highlighted ? 'bg-quaternary text-primary hover:opacity-90' : 'bg-primary text-quaternary hover:opacity-90'}`}>
-                  {plan.cta}
-                </button>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>

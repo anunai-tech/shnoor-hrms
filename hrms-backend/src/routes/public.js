@@ -149,6 +149,22 @@ router.post('/reset-password', async (req, res) => {
   }
 })
 
+// Public endpoint — returns all subscription plans for landing page display.
+// No auth required since this is shown to visitors before they register.
+router.get('/plans', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, monthly_price, annual_price, max_users,
+              features, is_highlighted, cta_text
+       FROM subscriptions
+       ORDER BY monthly_price ASC`
+    )
+    res.json({ success: true, data: result.rows })
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+})
+
 // GET /company-info/:subdomain — public endpoint, no auth required
 // used by company landing page to fetch branding before login
 router.get('/company-info/:subdomain', async (req, res) => {

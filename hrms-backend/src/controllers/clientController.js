@@ -62,10 +62,14 @@ const getCurrentPlan = async (req, res) => {
 
     const result = await pool.query(
       `SELECT s.id, s.name, s.monthly_price, s.annual_price, s.max_users,
-              c.created_at as member_since, c.status
+              c.created_at as member_since, c.status,
+              cs.billing_type, cs.start_date, cs.end_date, cs.status as sub_status
        FROM companies c
        LEFT JOIN subscriptions s ON s.id = c.subscription_id
-       WHERE c.id = $1`,
+       LEFT JOIN company_subscriptions cs
+         ON cs.company_id = c.id AND cs.status = 'active'
+       WHERE c.id = $1
+       LIMIT 1`,
       [companyId]
     )
 

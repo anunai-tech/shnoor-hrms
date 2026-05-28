@@ -43,6 +43,8 @@ import SuperAdminSettings from '../pages/superadmin/Settings'
 import SuperAdminProfile from '../pages/superadmin/Profile'
 import Clients from '../pages/superadmin/Clients'
 import SubdomainRequests from '../pages/superadmin/SubdomainRequests'
+import PaymentGateways from '../pages/superadmin/PaymentGateways'
+import Invoices from '../pages/superadmin/Invoices'
 
 // Manager pages
 import ManagerDashboard from '../pages/manager/ManagerDashboard'
@@ -197,6 +199,8 @@ function MainSiteRoutes() {
         <Route path="/superadmin/profile" element={<SuperAdminPage component={SuperAdminProfile} />} />
         <Route path="/superadmin/clients" element={<SuperAdminPage component={Clients} />} />
         <Route path="/superadmin/subdomain-requests" element={<SuperAdminPage component={SubdomainRequests} />} />
+        <Route path="/superadmin/payment-gateways" element={<SuperAdminPage component={PaymentGateways} />} />
+        <Route path="/superadmin/invoices" element={<SuperAdminPage component={Invoices} />} />
 
         {/* Client Area */}
         <Route path="/client/dashboard" element={<ClientPage component={ClientDashboard} />} />

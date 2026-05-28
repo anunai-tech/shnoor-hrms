@@ -15,6 +15,15 @@ function WebsiteSettings() {
     contact_email: '',
     contact_phone: '',
     footer_text: '',
+    invoice_company_name: '',
+    invoice_address: '',
+    invoice_rep_office: '',
+    invoice_email: '',
+    invoice_phone: '',
+    invoice_website: '',
+    invoice_gstin: '',
+    gst_rate: 18,
+    invoice_prefix: 'SHNOOR-INV',
   })
 
   useEffect(() => {
