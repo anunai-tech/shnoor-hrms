@@ -5,10 +5,13 @@ import MessageInput from '../../components/chat/MessageInput'
 import { useAuth } from '../../context/AuthContext'
 import { useMessaging } from '../../context/MessagingContext'
 import { useMessagingWorkspace } from '../../hooks/useMessagingWorkspace'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 function ManagerMessages() {
   const { user } = useAuth()
   const { unreadCount } = useMessaging()
+  const { features, loading: planLoading } = usePlan()
   const [mobileView, setMobileView] = useState('list')
   const {
     conversations,
@@ -26,9 +29,23 @@ function ManagerMessages() {
     autoSelect: 'unread_first'
   })
 
+  if (planLoading) return null
+  if (!features?.messaging?.enabled) return <FeatureGateScreen featureName="Internal Messaging" requiredPlan="Pro" />
+
   return (
     // Negative margins cancel the layout padding so the chat fills the full available height
     <div className="flex flex-col -m-4 md:-m-6" style={{ height: 'calc(100vh - 4rem)' }}>
+      {features?.messaging?.warning && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 mx-4 mt-2">
+          <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <p className="font-body text-xs text-amber-700">
+            <span className="font-display font-semibold">Approaching messaging limit — </span>
+            {features.messaging.remaining} messages remaining this month.
+          </p>
+        </div>
+      )}
 
       {/* Header and stats — fixed height, doesn't scroll */}
       <div className="flex-shrink-0 px-4 pt-4 md:px-6 md:pt-6">

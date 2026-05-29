@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { getMyOffboarding, submitResignation, getMyComplaints, raiseComplaint, getMyLetters } from '../../services/employeeService'
 import { useAuth } from '../../context/AuthContext'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 function Modal({ title, onClose, children }) {
   return (
@@ -95,7 +97,12 @@ function EmployeeOffboarding() {
   const activeOffboarding = offboarding.find(o => o.status !== 'Rejected' && o.status !== 'Completed')
   const statusLabel = activeOffboarding ? activeOffboarding.status : 'Active'
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  const { features, loading: planLoading } = usePlan()
+  if (planLoading) return null
+  if (!features?.offboarding?.enabled) return <FeatureGateScreen featureName="Offboarding" requiredPlan="Pro" />
+  if (loading) return (
+    <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  )
 
   return (
     <div className="space-y-6">

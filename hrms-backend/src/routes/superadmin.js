@@ -10,6 +10,7 @@ const {
 } = require('../controllers/paymentController')
 const { getCompanies, createCompany, updateCompany, deleteCompany, suspendCompany } = require('../controllers/companyController')
 const {
+  getPlanFeatures, updatePlanFeature, getCompanyUsage, terminateCompanyPlan,
   getSubscriptions, createSubscription, updateSubscription, deleteSubscription,
   getTransactions,
   getAdmins, getManagers, createAdmin, createManager, deleteUser, activateUser,
@@ -61,6 +62,10 @@ router.put('/change-password', changePassword)
 
 // Company suspend/activate + managers view
 router.put('/companies/:id/suspend', suspendCompany)
+router.get('/plan-features', getPlanFeatures)
+router.put('/plan-features/:subscription_id/:feature_key', updatePlanFeature)
+router.get('/companies/:id/usage', getCompanyUsage)
+router.put('/companies/:id/terminate-plan', terminateCompanyPlan)
 router.get('/companies/:id/managers', getCompanyManagers)
 
 // Clients

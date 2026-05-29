@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { getEmployees, generateLetter, getLetters, getSalaries, getManagerProfile } from '../../services/managerService'
 import { jsPDF } from 'jspdf'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 const LETTER_TYPES = [
   'Offer Letter',
@@ -220,10 +222,26 @@ function Letters() {
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  const { features, loading: planLoading } = usePlan()
+  if (planLoading) return null
+  if (!features?.letters?.enabled) return <FeatureGateScreen featureName="HR Letters" requiredPlan="Pro" />
+  if (loading) return (
+    <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  )
 
   return (
     <div className="space-y-6">
+      {features?.letters?.warning && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <p className="font-body text-sm text-amber-700">
+            <span className="font-display font-semibold">Approaching monthly limit — </span>
+            {features.letters.remaining} letter{features.letters.remaining !== 1 ? 's' : ''} remaining this month (limit: {features.letters.limit}).
+          </p>
+        </div>
+      )}
       <div>
         <h1 className="font-display text-2xl font-bold text-gray-800">Letters</h1>
         <p className="font-body text-sm text-gray-400 mt-1">Generate and manage employee letters</p>

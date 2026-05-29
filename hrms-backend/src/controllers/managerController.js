@@ -1,4 +1,5 @@
 const pool = require('../config/db')
+const { checkFeatureAccess } = require('../utils/planGating')
 
 // HOLIDAYS 
 
@@ -16,6 +17,8 @@ const getHolidays = async (req, res) => {
 
 const createHoliday = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'holidays')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'holidays' })
     const { name, date } = req.body
     const result = await pool.query(
       'INSERT INTO holidays (company_id, name, date) VALUES ($1,$2,$3) RETURNING *',
@@ -52,6 +55,8 @@ const getPolicies = async (req, res) => {
 
 const createPolicy = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'policies')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'policies' })
     const { title, content } = req.body
     const result = await pool.query(
       'INSERT INTO company_policies (company_id, title, content) VALUES ($1,$2,$3) RETURNING *',

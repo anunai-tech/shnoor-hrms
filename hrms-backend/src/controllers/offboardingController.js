@@ -1,10 +1,13 @@
 const pool = require('../config/db')
+const { checkFeatureAccess } = require('../utils/planGating')
 
 //  OFFBOARDING REQUESTS 
 
 // Manager — get all offboarding requests for company
 const getOffboardingRequests = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'offboarding')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'offboarding' })
     const result = await pool.query(
       `SELECT o.*, u.first_name, u.last_name, u.designation, u.department, u.email, u.is_active
        FROM offboarding_requests o
@@ -58,6 +61,8 @@ const deactivateEmployee = async (req, res) => {
 // Employee — submit resignation
 const submitResignation = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'offboarding')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'offboarding', message: 'Offboarding is not included in your current plan.' })
     const { reason, last_working_day } = req.body
     // Check if already has a pending/approved resignation
     const existing = await pool.query(
@@ -129,6 +134,8 @@ const respondToComplaint = async (req, res) => {
 // Employee — raise a complaint
 const raiseComplaint = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'offboarding')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'offboarding' })
     const { title, description } = req.body
     const result = await pool.query(
       `INSERT INTO complaints (employee_id, company_id, title, description)
@@ -144,6 +151,8 @@ const raiseComplaint = async (req, res) => {
 // Employee — get own complaints
 const getMyComplaints = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'offboarding')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'offboarding' })
     const result = await pool.query(
       `SELECT * FROM complaints WHERE employee_id=$1 ORDER BY created_at DESC`,
       [req.user.id]

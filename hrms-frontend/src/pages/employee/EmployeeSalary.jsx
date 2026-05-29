@@ -3,6 +3,8 @@ import { getMySalary, getMyPayslips } from '../../services/employeeService'
 import { useAuth } from '../../context/AuthContext'
 import { jsPDF } from 'jspdf'
 import api from '../../services/api'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 const MONTHS = [
   'January','February','March','April','May','June',
@@ -151,7 +153,12 @@ function EmployeeSalary() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  const { features, loading: planLoading } = usePlan()
+  if (planLoading) return null
+  if (!features?.salary_payslips?.enabled) return <FeatureGateScreen featureName="Salary & Payslips" requiredPlan="Pro" />
+  if (loading) return (
+    <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  )
 
   const gross = salary
     ? Number(salary.basic) + Number(salary.hra) + Number(salary.transport) + Number(salary.other_allowance)

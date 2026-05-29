@@ -294,6 +294,9 @@ const getConversation = async (req, res) => {
 }
 
 const sendMessage = async (req, res) => {
+  const { checkFeatureAccess } = require('../utils/planGating')
+  const gate = await checkFeatureAccess(req.user.company_id, 'messaging')
+  if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'messaging', message: 'Internal Messaging is not included in your current plan.' })
   try {
     const { receiver_id, message, attachment } = req.body
     const receiver = await resolveConversationUser(req, receiver_id)

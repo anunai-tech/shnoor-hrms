@@ -2,16 +2,13 @@ import { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { useNavigate } from 'react-router-dom'
 
-const HRMS_FEATURES = [
-  'Employee Management', 'Attendance Tracking', 'Leave Management',
-  'Salary & Payroll', 'Expense Management', 'HR Letters',
-  'Offboarding', 'Company Policies', 'Internal Messaging'
-]
+import { usePlan } from '../../context/PlanContext'
 
 function CurrentPlan() {
   const [plan, setPlan] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const { features, planName } = usePlan()
 
   useEffect(() => {
     api.get('/client/plan')
@@ -105,14 +102,39 @@ function CurrentPlan() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="font-display text-base font-semibold text-gray-700 mb-4">Included Features</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {HRMS_FEATURES.map(feature => (
-            <div key={feature} className="flex items-center gap-2">
+          {features ? Object.entries(features).map(([key, feat]) => {
+            const labels = {
+              employees: 'Employee Management', holidays: 'Holidays', policies: 'Company Policies',
+              expenses: 'Expense Management', salary_payslips: 'Salary & Payslips', letters: 'HR Letters',
+              offboarding: 'Offboarding', messaging: 'Internal Messaging', branding: 'Custom Branding',
+            }
+            return (
+              <div key={key} className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${feat.enabled ? 'bg-green-100' : 'bg-gray-100'}`}>
+                  {feat.enabled ? (
+                    <svg className="w-2.5 h-2.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-2.5 h-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  )}
+                </div>
+                <span className={`font-body text-sm ${feat.enabled ? 'text-gray-700' : 'text-gray-400 line-through'}`}>
+                  {labels[key] || key}
+                  {feat.limit ? <span className="text-xs text-gray-400 ml-1">({feat.limit}{key === 'employees' ? ' max' : '/mo'})</span> : null}
+                </span>
+              </div>
+            )
+          }) : ['Employee Management','Attendance Tracking','Leave Management'].map(f => (
+            <div key={f} className="flex items-center gap-2">
               <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                 <svg className="w-2.5 h-2.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className="font-body text-sm text-gray-700">{feature}</span>
+              <span className="font-body text-sm text-gray-700">{f}</span>
             </div>
           ))}
         </div>

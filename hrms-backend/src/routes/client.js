@@ -58,5 +58,7 @@ router.post('/payment/screenshot', uploadPaymentScreenshot)
 router.get('/payment/paypal-config', getPaypalConfig)
 router.get('/invoices', getClientInvoices)
 router.get('/invoices/:id/download', downloadClientInvoice)
+const { getMyPlanFeatures } = require('../controllers/planFeaturesController')
+router.get('/plan-features', getMyPlanFeatures)
 
 module.exports = router

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { getMyLetters } from '../../services/employeeService'
 import { useAuth } from '../../context/AuthContext'
 import { jsPDF } from 'jspdf'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 async function generateLetterPDF(letter, user) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -78,7 +80,12 @@ function EmployeeLetters() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  const { features, loading: planLoading } = usePlan()
+  if (planLoading) return null
+  if (!features?.letters?.enabled) return <FeatureGateScreen featureName="HR Letters" requiredPlan="Pro" />
+  if (loading) return (
+    <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  )
 
   return (
     <div className="space-y-6">

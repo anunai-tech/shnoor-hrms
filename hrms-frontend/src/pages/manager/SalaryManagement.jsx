@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getSalaries, upsertSalary, runPayroll } from '../../services/managerService'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 // Month names for the Run Payroll modal
 const MONTHS = [
@@ -118,10 +120,26 @@ function SalaryManagement() {
     </div>
   )
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  const { features, loading: planLoading } = usePlan()
+  if (planLoading) return null
+  if (!features?.salary_payslips?.enabled) return <FeatureGateScreen featureName="Salary & Payslips" requiredPlan="Pro" />
+  if (loading) return (
+    <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  )
 
   return (
     <div className="space-y-6">
+      {features?.salary_payslips?.warning && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <p className="font-body text-sm text-amber-700">
+            <span className="font-display font-semibold">Approaching monthly limit — </span>
+            {features.salary_payslips.remaining} payslip{features.salary_payslips.remaining !== 1 ? 's' : ''} remaining this month (limit: {features.salary_payslips.limit}).
+          </p>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between">
