@@ -50,7 +50,7 @@ function SelfLetters() {
 
   const { features, loading: planLoading } = usePlan()
   if (planLoading) return null
-  if (!features?.letters?.enabled) return <FeatureGateScreen featureName="HR Letters" requiredPlan="Pro" />
+  if (!features?.letters?.enabled) return <FeatureGateScreen featureName="HR Letters" />
   if (loading) return (
     <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
   )

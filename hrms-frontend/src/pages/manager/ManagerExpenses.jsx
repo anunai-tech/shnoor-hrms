@@ -56,7 +56,7 @@ function ManagerExpenses() {
 
   const { features, loading: planLoading } = usePlan()
   if (planLoading) return null
-  if (!features?.expenses?.enabled) return <FeatureGateScreen featureName="Expense Management" requiredPlan="Pro" />
+  if (!features?.expenses?.enabled) return <FeatureGateScreen featureName="Expense Management" />
   if (loading) return (
     <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
   )

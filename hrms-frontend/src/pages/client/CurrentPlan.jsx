@@ -1,14 +1,28 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { useNavigate } from 'react-router-dom'
-
 import { usePlan } from '../../context/PlanContext'
+
+const ALWAYS_FREE = ['Employee Management', 'Attendance Tracking', 'Leave Management']
+const FEATURE_LABELS = {
+  holidays: 'Holidays', policies: 'Company Policies', expenses: 'Expense Management',
+  salary_payslips: 'Salary & Payslips', letters: 'HR Letters',
+  offboarding: 'Offboarding & Complaints', messaging: 'Internal Messaging', branding: 'Custom Branding',
+}
+const TOTAL_LIMIT_KEYS = new Set(['holidays', 'policies'])
 
 function CurrentPlan() {
   const [plan, setPlan] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const { features, planName } = usePlan()
+  const [allPlans, setAllPlans] = useState([])
+
+  useEffect(() => {
+    api.get('/public/plans')
+      .then(res => setAllPlans(res.data.data || []))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     api.get('/client/plan')
@@ -153,6 +167,74 @@ function CurrentPlan() {
           Upgrade Plan
         </button>
       </div>
+
+      {/* Available Plans */}
+      {allPlans.length > 0 && (
+        <div className="space-y-4">
+          <div>
+            <h2 className="font-display text-base font-semibold text-gray-800">Available Plans</h2>
+            <p className="font-body text-sm text-gray-400 mt-0.5">Compare all plans — upgrade anytime from Billings.</p>
+          </div>
+          <div className="flex overflow-x-auto gap-5 pb-4 snap-x snap-mandatory -mx-4 px-4 sm:-mx-6 sm:px-6">
+            {allPlans.map(p => {
+              const isCurrentPlan = plan?.id === p.id
+              const featureData = p.plan_feature_data || []
+              const enabledFeatures = featureData.filter(f => f.feature_key !== 'employees' && f.is_enabled)
+              const disabledFeatures = featureData.filter(f => f.feature_key !== 'employees' && !f.is_enabled)
+              return (
+                <div key={p.id}
+                  className={`flex-shrink-0 min-w-[280px] max-w-sm flex-1 snap-start rounded-2xl p-6 border-2 transition-all ${
+                    isCurrentPlan ? 'border-amber-400 bg-amber-50' : 'border-gray-100 bg-white'
+                  }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-display text-sm font-bold uppercase tracking-wide text-primary">{p.name}</p>
+                    {isCurrentPlan && (
+                      <span className="font-display text-xs font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Current</span>
+                    )}
+                  </div>
+                  <p className="font-display text-2xl font-extrabold text-gray-900 mb-0.5">
+                    ₹{Number(p.monthly_price).toLocaleString('en-IN')}
+                    <span className="font-body text-sm font-normal text-gray-400 ml-1">/mo</span>
+                  </p>
+                  <p className="font-body text-xs text-gray-400 mb-4">Up to {p.max_users} employees</p>
+                  <ul className="space-y-1.5">
+                    {ALWAYS_FREE.map(f => (
+                      <li key={f} className="flex items-center gap-2">
+                        <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="font-body text-xs text-gray-600">{f}</span>
+                      </li>
+                    ))}
+                    {enabledFeatures.map(f => {
+                      const label = FEATURE_LABELS[f.feature_key] || f.feature_key
+                      const limitText = f.monthly_limit
+                        ? ` — ${f.monthly_limit} ${TOTAL_LIMIT_KEYS.has(f.feature_key) ? 'max' : '/mo'}`
+                        : ''
+                      return (
+                        <li key={f.feature_key} className="flex items-center gap-2">
+                          <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="font-body text-xs text-gray-600">{label}{limitText}</span>
+                        </li>
+                      )
+                    })}
+                    {disabledFeatures.map(f => (
+                      <li key={f.feature_key} className="flex items-center gap-2 opacity-40">
+                        <svg className="w-3.5 h-3.5 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span className="font-body text-xs line-through text-gray-400">{FEATURE_LABELS[f.feature_key] || f.feature_key}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

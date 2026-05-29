@@ -234,7 +234,7 @@ function Offboarding() {
 
   const { features, loading: planLoading } = usePlan()
   if (planLoading) return null
-  if (!features?.offboarding?.enabled) return <FeatureGateScreen featureName="Offboarding" requiredPlan="Pro" />
+  if (!features?.offboarding?.enabled) return <FeatureGateScreen featureName="Offboarding" />
   if (loading) return (
     <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
   )

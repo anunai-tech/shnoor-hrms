@@ -13,23 +13,20 @@ const features = [
 ]
 
 // Fallback plan features shown if DB doesn't have them yet (pre-migration safety net).
-const PLAN_FEATURE_DEFAULTS = {
-  Basic: {
-    features: ['Up to 50 employees', 'Attendance tracking', 'Leave management', 'Basic reports', 'Email support'],
-    highlighted: false,
-    cta: 'Get Started Free',
-  },
-  Pro: {
-    features: ['Up to 50 employees', 'All Basic features', 'Expense management', 'Company policies', 'Priority support'],
-    highlighted: true,
-    cta: 'Start Pro Plan',
-  },
-  Enterprise: {
-    features: ['Up to 1000 employees', 'All Pro features', 'Multi-company support', 'Custom integrations', 'Dedicated support'],
-    highlighted: false,
-    cta: 'Contact Sales',
-  },
+const ALWAYS_FREE = ['Employee Management', 'Attendance Tracking', 'Leave Management']
+
+const FEATURE_LABELS = {
+  holidays: 'Holidays',
+  policies: 'Company Policies',
+  expenses: 'Expense Management',
+  salary_payslips: 'Salary & Payslips',
+  letters: 'HR Letters',
+  offboarding: 'Offboarding & Complaints',
+  messaging: 'Internal Messaging',
+  branding: 'Custom Branding',
 }
+
+const TOTAL_LIMIT_KEYS = new Set(['holidays', 'policies'])
 
 const faqs = [
   { question: 'What is SHNOOR HRMS?', answer: 'SHNOOR HRMS is a full-featured Human Resource Management System built for businesses of all sizes. It covers employee management, attendance tracking, leave management, payroll, expense claims, company policies, and more — all in one unified platform.' },
@@ -362,19 +359,21 @@ function LandingPage() {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="flex overflow-x-auto gap-5 pb-4 snap-x snap-mandatory -mx-4 px-4 sm:-mx-6 sm:px-6">
             {plans.map((plan) => {
               // Resolve display values — use DB fields, fall back to defaults if migration not yet run.
-              const isHighlighted = plan.is_highlighted ?? PLAN_FEATURE_DEFAULTS[plan.name]?.highlighted ?? false
-              const planFeatures = plan.features || PLAN_FEATURE_DEFAULTS[plan.name]?.features || []
-              const planCta = plan.cta_text || PLAN_FEATURE_DEFAULTS[plan.name]?.cta || 'Get Started'
+              const isHighlighted = plan.is_highlighted ?? false
+              const planCta = plan.cta_text || 'Get Started'
+              const featureData = plan.plan_feature_data || []
+              const enabledFeatures = featureData.filter(f => f.feature_key !== 'employees' && f.is_enabled)
+              const disabledFeatures = featureData.filter(f => f.feature_key !== 'employees' && !f.is_enabled)
               const price = billingPeriod === 'monthly'
                 ? Number(plan.monthly_price)
                 : Number(plan.annual_price)
 
               return (
                 <div key={plan.name}
-                  className={`rounded-2xl p-8 border transition-all duration-300 ${isHighlighted ? 'bg-primary border-primary shadow-lg scale-105' : 'bg-white border-gray-200 hover:border-primary hover:shadow-sm'}`}>
+                  className={`flex-shrink-0 min-w-[300px] max-w-sm flex-1 snap-start rounded-2xl p-8 border transition-all duration-300 ${isHighlighted ? 'bg-primary border-primary shadow-lg' : 'bg-white border-gray-200 hover:border-primary hover:shadow-sm'}`}>
                   <p className={`font-display text-xs font-bold uppercase tracking-widest mb-3 ${isHighlighted ? 'text-quaternary' : 'text-primary'}`}>{plan.name}</p>
                   <div className="mb-6">
                     <span className={`font-display text-4xl font-black ${isHighlighted ? 'text-quaternary' : 'text-gray-900'}`}>
@@ -387,11 +386,37 @@ function LandingPage() {
                   <p className={`font-body text-xs mb-6 ${isHighlighted ? 'text-secondary' : 'text-gray-400'}`}>
                     Up to {plan.max_users} employees
                   </p>
-                  <ul className="space-y-3 mb-8">
-                    {planFeatures.map((f) => (
-                      <li key={f} className="flex items-center gap-3">
-                        <span className={`font-display text-sm ${isHighlighted ? 'text-secondary' : 'text-primary'}`}>✓</span>
+                  <ul className="space-y-2.5 mb-8">
+                    {ALWAYS_FREE.map(f => (
+                      <li key={f} className="flex items-center gap-2.5">
+                        <svg className={`w-4 h-4 flex-shrink-0 ${isHighlighted ? 'text-green-300' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
                         <span className={`font-body text-sm ${isHighlighted ? 'text-quaternary' : 'text-gray-600'}`}>{f}</span>
+                      </li>
+                    ))}
+                    {enabledFeatures.map(f => {
+                      const label = FEATURE_LABELS[f.feature_key] || f.feature_key
+                      const limitText = f.monthly_limit
+                        ? ` — ${f.monthly_limit} ${TOTAL_LIMIT_KEYS.has(f.feature_key) ? 'max' : '/mo'}`
+                        : ''
+                      return (
+                        <li key={f.feature_key} className="flex items-center gap-2.5">
+                          <svg className={`w-4 h-4 flex-shrink-0 ${isHighlighted ? 'text-green-300' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className={`font-body text-sm ${isHighlighted ? 'text-quaternary' : 'text-gray-600'}`}>
+                            {label}{limitText}
+                          </span>
+                        </li>
+                      )
+                    })}
+                    {disabledFeatures.map(f => (
+                      <li key={f.feature_key} className={`flex items-center gap-2.5 ${isHighlighted ? 'opacity-40' : 'opacity-50'}`}>
+                        <svg className={`w-4 h-4 flex-shrink-0 ${isHighlighted ? 'text-orange-200' : 'text-red-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span className={`font-body text-sm line-through ${isHighlighted ? 'text-orange-200' : 'text-gray-400'}`}>{FEATURE_LABELS[f.feature_key] || f.feature_key}</span>
                       </li>
                     ))}
                   </ul>
@@ -413,9 +438,19 @@ function LandingPage() {
             <p className="font-display text-primary text-sm font-semibold uppercase tracking-widest mb-3">Contact</p>
             <h2 className="font-display text-4xl font-black text-gray-900 mb-4">Get In Touch</h2>
             <p className="font-body text-gray-500 text-sm">Have questions about SHNOOR HRMS? We'd love to hear from you.</p>
-            <div className="flex justify-center gap-8 mt-4">
-              <p className="font-body text-sm text-gray-500">📧 {settings.contact_email}</p>
-              <p className="font-body text-sm text-gray-500">📞 {settings.contact_phone}</p>
+            <div className="flex justify-center gap-8 mt-4 flex-wrap">
+              <p className="font-body text-sm text-gray-500 flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {settings.contact_email}
+              </p>
+              <p className="font-body text-sm text-gray-500 flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                {settings.contact_phone}
+              </p>
             </div>
           </div>
           {contactSubmitted ? (

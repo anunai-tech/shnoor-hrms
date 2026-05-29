@@ -34,6 +34,14 @@ const Spinner = ({ sm }) => (
   <div className={`${sm ? 'w-4 h-4 border-2' : 'w-8 h-8 border-4'} border-amber-500 border-t-transparent rounded-full animate-spin`} />
 )
 
+const ALWAYS_FREE = ['Employee Management', 'Attendance Tracking', 'Leave Management']
+const FEATURE_LABELS = {
+  holidays: 'Holidays', policies: 'Company Policies', expenses: 'Expense Management',
+  salary_payslips: 'Salary & Payslips', letters: 'HR Letters',
+  offboarding: 'Offboarding & Complaints', messaging: 'Internal Messaging', branding: 'Custom Branding',
+}
+const TOTAL_LIMIT_KEYS = new Set(['holidays', 'policies'])
+
 const SectionCard = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}>{children}</div>
 )
@@ -498,9 +506,9 @@ export default function Billings() {
           </div>
 
           {loadingPlans ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex overflow-x-auto gap-5 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6">
               {[1, 2, 3].map(i => (
-                <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3 animate-pulse">
+                <div key={i} className="flex-shrink-0 min-w-[300px] max-w-sm flex-1 bg-white rounded-2xl border border-gray-100 p-6 space-y-3 animate-pulse">
                   <div className="h-5 bg-gray-100 rounded w-1/3" />
                   <div className="h-8 bg-gray-100 rounded w-1/2" />
                   {[1, 2, 3].map(j => <div key={j} className="h-3 bg-gray-100 rounded" />)}
@@ -518,20 +526,20 @@ export default function Billings() {
               <p className="text-gray-400 text-xs mt-1">Run the migration SQL and seed plans from the superadmin panel.</p>
             </SectionCard>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex overflow-x-auto gap-5 pb-4 snap-x snap-mandatory -mx-4 px-4 sm:-mx-6 sm:px-6">
               {plans.map(plan => {
                 const isActive = currentPlan?.id === plan.id
                 const isSelected = selPlan?.id === plan.id
                 const price = planPrice(plan)
-                const features = Array.isArray(plan.features)
-                  ? plan.features
-                  : (plan.features ? JSON.parse(plan.features) : [])
+                const featureData = plan.plan_feature_data || []
+                const enabledFeatures = featureData.filter(f => f.feature_key !== 'employees' && f.is_enabled)
+                const disabledFeatures = featureData.filter(f => f.feature_key !== 'employees' && !f.is_enabled)
 
                 return (
                   <div
                     key={plan.id}
                     onClick={() => handlePlanSelect(plan)}
-                    className={`relative rounded-2xl border-2 p-6 cursor-pointer transition-all duration-200 hover:shadow-md
+                    className={`flex-shrink-0 min-w-[300px] max-w-sm flex-1 snap-start relative rounded-2xl border-2 p-6 cursor-pointer transition-all duration-200 hover:shadow-md
                       ${isSelected
                         ? 'border-amber-500 bg-amber-50 shadow-md'
                         : plan.is_highlighted
@@ -539,37 +547,55 @@ export default function Billings() {
                           : 'border-gray-100 bg-white hover:border-gray-200'
                       }`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-semibold text-gray-900">{plan.name}</span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-display text-sm font-bold uppercase tracking-wide text-primary">{plan.name}</span>
                       <div className="flex gap-1.5 flex-wrap justify-end">
-                        {plan.is_highlighted && !isSelected && !isActive && <Badge color="amber">Most Popular</Badge>}
+                        {plan.is_highlighted && !isSelected && !isActive && <Badge color="amber">Popular</Badge>}
                         {isActive && <Badge color="green">Active</Badge>}
                         {isSelected && <Badge color="amber">Selected ✓</Badge>}
                       </div>
                     </div>
 
-                    <div className="mb-4">
-                      <span className="text-3xl font-extrabold text-gray-900">{fmt(price)}</span>
-                      <span className="text-sm text-gray-400 ml-1">/{billing === 'yearly' ? 'yr' : 'mo'}</span>
-                      {billing === 'yearly' && (
-                        <p className="text-xs text-gray-400 mt-1">{fmt(parseFloat(plan.annual_price) / 12)}/mo billed annually</p>
-                      )}
+                    <div className="mb-1">
+                      <span className="font-display text-3xl font-extrabold text-gray-900">{fmt(price)}</span>
+                      <span className="font-body text-sm text-gray-400 ml-1">/{billing === 'yearly' ? 'yr' : 'mo'}</span>
                     </div>
+                    <p className="font-body text-xs text-gray-400 mb-4">Up to {plan.max_users} employees</p>
 
-                    {features.length > 0 && (
-                      <ul className="space-y-2 mb-5">
-                        {features.map((f, i) => (
-                          <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <ul className="space-y-2 mb-5">
+                      {ALWAYS_FREE.map(f => (
+                        <li key={f} className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="font-body text-sm text-gray-600">{f}</span>
+                        </li>
+                      ))}
+                      {enabledFeatures.map(f => {
+                        const label = FEATURE_LABELS[f.feature_key] || f.feature_key
+                        const limitText = f.monthly_limit
+                          ? ` — ${f.monthly_limit} ${TOTAL_LIMIT_KEYS.has(f.feature_key) ? 'max' : '/mo'}`
+                          : ''
+                        return (
+                          <li key={f.feature_key} className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                             </svg>
-                            {f}
+                            <span className="font-body text-sm text-gray-600">{label}{limitText}</span>
                           </li>
-                        ))}
-                      </ul>
-                    )}
+                        )
+                      })}
+                      {disabledFeatures.map(f => (
+                        <li key={f.feature_key} className="flex items-center gap-2 opacity-50">
+                          <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          <span className="font-body text-sm line-through text-gray-400">{FEATURE_LABELS[f.feature_key] || f.feature_key}</span>
+                        </li>
+                      ))}
+                    </ul>
 
-                    <div className={`w-full py-2 rounded-xl text-sm font-semibold text-center transition-colors
+                    <div className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center transition-colors
                       ${isSelected ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-amber-100 hover:text-amber-800'}`}
                     >
                       {isSelected ? '✓ Selected' : isActive ? 'Renew' : plan.cta_text || 'Select Plan'}

@@ -155,7 +155,7 @@ function EmployeeSalary() {
 
   const { features, loading: planLoading } = usePlan()
   if (planLoading) return null
-  if (!features?.salary_payslips?.enabled) return <FeatureGateScreen featureName="Salary & Payslips" requiredPlan="Pro" />
+  if (!features?.salary_payslips?.enabled) return <FeatureGateScreen featureName="Salary & Payslips" />
   if (loading) return (
     <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
   )

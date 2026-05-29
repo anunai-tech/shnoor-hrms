@@ -11,6 +11,7 @@ export const getSubscriptions = () => api.get('/superadmin/subscriptions')
 export const createSubscription = (data) => api.post('/superadmin/subscriptions', data)
 export const updateSubscription = (id, data) => api.put(`/superadmin/subscriptions/${id}`, data)
 export const deleteSubscription = (id) => api.delete(`/superadmin/subscriptions/${id}`)
+export const togglePlanActive  = (id) => api.put(`/superadmin/subscriptions/${id}/toggle-active`)
 
 // Transactions
 export const getTransactions = () => api.get('/superadmin/transactions')
