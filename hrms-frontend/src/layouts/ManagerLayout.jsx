@@ -2,8 +2,23 @@ import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useMessaging } from '../context/MessagingContext'
+import { PlanProvider, usePlan } from '../context/PlanContext'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import api from '../services/api'
+
+const MANAGER_GATE_MAP = {
+  '/manager/expenses': 'expenses',
+  '/manager/salary': 'salary_payslips',
+  '/manager/offboarding': 'offboarding',
+  '/manager/letters': 'letters',
+  '/manager/messages': 'messaging',
+}
+const SELF_GATE_MAP = {
+  '/manager/self/expenses': 'expenses',
+  '/manager/self/salary': 'salary_payslips',
+  '/manager/self/letters': 'letters',
+  '/manager/self/offboarding': 'offboarding',
+}
 
 const managerNavItems = [
   { label: 'Dashboard', path: '/manager/dashboard' },
@@ -34,9 +49,10 @@ const selfNavItems = [
   { label: 'Profile', path: '/manager/self/profile' },
 ]
 
-function ManagerLayout({ children }) {
+function ManagerLayoutInner({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768)
   const [activeTab, setActiveTab] = useState('manager')
+  const { features } = usePlan()
   const { user, setUser, logout } = useAuth()
   const { unreadCount } = useMessaging()
   const navigate = useNavigate()
@@ -63,7 +79,14 @@ function ManagerLayout({ children }) {
     navigate(slug ? `/login?company=${slug}` : '/login')
   }
   const handleNavClick = () => { if (window.innerWidth < 768) setSidebarOpen(false) }
-  const currentNavItems = activeTab === 'manager' ? managerNavItems : selfNavItems
+  const filterNav = (items, gateMap) => items.filter(item => {
+    const key = gateMap[item.path]
+    if (!key || !features) return true
+    return features[key]?.enabled !== false
+  })
+  const currentNavItems = activeTab === 'manager'
+    ? filterNav(managerNavItems, MANAGER_GATE_MAP)
+    : filterNav(selfNavItems, SELF_GATE_MAP)
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -150,6 +173,14 @@ function ManagerLayout({ children }) {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
     </div>
+  )
+}
+
+function ManagerLayout({ children }) {
+  return (
+    <PlanProvider endpoint="/manager/plan-features">
+      <ManagerLayoutInner>{children}</ManagerLayoutInner>
+    </PlanProvider>
   )
 }
 

@@ -36,7 +36,7 @@ import CompanyLoginPage from '../pages/company/CompanyLoginPage'
 // SuperAdmin pages
 import SuperAdminDashboard from '../pages/superadmin/SuperAdminDashboard'
 import Companies from '../pages/superadmin/Companies'
-import Subscriptions from '../pages/superadmin/Subscriptions'
+import PlanManagement from '../pages/superadmin/PlanManagement'
 import Transactions from '../pages/superadmin/Transactions'
 import AdminManagement from '../pages/superadmin/AdminManagement'
 import ContactQueries from '../pages/superadmin/ContactQueries'
@@ -192,7 +192,7 @@ function MainSiteRoutes() {
         {/* SuperAdmin */}
         <Route path="/superadmin/dashboard" element={<SuperAdminPage component={SuperAdminDashboard} />} />
         <Route path="/superadmin/companies" element={<SuperAdminPage component={Companies} />} />
-        <Route path="/superadmin/subscriptions" element={<SuperAdminPage component={Subscriptions} />} />
+        <Route path="/superadmin/plan-management" element={<SuperAdminPage component={PlanManagement} />} />
         <Route path="/superadmin/transactions" element={<SuperAdminPage component={Transactions} />} />
         <Route path="/superadmin/admin-management" element={<SuperAdminPage component={AdminManagement} />} />
         <Route path="/superadmin/contact-queries" element={<SuperAdminPage component={ContactQueries} />} />

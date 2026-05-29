@@ -14,12 +14,14 @@ const { getOffboardingRequests, updateOffboardingStatus, deactivateEmployee, get
 
 const pool = require('../config/db')
 const bcrypt = require('bcryptjs')
+const { getMyPlanFeatures } = require('../controllers/planFeaturesController')
 
 router.use(authenticate)
 router.use(authorize('manager'))
 
 // Dashboard
 router.get('/dashboard', getDashboardStats)
+router.get('/plan-features', getMyPlanFeatures)
 
 // Employees
 router.get('/employees', getEmployees)

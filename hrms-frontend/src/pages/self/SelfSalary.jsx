@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { getMySalary, getMyPayslips, getManagerProfile } from '../../services/managerService'
 import { useAuth } from '../../context/AuthContext'
 import { jsPDF } from 'jspdf'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 const MONTHS = [
-  'January','February','March','April','May','June',
-  'July','August','September','October','November','December'
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
 async function generatePayslipPDF(payslip, user) {
@@ -22,7 +24,7 @@ async function generatePayslipPDF(payslip, user) {
       reader.onload = () => resolve(reader.result)
       reader.readAsDataURL(blob)
     })
-  } catch (e) {}
+  } catch (e) { }
 
   doc.setFillColor(15, 118, 110)
   doc.rect(0, 0, pageW, 35, 'F')
@@ -146,7 +148,12 @@ function SelfSalary() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  const { features, loading: planLoading } = usePlan()
+  if (planLoading) return null
+  if (!features?.salary_payslips?.enabled) return <FeatureGateScreen featureName="Salary & Payslips" requiredPlan="Pro" />
+  if (loading) return (
+    <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  )
 
   const gross = salary
     ? Number(salary.basic) + Number(salary.hra) + Number(salary.transport) + Number(salary.other_allowance)

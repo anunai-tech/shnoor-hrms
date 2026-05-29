@@ -1,8 +1,11 @@
 const pool = require('../config/db')
+const { checkFeatureAccess } = require('../utils/planGating')
 
 // Manager — get all salaries for the company (includes manager's own row)
 const getSalaries = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'salary_payslips')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'salary_payslips' })
     const result = await pool.query(
       `SELECT u.id as user_id, u.first_name, u.last_name, u.designation, u.department, u.role,
               COALESCE(s.id, NULL) as id,
@@ -60,6 +63,8 @@ const upsertSalary = async (req, res) => {
 // Employee / Manager self — get own current salary
 const getMySalary = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'salary_payslips')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'salary_payslips' })
     const result = await pool.query(
       'SELECT * FROM salaries WHERE user_id = $1',
       [req.user.id]
@@ -73,6 +78,10 @@ const getMySalary = async (req, res) => {
 // Manager — run payroll for a given month/year
 const runPayroll = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'salary_payslips')
+    if (!gate.allowed) {
+      return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'salary_payslips', message: 'Salary & Payslips are not included in your current plan.' })
+    }
     const { month, year } = req.body
 
     if (!month || !year) {
@@ -104,7 +113,8 @@ const runPayroll = async (req, res) => {
       count++
     }
 
-    res.json({ success: true, message: `Payroll generated for ${count} employee(s)`, count })
+    const warn = gate.warning ? { warning: true, remaining: gate.remaining, warningMessage: `${gate.remaining} payslip${gate.remaining !== 1 ? 's' : ''} remaining this month.` } : {}
+    res.json({ success: true, message: `Payroll generated for ${count} employee(s)`, count, ...warn })
   } catch (err) {
     console.error(err)
     res.status(500).json({ success: false, message: 'Server error' })
@@ -114,6 +124,8 @@ const runPayroll = async (req, res) => {
 // Manager — get payslip history for a specific user
 const getPayslipsByUser = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'salary_payslips')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'salary_payslips' })
     const result = await pool.query(
       'SELECT * FROM payslips WHERE user_id = $1 AND company_id = $2 ORDER BY year DESC, month DESC',
       [req.params.user_id, req.user.company_id]
@@ -127,6 +139,8 @@ const getPayslipsByUser = async (req, res) => {
 // Employee / Manager self — get own payslip history
 const getMyPayslips = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'salary_payslips')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'salary_payslips' })
     const result = await pool.query(
       'SELECT * FROM payslips WHERE user_id = $1 ORDER BY year DESC, month DESC',
       [req.user.id]

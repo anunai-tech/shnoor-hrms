@@ -2,8 +2,17 @@ import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useMessaging } from '../context/MessagingContext'
+import { PlanProvider, usePlan } from '../context/PlanContext'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import api from '../services/api'
+
+const EMP_GATE_MAP = {
+  '/employee/chat': 'messaging',
+  '/employee/expenses': 'expenses',
+  '/employee/salary': 'salary_payslips',
+  '/employee/letters': 'letters',
+  '/employee/offboarding': 'offboarding',
+}
 
 const navItems = [
   { label: 'Dashboard', path: '/employee/dashboard' },
@@ -20,8 +29,9 @@ const navItems = [
   { label: 'Settings', path: '/employee/settings' },
 ]
 
-function EmployeeLayout({ children }) {
+function EmployeeLayoutInner({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768)
+  const { features } = usePlan()
   const { user, setUser, logout } = useAuth()
   const { unreadCount } = useMessaging()
   const navigate = useNavigate()
@@ -72,7 +82,11 @@ function EmployeeLayout({ children }) {
 
         {/* Nav */}
         <nav className="flex-1 py-4 overflow-y-auto">
-          {navItems.map((item) => (
+          {navItems.filter(item => {
+            const key = EMP_GATE_MAP[item.path]
+            if (!key || !features) return true
+            return features[key]?.enabled !== false
+          }).map((item) => (
             <NavLink key={item.path} to={item.path} onClick={handleNavClick}
               className={({ isActive }) => `font-display flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? 'bg-amber-50 text-primary' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}`}>              <span>{item.label}</span>
               {item.path === '/employee/chat' && unreadCount > 0 && (
@@ -122,6 +136,14 @@ function EmployeeLayout({ children }) {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
     </div>
+  )
+}
+
+function EmployeeLayout({ children }) {
+  return (
+    <PlanProvider endpoint="/employee/plan-features">
+      <EmployeeLayoutInner>{children}</EmployeeLayoutInner>
+    </PlanProvider>
   )
 }
 

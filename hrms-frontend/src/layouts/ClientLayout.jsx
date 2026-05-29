@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { PlanProvider } from '../context/PlanContext'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 
 const navItems = [
@@ -15,7 +16,7 @@ const navItems = [
   { label: 'Support', path: '/client/support' },
 ]
 
-function ClientLayout({ children }) {
+function ClientLayoutInner({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -113,6 +114,14 @@ function ClientLayout({ children }) {
         </main>
       </div>
     </div>
+  )
+}
+
+function ClientLayout({ children }) {
+  return (
+    <PlanProvider endpoint="/client/plan-features">
+      <ClientLayoutInner>{children}</ClientLayoutInner>
+    </PlanProvider>
   )
 }
 

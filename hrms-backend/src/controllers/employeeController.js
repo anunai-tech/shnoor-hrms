@@ -1,4 +1,5 @@
 const pool = require('../config/db')
+const { checkFeatureAccess } = require('../utils/planGating')
 const bcrypt = require('bcryptjs')
 
 let hasDateOfBirthColumnCache = null
@@ -61,6 +62,14 @@ const getEmployee = async (req, res) => {
 // POST create employee
 const createEmployee = async (req, res) => {
   try {
+    const empGate = await checkFeatureAccess(req.user.company_id, 'employees')
+    if (empGate.limit !== null && empGate.currentUsage >= empGate.limit) {
+      return res.status(403).json({
+        success: false,
+        code: 'LIMIT_REACHED',
+        message: `Your plan allows up to ${empGate.limit} employees. Upgrade to add more.`
+      })
+    }
     const { first_name, last_name, email, phone, department, designation, joining_date, password, date_of_birth } = req.body
 
     if (!first_name || !email) {

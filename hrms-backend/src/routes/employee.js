@@ -13,6 +13,8 @@ const { submitResignation, getMyOffboarding, raiseComplaint, getMyComplaints } =
 
 router.use(authenticate)
 router.use(authorize('employee'))
+const { getMyPlanFeatures } = require('../controllers/planFeaturesController')
+router.get('/plan-features', getMyPlanFeatures)
 
 // Leaves
 router.get('/leaves', getMyLeaves)

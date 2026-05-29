@@ -3,6 +3,8 @@ import { getEmployees, updateEmployee } from '../../services/managerService'
 import { getOffboardingRequests, updateOffboardingStatus, deactivateEmployee, getComplaints, respondToComplaint, generateLetter } from '../../services/managerService'
 import { jsPDF } from 'jspdf'
 import api from '../../services/api'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 function Modal({ title, onClose, children }) {
   return (
@@ -230,7 +232,12 @@ function Offboarding() {
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  const { features, loading: planLoading } = usePlan()
+  if (planLoading) return null
+  if (!features?.offboarding?.enabled) return <FeatureGateScreen featureName="Offboarding" requiredPlan="Pro" />
+  if (loading) return (
+    <div className="flex items-center justify-center h-64"><p className="font-body text-gray-400">Loading...</p></div>
+  )
 
   return (
     <div className="space-y-6">

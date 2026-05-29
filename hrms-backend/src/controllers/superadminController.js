@@ -459,7 +459,89 @@ const rejectSubdomainRequest = async (req, res) => {
   }
 }
 
+// Get all plan features grouped by plan (for Plan Management page)
+const getPlanFeatures = async (req, res) => {
+  try {
+    const plans = await pool.query('SELECT id, name, monthly_price, annual_price, max_users FROM subscriptions ORDER BY id')
+    const features = await pool.query(
+      'SELECT * FROM plan_features ORDER BY subscription_id, feature_key'
+    )
+    const grouped = {}
+    for (const row of features.rows) {
+      if (!grouped[row.subscription_id]) grouped[row.subscription_id] = {}
+      grouped[row.subscription_id][row.feature_key] = {
+        is_enabled: row.is_enabled, monthly_limit: row.monthly_limit, updated_at: row.updated_at
+      }
+    }
+    const data = plans.rows.map(p => ({ ...p, features: grouped[p.id] || {} }))
+    res.json({ success: true, data })
+  } catch (err) {
+    console.error('getPlanFeatures error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+// Upsert a single feature config for a plan
+const updatePlanFeature = async (req, res) => {
+  try {
+    const { subscription_id, feature_key } = req.params
+    const { is_enabled, monthly_limit } = req.body
+    const result = await pool.query(
+      `INSERT INTO plan_features (subscription_id, feature_key, is_enabled, monthly_limit, updated_at)
+       VALUES ($1,$2,$3,$4,NOW())
+       ON CONFLICT (subscription_id, feature_key)
+       DO UPDATE SET is_enabled=$3, monthly_limit=$4, updated_at=NOW() RETURNING *`,
+      [subscription_id, feature_key, is_enabled, monthly_limit ?? null]
+    )
+    res.json({ success: true, data: result.rows[0] })
+  } catch (err) {
+    console.error('updatePlanFeature error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+// Full per-company usage snapshot for the admin drawer
+const getCompanyUsage = async (req, res) => {
+  try {
+    const { getCompanyPlanFeatures } = require('../utils/planGating')
+    const { id } = req.params
+    const data = await getCompanyPlanFeatures(id)
+    if (!data) return res.status(404).json({ success: false, message: 'Company not found' })
+    const subResult = await pool.query(
+      `SELECT cs.start_date, cs.end_date, cs.billing_type,
+              c.name as company_name, c.email as company_email, c.status as company_status
+       FROM companies c
+       LEFT JOIN company_subscriptions cs ON cs.company_id=c.id AND cs.status='active'
+       WHERE c.id=$1 LIMIT 1`,
+      [id]
+    )
+    res.json({ success: true, data: { ...data, ...(subResult.rows[0] || {}) } })
+  } catch (err) {
+    console.error('getCompanyUsage error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+// Terminate active subscription for a company
+const terminateCompanyPlan = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { reason } = req.body
+    await pool.query(
+      `UPDATE company_subscriptions SET status='expired' WHERE company_id=$1 AND status='active'`,
+      [id]
+    )
+    await pool.query('UPDATE companies SET subscription_id=NULL WHERE id=$1', [id])
+    console.log(`Plan terminated for company ${id}. Reason: ${reason}`)
+    res.json({ success: true, message: 'Plan terminated successfully' })
+  } catch (err) {
+    console.error('terminateCompanyPlan error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
 module.exports = {
+  getPlanFeatures, updatePlanFeature, getCompanyUsage, terminateCompanyPlan,
   getSubscriptions, createSubscription, updateSubscription, deleteSubscription,
   getTransactions,
   getAdmins, getManagers, createAdmin, createManager, deleteUser, activateUser,

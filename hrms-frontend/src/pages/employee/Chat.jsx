@@ -5,10 +5,13 @@ import MessageInput from '../../components/chat/MessageInput'
 import { useAuth } from '../../context/AuthContext'
 import { useMessaging } from '../../context/MessagingContext'
 import { useMessagingWorkspace } from '../../hooks/useMessagingWorkspace'
+import { usePlan } from '../../context/PlanContext'
+import FeatureGateScreen from '../../components/FeatureGateScreen'
 
 function EmployeeChat() {
   const { user } = useAuth()
   const { unreadCount } = useMessaging()
+  const { features, loading: planLoading } = usePlan()
   const [mobileView, setMobileView] = useState('list')
   const {
     conversations,
@@ -27,6 +30,10 @@ function EmployeeChat() {
     withQuickQuestions: true,
     autoSelect: 'first'
   })
+
+  if (planLoading) return null
+  if (!features?.messaging?.enabled) return <FeatureGateScreen featureName="Internal Messaging" requiredPlan="Pro" />
+
 
   return (
     <div className="flex flex-col -m-4 md:-m-6" style={{ height: 'calc(100vh - 4rem)' }}>

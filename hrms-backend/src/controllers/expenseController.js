@@ -1,8 +1,11 @@
 const pool = require('../config/db')
+const { checkFeatureAccess } = require('../utils/planGating')
 
 // Manager — get all expenses for company
 const getExpenses = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'expenses')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'expenses' })
     const result = await pool.query(
       `SELECT e.*, u.first_name, u.last_name FROM expenses e
        JOIN users u ON e.user_id = u.id
@@ -32,6 +35,8 @@ const updateExpenseStatus = async (req, res) => {
 // Employee — get own expenses
 const getMyExpenses = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'expenses')
+    if (!gate.allowed) return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'expenses' })
     const result = await pool.query(
       'SELECT * FROM expenses WHERE user_id=$1 ORDER BY created_at DESC',
       [req.user.id]
@@ -45,13 +50,18 @@ const getMyExpenses = async (req, res) => {
 // Employee — submit expense
 const submitExpense = async (req, res) => {
   try {
+    const gate = await checkFeatureAccess(req.user.company_id, 'expenses')
+    if (!gate.allowed) {
+      return res.status(403).json({ success: false, code: 'FEATURE_GATED', feature: 'expenses', message: 'Expense Management is not included in your current plan.' })
+    }
     const { title, amount, category } = req.body
     const result = await pool.query(
       `INSERT INTO expenses (user_id, company_id, title, amount, category)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [req.user.id, req.user.company_id, title, amount, category]
     )
-    res.status(201).json({ success: true, data: result.rows[0] })
+    const warn = gate.warning ? { warning: true, remaining: gate.remaining, warningMessage: `${gate.remaining} expense submission${gate.remaining !== 1 ? 's' : ''} remaining this month.` } : {}
+    res.status(201).json({ success: true, data: result.rows[0], ...warn })
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' })
   }

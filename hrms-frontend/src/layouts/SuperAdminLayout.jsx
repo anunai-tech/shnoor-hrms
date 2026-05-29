@@ -7,7 +7,7 @@ import api from '../services/api'
 const navItems = [
   { label: 'Dashboard', path: '/superadmin/dashboard' },
   { label: 'Companies', path: '/superadmin/companies' },
-  { label: 'Subscriptions', path: '/superadmin/subscriptions' },
+  { label: 'Plan Management', path: '/superadmin/plan-management' },
   { label: 'Transactions', path: '/superadmin/transactions' },
   { label: 'Invoices', path: '/superadmin/invoices' },
   { label: 'Admin Management', path: '/superadmin/admin-management' },
