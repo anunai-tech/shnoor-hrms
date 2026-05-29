@@ -13,15 +13,30 @@ const getSubscriptions = async (req, res) => {
 }
 
 const createSubscription = async (req, res) => {
+  const dbClient = await pool.connect()
   try {
     const { name, monthly_price, annual_price, max_users } = req.body
-    const result = await pool.query(
-      'INSERT INTO subscriptions (name, monthly_price, annual_price, max_users) VALUES ($1,$2,$3,$4) RETURNING *',
+    await dbClient.query('BEGIN')
+    const result = await dbClient.query(
+      'INSERT INTO subscriptions (name, monthly_price, annual_price, max_users, is_active) VALUES ($1,$2,$3,$4,false) RETURNING *',
       [name, monthly_price, annual_price, max_users]
     )
+    const newPlanId = result.rows[0].id
+    const FEATURE_KEYS = ['employees','holidays','policies','expenses','salary_payslips','letters','offboarding','messaging','branding']
+    const ALWAYS_ON = new Set(['employees', 'holidays', 'policies'])
+    for (const key of FEATURE_KEYS) {
+      await dbClient.query(
+        'INSERT INTO plan_features (subscription_id, feature_key, is_enabled, monthly_limit) VALUES ($1,$2,$3,null) ON CONFLICT DO NOTHING',
+        [newPlanId, key, ALWAYS_ON.has(key)]
+      )
+    }
+    await dbClient.query('COMMIT')
     res.status(201).json({ success: true, data: result.rows[0] })
   } catch (err) {
+    await dbClient.query('ROLLBACK')
     res.status(500).json({ success: false, message: 'Server error' })
+  } finally {
+    dbClient.release()
   }
 }
 
@@ -459,10 +474,22 @@ const rejectSubdomainRequest = async (req, res) => {
   }
 }
 
+const togglePlanActive = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'UPDATE subscriptions SET is_active = NOT is_active WHERE id=$1 RETURNING id, name, is_active',
+      [req.params.id]
+    )
+    res.json({ success: true, data: result.rows[0] })
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
 // Get all plan features grouped by plan (for Plan Management page)
 const getPlanFeatures = async (req, res) => {
   try {
-    const plans = await pool.query('SELECT id, name, monthly_price, annual_price, max_users FROM subscriptions ORDER BY id')
+    const plans = await pool.query('SELECT id, name, monthly_price, annual_price, max_users, is_active FROM subscriptions ORDER BY id')
     const features = await pool.query(
       'SELECT * FROM plan_features ORDER BY subscription_id, feature_key'
     )
@@ -541,7 +568,7 @@ const terminateCompanyPlan = async (req, res) => {
 }
 
 module.exports = {
-  getPlanFeatures, updatePlanFeature, getCompanyUsage, terminateCompanyPlan,
+  getPlanFeatures, updatePlanFeature, getCompanyUsage, terminateCompanyPlan, togglePlanActive,
   getSubscriptions, createSubscription, updateSubscription, deleteSubscription,
   getTransactions,
   getAdmins, getManagers, createAdmin, createManager, deleteUser, activateUser,

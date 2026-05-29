@@ -281,9 +281,77 @@ function FeatureRow({ subscriptionId, featureKey, config, onSaved }) {
   )
 }
 
+function AddPlanModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({ name: '', monthly_price: '', annual_price: '', max_users: '' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async () => {
+    if (!form.name || !form.monthly_price || !form.annual_price || !form.max_users) {
+      setError('All fields are required.')
+      return
+    }
+    setSaving(true)
+    try {
+      await api.post('/superadmin/subscriptions', {
+        name: form.name,
+        monthly_price: Number(form.monthly_price),
+        annual_price: Number(form.annual_price),
+        max_users: Number(form.max_users),
+      })
+      onCreated()
+      onClose()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create plan.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <p className="font-display text-base font-bold text-gray-800">Add New Plan</p>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
+        </div>
+        <div className="space-y-3">
+          {[
+            ['name', 'Plan Name', 'text', 'e.g. Starter'],
+            ['monthly_price', 'Monthly Price (₹)', 'number', '0'],
+            ['annual_price', 'Annual Price (₹)', 'number', '0'],
+            ['max_users', 'Max Employees', 'number', '50'],
+          ].map(([key, label, type, placeholder]) => (
+            <div key={key}>
+              <label className="font-display block text-xs font-semibold text-gray-600 mb-1">{label}</label>
+              <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                placeholder={placeholder}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
+            </div>
+          ))}
+        </div>
+        {error && <p className="font-body text-xs text-red-500 mt-3">{error}</p>}
+        <p className="font-body text-xs text-gray-400 mt-3">Plan will be created as Draft. Configure features then set it Live.</p>
+        <div className="flex gap-2 mt-5">
+          <button onClick={handleSubmit} disabled={saving}
+            className="font-display flex-1 bg-amber-400 hover:bg-amber-500 text-white text-sm font-semibold py-2.5 rounded-lg transition disabled:opacity-50">
+            {saving ? 'Creating...' : 'Create Plan'}
+          </button>
+          <button onClick={onClose}
+            className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PlansTab() {
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [togglingId, setTogglingId] = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -295,35 +363,71 @@ function PlansTab() {
 
   useEffect(() => { load() }, [load])
 
+  const handleToggleActive = async (plan) => {
+    setTogglingId(plan.id)
+    try {
+      await api.put(`/superadmin/subscriptions/${plan.id}/toggle-active`)
+      load()
+    } catch (err) { console.error(err) }
+    finally { setTogglingId(null) }
+  }
+
   if (loading) return <div className="flex items-center justify-center h-40"><div className="w-7 h-7 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" /></div>
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {plans.map(plan => (
-        <div key={plan.id} className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <p className="font-display text-base font-bold text-gray-800">{plan.name}</p>
-            <p className="font-body text-xs text-gray-400 mt-0.5">
-              ₹{Number(plan.monthly_price).toLocaleString('en-IN')}/mo · ₹{Number(plan.annual_price).toLocaleString('en-IN')}/yr
-            </p>
-            <div className="flex items-center gap-1 mt-2">
-              <span className="font-body text-xs text-gray-400 uppercase tracking-wide">Feature</span>
-              <span className="ml-auto font-body text-xs text-gray-400 uppercase tracking-wide">Limit</span>
+    <div className="space-y-5">
+      <div className="flex justify-end">
+        <button onClick={() => setShowAddModal(true)}
+          className="font-display bg-amber-400 hover:bg-amber-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+          + Add New Plan
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {plans.map(plan => (
+          <div key={plan.id} className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between mb-1">
+                <p className="font-display text-base font-bold text-gray-800">{plan.name}</p>
+                <button
+                  onClick={() => handleToggleActive(plan)}
+                  disabled={togglingId === plan.id}
+                  className={`font-display flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition disabled:opacity-50 ${
+                    plan.is_active
+                      ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  {togglingId === plan.id ? '...' : plan.is_active ? 'Live' : 'Draft'}
+                </button>
+              </div>
+              <p className="font-body text-xs text-gray-400">
+                ₹{Number(plan.monthly_price).toLocaleString('en-IN')}/mo · ₹{Number(plan.annual_price).toLocaleString('en-IN')}/yr
+              </p>
+              <div className="flex items-center gap-1 mt-2">
+                <span className="font-body text-xs text-gray-400 uppercase tracking-wide">Feature</span>
+                <span className="ml-auto font-body text-xs text-gray-400 uppercase tracking-wide">Limit</span>
+              </div>
+            </div>
+            <div className="px-5 py-1">
+              {Object.entries(FEATURE_META).map(([key]) => (
+                <FeatureRow
+                  key={key}
+                  subscriptionId={plan.id}
+                  featureKey={key}
+                  config={plan.features?.[key] || { is_enabled: false, monthly_limit: null }}
+                  onSaved={load}
+                />
+              ))}
             </div>
           </div>
-          <div className="px-5 py-1">
-            {Object.entries(FEATURE_META).map(([key]) => (
-              <FeatureRow
-                key={key}
-                subscriptionId={plan.id}
-                featureKey={key}
-                config={plan.features?.[key] || { is_enabled: true, monthly_limit: null }}
-                onSaved={load}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      {showAddModal && (
+        <AddPlanModal onClose={() => setShowAddModal(false)} onCreated={load} />
+      )}
     </div>
   )
 }

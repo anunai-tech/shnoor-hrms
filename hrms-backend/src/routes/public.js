@@ -154,10 +154,23 @@ router.post('/reset-password', async (req, res) => {
 router.get('/plans', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, name, monthly_price, annual_price, max_users,
-              features, is_highlighted, cta_text
-       FROM subscriptions
-       ORDER BY monthly_price ASC`
+      `SELECT s.id, s.name, s.monthly_price, s.annual_price, s.max_users,
+              s.is_highlighted, s.cta_text,
+              COALESCE(
+                json_agg(
+                  json_build_object(
+                    'feature_key', pf.feature_key,
+                    'is_enabled', pf.is_enabled,
+                    'monthly_limit', pf.monthly_limit
+                  ) ORDER BY pf.feature_key
+                ) FILTER (WHERE pf.feature_key IS NOT NULL),
+                '[]'::json
+              ) AS plan_feature_data
+       FROM subscriptions s
+       LEFT JOIN plan_features pf ON pf.subscription_id = s.id
+       WHERE s.is_active = true
+       GROUP BY s.id
+       ORDER BY s.monthly_price ASC`
     )
     res.json({ success: true, data: result.rows })
   } catch (err) {

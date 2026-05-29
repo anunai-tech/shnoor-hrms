@@ -1,4 +1,4 @@
-export default function FeatureGateScreen({ featureName, requiredPlan = 'Pro' }) {
+export default function FeatureGateScreen({ featureName }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-4">
       <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-4">
@@ -11,13 +11,9 @@ export default function FeatureGateScreen({ featureName, requiredPlan = 'Pro' })
       <p className="font-body text-sm text-gray-500 mb-1 max-w-sm">
         This feature is not included in your current plan.
       </p>
-      <p className="font-body text-sm text-amber-600 font-medium mb-6">
-        Upgrade to {requiredPlan} to unlock it.
+      <p className="font-display text-sm text-primary font-semibold">
+        Upgrade your plan to unlock it.
       </p>
-      <a href="/client/billings"
-        className="font-display bg-amber-400 hover:bg-amber-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition">
-        View Plans
-      </a>
     </div>
   )
 }

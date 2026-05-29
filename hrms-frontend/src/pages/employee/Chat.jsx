@@ -32,7 +32,7 @@ function EmployeeChat() {
   })
 
   if (planLoading) return null
-  if (!features?.messaging?.enabled) return <FeatureGateScreen featureName="Internal Messaging" requiredPlan="Pro" />
+  if (!features?.messaging?.enabled) return <FeatureGateScreen featureName="Internal Messaging"  />
 
 
   return (

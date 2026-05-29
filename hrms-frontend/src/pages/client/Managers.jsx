@@ -91,7 +91,7 @@ function Staff() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-gray-800">Staff</h1>
-        <p className="font-body text-sm text-gray-500 mt-1">Manage your company's managers and view employees</p>
+        <p className="font-body text-sm text-gray-500 mt-1">Manage your company's Admins and view Employees</p>
       </div>
 
       {error && (
@@ -104,11 +104,11 @@ function Staff() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="font-body text-xs text-gray-400 uppercase tracking-wide mb-1">Total Managers</p>
+          <p className="font-body text-xs text-gray-400 uppercase tracking-wide mb-1">Total Admins</p>
           <p className="font-display text-3xl font-bold text-gray-800">{managers.length}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="font-body text-xs text-gray-400 uppercase tracking-wide mb-1">Active Managers</p>
+          <p className="font-body text-xs text-gray-400 uppercase tracking-wide mb-1">Active Admins</p>
           <p className="font-display text-3xl font-bold text-green-600">{activeManagers}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -124,7 +124,7 @@ function Staff() {
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
         {[
-          { key: 'managers', label: `Managers (${managers.length})` },
+          { key: 'managers', label: `Admins (${managers.length})` },
           { key: 'employees', label: `Employees (${employees.length})` }
         ].map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
@@ -139,10 +139,10 @@ function Staff() {
       {activeTab === 'managers' && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-display text-base font-semibold text-gray-800">All Managers</h2>
+            <h2 className="font-display text-base font-semibold text-gray-800">All Admins</h2>
             <button onClick={() => setShowModal(true)}
               className="font-display bg-primary hover:opacity-90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-              + Add Manager
+              + Add Admin
             </button>
           </div>
           <div className="overflow-x-auto">
@@ -158,7 +158,7 @@ function Staff() {
                 {managers.length === 0 ? (
                   <tr>
                     <td colSpan="8" className="font-body text-center py-14 text-sm text-gray-400">
-                      No managers yet. Add your first manager to get started.
+                      No admins yet. Add your first admin to get started.
                     </td>
                   </tr>
                 ) : managers.map((m, i) => (
@@ -253,7 +253,7 @@ function Staff() {
 
       {/* Add Manager Modal */}
       {showModal && (
-        <Modal title="Add New Manager" onClose={() => { setShowModal(false); setFormError('') }}>
+        <Modal title="Add New Admin" onClose={() => { setShowModal(false); setFormError('') }}>
           <div className="space-y-4">
             {[
               ['first_name', 'First Name *', 'text', 'John'],
@@ -283,7 +283,7 @@ function Staff() {
           <div className="flex gap-3 mt-6">
             <button onClick={handleCreate}
               className="font-display flex-1 bg-primary hover:opacity-90 text-white text-sm font-semibold py-2.5 rounded-lg transition">
-              Add Manager
+              Add Admin
             </button>
             <button onClick={() => { setShowModal(false); setFormError('') }}
               className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">

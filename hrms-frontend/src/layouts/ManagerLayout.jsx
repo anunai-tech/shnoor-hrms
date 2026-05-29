@@ -18,6 +18,7 @@ const SELF_GATE_MAP = {
   '/manager/self/salary': 'salary_payslips',
   '/manager/self/letters': 'letters',
   '/manager/self/offboarding': 'offboarding',
+  '/manager/messages': 'messaging',
 }
 
 const managerNavItems = [
@@ -79,14 +80,14 @@ function ManagerLayoutInner({ children }) {
     navigate(slug ? `/login?company=${slug}` : '/login')
   }
   const handleNavClick = () => { if (window.innerWidth < 768) setSidebarOpen(false) }
-  const filterNav = (items, gateMap) => items.filter(item => {
+  const enhanceNav = (items, gateMap) => items.map(item => {
     const key = gateMap[item.path]
-    if (!key || !features) return true
-    return features[key]?.enabled !== false
+    if (!key || !features) return item
+    return { ...item, locked: features[key]?.enabled === false }
   })
   const currentNavItems = activeTab === 'manager'
-    ? filterNav(managerNavItems, MANAGER_GATE_MAP)
-    : filterNav(selfNavItems, SELF_GATE_MAP)
+    ? enhanceNav(managerNavItems, MANAGER_GATE_MAP)
+    : enhanceNav(selfNavItems, SELF_GATE_MAP)
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -125,12 +126,23 @@ function ManagerLayoutInner({ children }) {
         <nav className="flex-1 py-4 overflow-y-auto">
           {currentNavItems.map((item) => (
             <NavLink key={item.path} to={item.path} onClick={handleNavClick}
-              className={({ isActive }) => `font-display flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? 'bg-amber-50 text-primary' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'}`}>              <span>{item.label}</span>
-              {item.path === '/manager/messages' && unreadCount > 0 && (
+              className={({ isActive }) => `font-display flex items-center px-4 py-2.5 mx-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                item.locked
+                  ? 'text-gray-300 hover:bg-gray-50'
+                  : isActive
+                    ? 'bg-amber-50 text-primary'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+              }`}>
+              <span className={item.locked ? 'opacity-60' : ''}>{item.label}</span>
+              {item.locked ? (
+                <svg className="ml-auto w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              ) : item.path === '/manager/messages' && unreadCount > 0 ? (
                 <span className="font-display ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-semibold text-white">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
-              )}
+              ) : null}
             </NavLink>
           ))}
         </nav>
