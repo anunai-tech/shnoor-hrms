@@ -3,6 +3,7 @@
 
 const pool = require('../config/db')
 const crypto = require('crypto')
+const { sendTemplateEmail } = require('../utils/emailService')
 const PDFDocument = require('pdfkit')
 
 const ALGORITHM = 'aes-256-gcm'
@@ -440,6 +441,26 @@ const verifyManualPayment = async (req, res) => {
     })
 
     await dbClient.query('COMMIT')
+
+    // Send payment-verified email — non-blocking
+    const companyResult = await pool.query(
+      'SELECT name, email FROM companies WHERE id=$1', [tx.company_id]
+    ).catch(() => ({ rows: [] }))
+    const company = companyResult.rows[0]
+    if (company?.email) {
+      sendTemplateEmail({
+        templateKey: 'payment_verified',
+        to: company.email,
+        vars: {
+          company_name: company.name,
+          amount:       parseFloat(tx.amount).toLocaleString('en-IN'),
+          plan:         tx.plan || '',
+          reference:    tx.gateway_payment_id || String(tx.id),
+          date:         new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        },
+      }).catch(err => console.error('verifyManualPayment email failed:', err.message))
+    }
+
     res.json({ success: true, message: 'Payment verified and subscription activated' })
   } catch (err) {
     await dbClient.query('ROLLBACK')
@@ -465,6 +486,29 @@ const rejectManualPayment = async (req, res) => {
         message: 'Pending payment not found or already processed'
       })
     }
+
+    // Send payment-rejected email — non-blocking
+    const txRow = await pool.query(
+      `SELECT t.plan, t.amount, t.gateway_payment_id, c.name as company_name, c.email as company_email
+       FROM transactions t JOIN companies c ON t.company_id = c.id
+       WHERE t.id=$1`, [id]
+    ).catch(() => ({ rows: [] }))
+    const tx2 = txRow.rows[0]
+    if (tx2?.company_email) {
+      sendTemplateEmail({
+        templateKey: 'payment_rejected',
+        to: tx2.company_email,
+        vars: {
+          company_name:     tx2.company_name,
+          amount:           parseFloat(tx2.amount).toLocaleString('en-IN'),
+          plan:             tx2.plan || '',
+          reference:        tx2.gateway_payment_id || String(id),
+          date:             new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+          rejection_reason: reason || 'No reason provided',
+        },
+      }).catch(err => console.error('rejectManualPayment email failed:', err.message))
+    }
+
     res.json({ success: true, message: 'Payment rejected' })
   } catch (err) {
     console.error('rejectManualPayment error:', err)

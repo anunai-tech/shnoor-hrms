@@ -1,6 +1,7 @@
 const pool = require('../config/db')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const { sendEmail } = require('../utils/emailService')
 
 const login = async (req, res) => {
   try {
@@ -107,7 +108,108 @@ const login = async (req, res) => {
   }
 }
 
+// ── Email OTP helpers (reuse password_resets table) ──────────────────────────
+
+// Ensure purpose column exists on password_resets (safe to run on every startup)
+async function ensureOtpPurposeColumn() {
+  await pool.query(
+    `ALTER TABLE password_resets ADD COLUMN IF NOT EXISTS purpose VARCHAR(50) DEFAULT 'password_reset'`
+  )
+}
+ensureOtpPurposeColumn().catch(() => {})
+
+// POST /api/v1/auth/send-email-otp
+const sendEmailOtp = async (req, res) => {
+  try {
+    const { email } = req.body
+    if (!email) return res.status(400).json({ success: false, message: 'Email is required' })
+
+    // Check if already registered
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()])
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ success: false, message: 'An account with this email already exists' })
+    }
+
+    const otp       = Math.floor(100000 + Math.random() * 900000).toString()
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 min
+
+    await pool.query(
+      `DELETE FROM password_resets WHERE email = $1 AND purpose = 'signup'`,
+      [email.toLowerCase()]
+    )
+    await pool.query(
+      `INSERT INTO password_resets (email, otp, expires_at, purpose) VALUES ($1,$2,$3,'signup')`,
+      [email.toLowerCase(), otp, expiresAt]
+    )
+
+    // Fetch template from DB (falls back to inline if not configured)
+    let subject = 'Your SHNOOR HRMS Verification Code'
+    let text    = `Your OTP is ${otp}. It expires in 10 minutes.`
+    try {
+      const tplResult = await pool.query(
+        "SELECT subject, body FROM email_templates WHERE key = 'signup_otp' LIMIT 1"
+      )
+      if (tplResult.rows.length > 0) {
+        subject = tplResult.rows[0].subject.replaceAll('{{otp}}', otp)
+        text    = tplResult.rows[0].body.replaceAll('{{otp}}', otp)
+      }
+    } catch (_) {}
+
+    try {
+      await sendEmail({ to: email.toLowerCase(), subject, text })
+      res.json({ success: true, message: 'OTP sent successfully' })
+    } catch (emailErr) {
+      // Clean up the OTP record so it cannot be abused
+      await pool.query(
+        `DELETE FROM password_resets WHERE email = $1 AND purpose = 'signup'`,
+        [email.toLowerCase()]
+      )
+      return res.status(500).json({
+        success: false,
+        message: 'Email service is not configured. Please contact the administrator.'
+      })
+    }
+  } catch (err) {
+    console.error('sendEmailOtp error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+// POST /api/v1/auth/verify-email-otp
+const verifyEmailOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: 'email and otp are required' })
+    }
+
+    const result = await pool.query(
+      `SELECT id FROM password_resets
+       WHERE email=$1 AND otp=$2 AND purpose='signup'
+         AND used=false AND expires_at > NOW()`,
+      [email.toLowerCase(), otp]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP' })
+    }
+
+    // Mark verified (don't delete yet — register route checks it)
+    await pool.query(
+      `UPDATE password_resets SET used=true WHERE id=$1`,
+      [result.rows[0].id]
+    )
+
+    res.json({ success: true, message: 'OTP verified' })
+  } catch (err) {
+    console.error('verifyEmailOtp error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
+
 // creates client user + company in single transaction
+// Requires email OTP to have been verified first via /send-email-otp → /verify-email-otp.
 const registerClient = async (req, res) => {
   const { company_name, contact_name, email, password, phone } = req.body
 
@@ -125,6 +227,22 @@ const registerClient = async (req, res) => {
     })
   }
 
+  // Confirm email was OTP-verified before allowing registration
+  const otpCheck = await pool.query(
+    `SELECT id FROM password_resets
+     WHERE email=$1 AND purpose='signup' AND used=true AND expires_at > NOW()
+     ORDER BY id DESC LIMIT 1`,
+    [email.toLowerCase()]
+  ).catch(() => ({ rows: [] }))
+
+  if (otpCheck.rows.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email not verified. Please complete OTP verification.'
+    })
+  }
+
+  const verifiedOtpId = otpCheck.rows[0].id
   const client = await pool.connect()
 
   try {
@@ -179,6 +297,9 @@ const registerClient = async (req, res) => {
     )
 
     await client.query('COMMIT')
+
+    // Clean up the used OTP record now that registration succeeded
+    await pool.query('DELETE FROM password_resets WHERE id=$1', [verifiedOtpId]).catch(() => {})
 
     const token = jwt.sign(
       { id: newUser.id, role: newUser.role, company_id: newUser.company_id },
@@ -277,4 +398,4 @@ const superAdminLogin = async (req, res) => {
   }
 }
 
-module.exports = { login, registerClient, superAdminLogin }
+module.exports = { login, registerClient, superAdminLogin, sendEmailOtp, verifyEmailOtp }

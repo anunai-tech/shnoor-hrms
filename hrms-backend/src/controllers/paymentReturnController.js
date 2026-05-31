@@ -5,6 +5,7 @@
 const pool = require('../config/db')
 const crypto = require('crypto')
 const { decrypt, generateInvoiceNumber, createInvoiceRecord } = require('../utils/paymentUtils')
+const { sendTemplateEmail } = require('../utils/emailService')
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
@@ -93,6 +94,27 @@ const failureRedirect = (res, gateway, reason) =>
     `&reason=${encodeURIComponent(reason)}`
   )
 
+// Send payment-verified email for online (automatic) gateway payments — non-blocking
+const sendGatewayPaymentEmail = (companyId, tx, result) => {
+  pool.query('SELECT name, email FROM companies WHERE id=$1', [companyId])
+    .then(({ rows }) => {
+      const company = rows[0]
+      if (!company?.email) return
+      return sendTemplateEmail({
+        templateKey: 'payment_verified',
+        to: company.email,
+        vars: {
+          company_name: company.name,
+          amount:       parseFloat(tx.amount).toLocaleString('en-IN'),
+          plan:         tx.plan || '',
+          reference:    result.invoiceNumber,
+          date:         new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        },
+      })
+    })
+    .catch(err => console.error('Gateway payment email failed:', err.message))
+}
+
 // PayU Return 
 // PayU POSTs to this endpoint after payment (both success and failure use same URL).
 const handlePayuReturn = async (req, res) => {
@@ -146,6 +168,7 @@ const handlePayuReturn = async (req, res) => {
 
     const result = await processVerifiedPayment(dbClient, tx)
     await dbClient.query('COMMIT')
+    sendGatewayPaymentEmail(tx.company_id, tx, result)
     return successRedirect(res, 'payu', result)
 
   } catch (err) {
@@ -225,6 +248,7 @@ const handleCashfreeReturn = async (req, res) => {
 
     const result = await processVerifiedPayment(dbClient, tx)
     await dbClient.query('COMMIT')
+    sendGatewayPaymentEmail(tx.company_id, tx, result)
     return successRedirect(res, 'cashfree', result)
 
   } catch (err) {
@@ -287,6 +311,7 @@ const handlePaytmReturn = async (req, res) => {
 
     const result = await processVerifiedPayment(dbClient, tx)
     await dbClient.query('COMMIT')
+    sendGatewayPaymentEmail(tx.company_id, tx, result)
     return successRedirect(res, 'paytm', result)
 
   } catch (err) {

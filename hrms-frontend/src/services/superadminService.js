@@ -64,3 +64,19 @@ export const updateManualPaymentSettings = (data) => api.put('/superadmin/paymen
 export const getSubdomainRequests = () => api.get('/superadmin/subdomain-requests')
 export const approveSubdomainRequest = (id) => api.put(`/superadmin/subdomain-requests/${id}/approve`)
 export const rejectSubdomainRequest = (id, reason) => api.put(`/superadmin/subdomain-requests/${id}/reject`, { reason })
+
+// Email Settings
+export const getSmtpSettings    = ()     => api.get('/superadmin/email-settings/smtp')
+export const updateSmtpSettings = (data) => api.put('/superadmin/email-settings/smtp', data)
+
+export const getResendSettings    = ()     => api.get('/superadmin/email-settings/resend')
+export const updateResendSettings = (data) => api.put('/superadmin/email-settings/resend', data)
+
+export const sendEmailSettingsOtp   = (email)      => api.post('/superadmin/email-settings/send-otp', { email })
+export const verifyEmailSettingsOtp = (email, otp) => api.post('/superadmin/email-settings/verify-otp', { email, otp })
+
+export const sendTestEmail = (to) => api.post('/superadmin/email-settings/test', { to })
+
+// Email Templates
+export const getEmailTemplates    = ()     => api.get('/superadmin/email-settings/templates')
+export const updateEmailTemplates = (data) => api.put('/superadmin/email-settings/templates', data)

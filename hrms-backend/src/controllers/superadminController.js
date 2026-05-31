@@ -1,5 +1,6 @@
 const pool = require('../config/db')
 const bcrypt = require('bcryptjs')
+const { sendTemplateEmail } = require('../utils/emailService')
 
 // SUBSCRIPTIONS
 
@@ -412,6 +413,18 @@ const createClient = async (req, res) => {
     )
 
     await client.query('COMMIT')
+    sendTemplateEmail({
+      templateKey: 'client_created',
+      to: email.toLowerCase(),
+      vars: {
+        contact_name: `${first_name.trim()} ${(last_name || '').trim()}`.trim(),
+        company_name: company_name.trim(),
+        email:        email.toLowerCase(),
+        password,                          
+        login_url:    (process.env.APP_URL || 'http://localhost:5173') + '/login',
+      },
+    }).catch(err => console.error('createClient welcome email failed:', err.message))
+
     res.status(201).json({ success: true, message: 'Client created successfully' })
   } catch (err) {
     await client.query('ROLLBACK')
