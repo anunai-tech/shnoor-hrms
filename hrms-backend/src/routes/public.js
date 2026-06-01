@@ -168,7 +168,7 @@ router.get('/plans', async (req, res) => {
               ) AS plan_feature_data
        FROM subscriptions s
        LEFT JOIN plan_features pf ON pf.subscription_id = s.id
-       WHERE s.is_active = true
+       WHERE s.is_active = true AND s.is_deleted = false
        GROUP BY s.id
        ORDER BY s.monthly_price ASC`
     )

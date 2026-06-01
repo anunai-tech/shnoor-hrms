@@ -1,9 +1,11 @@
-const { Pool } = require('pg')
+const { Pool, types } = require('pg')
 require('dotenv').config()
 
-// Locally we use individual vars from .env.
-// SSL is required for Render Postgres — rejectUnauthorized: false
-// accepts Render's self-signed cert safely within their own infrastructure.
+// Override pg's default date parser — by default it converts DATE columns to
+// JS Date objects, which toISOString() shifts to UTC and breaks IST date display.
+// Returning as plain string keeps the value exactly as stored in PostgreSQL.
+types.setTypeParser(1082, val => val)
+
 const pool = new Pool(
   process.env.DATABASE_URL
     ? {
