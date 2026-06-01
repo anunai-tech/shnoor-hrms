@@ -9,14 +9,15 @@ const getSalaries = async (req, res) => {
     const result = await pool.query(
       `SELECT u.id as user_id, u.first_name, u.last_name, u.designation, u.department, u.role,
               COALESCE(s.id, NULL) as id,
-              COALESCE(s.basic, 0) as basic,
+              COALESCE(s.basic, d.default_salary, 0) as basic,
               COALESCE(s.hra, 0) as hra,
               COALESCE(s.transport, 0) as transport,
               COALESCE(s.other_allowance, 0) as other_allowance,
               COALESCE(s.deductions, 0) as deductions,
-              COALESCE(s.net_pay, 0) as net_pay
+              COALESCE(s.net_pay, d.default_salary, 0) as net_pay
        FROM users u
        LEFT JOIN salaries s ON s.user_id = u.id AND s.company_id = $1
+       LEFT JOIN designations d ON d.name = u.designation AND d.company_id = $1
        WHERE u.company_id = $1 AND (u.role = 'employee' OR u.id = $2) AND u.is_active = true
        ORDER BY u.role DESC, u.first_name`,
       [req.user.company_id, req.user.id]

@@ -70,3 +70,17 @@ export const getMyOffboarding = () => api.get('/manager/self/offboarding')
 export const submitResignation = (data) => api.post('/manager/self/offboarding/resign', data)
 export const getMyComplaints = () => api.get('/manager/self/complaints')
 export const raiseComplaint = (data) => api.post('/manager/self/complaints', data)
+
+// Departments
+export const getDepartments = () => api.get('/manager/departments')
+export const createDepartment = (data) => api.post('/manager/departments', data)
+export const updateDepartment = (id, data) => api.put(`/manager/departments/${id}`, data)
+export const deleteDepartment = (id) => api.delete(`/manager/departments/${id}`)
+export const toggleDepartmentStatus = (id, data) => api.put(`/manager/departments/${id}/toggle`, data)
+
+// Designations
+export const getDesignations = () => api.get('/manager/designations')
+export const createDesignation = (data) => api.post('/manager/designations', data)
+export const updateDesignation = (id, data) => api.put(`/manager/designations/${id}`, data)
+export const deleteDesignation = (id) => api.delete(`/manager/designations/${id}`)
+export const toggleDesignationStatus = (id, data) => api.put(`/manager/designations/${id}/toggle`, data)

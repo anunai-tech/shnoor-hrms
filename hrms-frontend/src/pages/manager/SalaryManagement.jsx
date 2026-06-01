@@ -144,7 +144,7 @@ function SalaryManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-800">Salary Management</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-800">Payroll Management</h1>
           <p className="font-body text-sm text-gray-400 mt-1">Manage employee salary structures and run payroll</p>
         </div>
         <button

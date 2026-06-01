@@ -293,3 +293,22 @@ CREATE TABLE IF NOT EXISTS client_registrations (
   approved_by   INTEGER
   REFERENCES users(id) ON DELETE SET NULL
 );
+
+-- Departments
+CREATE TABLE IF NOT EXISTS departments (
+  id SERIAL PRIMARY KEY,
+  company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Designations
+CREATE TABLE IF NOT EXISTS designations (
+  id SERIAL PRIMARY KEY,
+  company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  default_salary NUMERIC(10,2) DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);

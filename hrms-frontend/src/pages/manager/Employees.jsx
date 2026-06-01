@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../services/managerService'
+import { getEmployees, createEmployee, updateEmployee, deleteEmployee, getDepartments, getDesignations } from '../../services/managerService'
 import api from '../../services/api'
 
 function Badge({ status }) {
@@ -45,6 +45,8 @@ function Employees() {
   const [activeTab, setActiveTab] = useState('employees')
   const [search, setSearch] = useState('')
   const [managerSearch, setManagerSearch] = useState('')
+  const [departments, setDepartments] = useState([])
+  const [designations, setDesignations] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
@@ -64,8 +66,19 @@ function Employees() {
 
   useEffect(() => {
     fetchAll()
+    fetchOrgData()
     api.get('/manager/shifts').then(r => { if (r.data.success) setShifts(r.data.data) }).catch(() => { })
   }, [])
+
+  const fetchOrgData = async () => {
+    try {
+      const [deptRes, desigRes] = await Promise.all([getDepartments(), getDesignations()])
+      setDepartments(deptRes.data.data)
+      setDesignations(desigRes.data.data)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   const fetchAll = async () => {
     try {
@@ -188,13 +201,19 @@ function Employees() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="font-display block text-sm font-medium text-gray-700 mb-1">Department</label>
-          <input name="department" value={formData.department} onChange={handleFormChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <select name="department" value={formData.department} onChange={handleFormChange}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white">
+            <option value="">Select Department</option>
+            {departments.filter(d => d.is_active).map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+          </select>
         </div>
         <div>
           <label className="font-display block text-sm font-medium text-gray-700 mb-1">Designation</label>
-          <input name="designation" value={formData.designation} onChange={handleFormChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <select name="designation" value={formData.designation} onChange={handleFormChange}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white">
+            <option value="">Select Designation</option>
+            {designations.filter(d => d.is_active).map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+          </select>
         </div>
       </div>
       <div>
