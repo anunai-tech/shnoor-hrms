@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs')
 
 const getSubscriptions = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM subscriptions ORDER BY id')
+    const result = await pool.query('SELECT * FROM subscriptions WHERE is_deleted = false ORDER BY id')
     res.json({ success: true, data: result.rows })
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' })
@@ -55,9 +55,19 @@ const updateSubscription = async (req, res) => {
 
 const deleteSubscription = async (req, res) => {
   try {
-    await pool.query('DELETE FROM subscriptions WHERE id=$1', [req.params.id])
-    res.json({ success: true, message: 'Subscription deleted' })
+    const result = await pool.query(
+      `UPDATE subscriptions 
+       SET is_deleted = true, is_active = false 
+       WHERE id = $1 
+       RETURNING id`,
+      [req.params.id]
+    )
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Plan not found' })
+    }
+    res.json({ success: true, message: 'Plan deleted successfully' })
   } catch (err) {
+    console.error('deleteSubscription error:', err)
     res.status(500).json({ success: false, message: 'Server error' })
   }
 }
@@ -489,7 +499,7 @@ const togglePlanActive = async (req, res) => {
 // Get all plan features grouped by plan (for Plan Management page)
 const getPlanFeatures = async (req, res) => {
   try {
-    const plans = await pool.query('SELECT id, name, monthly_price, annual_price, max_users, is_active FROM subscriptions ORDER BY id')
+    const plans = await pool.query('SELECT id, name, monthly_price, annual_price, max_users, is_active FROM subscriptions WHERE is_deleted = false ORDER BY id')
     const features = await pool.query(
       'SELECT * FROM plan_features ORDER BY subscription_id, feature_key'
     )

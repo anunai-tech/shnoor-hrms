@@ -5,7 +5,11 @@ const authorize = require('../middleware/authorize')
 const { getMyOffboarding, submitResignation, getMyComplaints, raiseComplaint } = require('../controllers/offboardingController')
 const { getEmployees, getEmployee, createEmployee, updateEmployee, deleteEmployee } = require('../controllers/employeeController')
 const { getLeaves, updateLeaveStatus, getMyLeaves, applyLeave } = require('../controllers/leaveController')
-const { getAttendance, clockIn, clockOut, getMyAttendance } = require('../controllers/attendanceController')
+const {
+  getAttendance, getAttendanceSummaryByMonth,
+  clockIn, clockOut, lunchStart, lunchEnd,
+  getMyAttendance, getCompanySettingsHandler, saveCompanySettings
+} = require('../controllers/attendanceController')
 const { getExpenses, updateExpenseStatus, getMyExpenses, submitExpense } = require('../controllers/expenseController')
 const { getSalaries, upsertSalary, getMySalary, runPayroll, getPayslipsByUser, getMyPayslips } = require('../controllers/salaryController')
 const { getHolidays, createHoliday, deleteHoliday, getPolicies, createPolicy, deletePolicy, getProfile, updateProfile, getDashboardStats } = require('../controllers/managerController')
@@ -40,9 +44,16 @@ router.post('/self/leaves', applyLeave)
 
 // Attendance
 router.get('/attendance', getAttendance)
+router.get('/attendance/summary', getAttendanceSummaryByMonth)
 router.get('/self/attendance', getMyAttendance)
 router.post('/self/clock-in', clockIn)
 router.post('/self/clock-out', clockOut)
+router.post('/self/lunch-start', lunchStart)
+router.post('/self/lunch-end', lunchEnd)
+
+// Company settings — office timings, work days, late threshold
+router.get('/company-settings', getCompanySettingsHandler)
+router.put('/company-settings', saveCompanySettings)
 
 // Expenses
 router.get('/expenses', getExpenses)
@@ -141,13 +152,21 @@ router.put('/self/change-password', async (req, res) => {
   }
 })
 
-// Manager mark attendance for an employee
+// Mark or update attendance for an employee, including lunch fields and working hours
 router.post('/attendance/mark', async (req, res) => {
-  
   try {
-    const { user_id, date, status, clock_in, clock_out } = req.body
-    const clockInVal = (status === 'Present' || status === 'Late') ? clock_in : null
-    const clockOutVal = (status === 'Present' || status === 'Late') ? clock_out : null
+    const { user_id, date, status, clock_in, clock_out, lunch_start, lunch_end } = req.body
+    const { computeWorkingMinutes } = require('../controllers/attendanceController')
+
+    const showTimes = status === 'Present' || status === 'Late'
+    const clockInVal    = showTimes ? clock_in    || null : null
+    const clockOutVal   = showTimes ? clock_out   || null : null
+    const lunchStartVal = showTimes ? lunch_start || null : null
+    const lunchEndVal   = showTimes ? lunch_end   || null : null
+
+    const workingMinutes = (clockInVal && clockOutVal)
+      ? computeWorkingMinutes(clockInVal, clockOutVal, lunchStartVal, lunchEndVal)
+      : null
 
     const existing = await pool.query(
       'SELECT id FROM attendance WHERE user_id=$1 AND date=$2',
@@ -156,14 +175,18 @@ router.post('/attendance/mark', async (req, res) => {
 
     if (existing.rows.length > 0) {
       await pool.query(
-        'UPDATE attendance SET clock_in=$1, clock_out=$2, status=$3 WHERE user_id=$4 AND date=$5',
-        [clockInVal, clockOutVal, status, user_id, date]
+        `UPDATE attendance
+         SET clock_in=$1, clock_out=$2, lunch_start=$3, lunch_end=$4,
+             status=$5, working_minutes=$6
+         WHERE user_id=$7 AND date=$8`,
+        [clockInVal, clockOutVal, lunchStartVal, lunchEndVal, status, workingMinutes, user_id, date]
       )
     } else {
       await pool.query(
-        `INSERT INTO attendance (user_id, company_id, date, clock_in, clock_out, status)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [user_id, req.user.company_id, date, clockInVal, clockOutVal, status]
+        `INSERT INTO attendance
+           (user_id, company_id, date, clock_in, clock_out, lunch_start, lunch_end, status, working_minutes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [user_id, req.user.company_id, date, clockInVal, clockOutVal, lunchStartVal, lunchEndVal, status, workingMinutes]
       )
     }
     res.json({ success: true, message: 'Attendance marked' })
@@ -172,14 +195,23 @@ router.post('/attendance/mark', async (req, res) => {
   }
 })
 
-// Manager edit an existing attendance record
+// Update attendance record and recompute working_minutes from the new times
 router.put('/attendance/:id', async (req, res) => {
-  
   try {
-    const { clock_in, clock_out, status } = req.body
+    const { clock_in, clock_out, lunch_start, lunch_end, status } = req.body
+    const { computeWorkingMinutes } = require('../controllers/attendanceController')
+
+    const workingMinutes = (clock_in && clock_out)
+      ? computeWorkingMinutes(clock_in, clock_out, lunch_start, lunch_end)
+      : null
+
     const result = await pool.query(
-      'UPDATE attendance SET clock_in=$1, clock_out=$2, status=$3 WHERE id=$4 RETURNING *',
-      [clock_in || null, clock_out || null, status, req.params.id]
+      `UPDATE attendance
+       SET clock_in=$1, clock_out=$2, lunch_start=$3, lunch_end=$4,
+           status=$5, working_minutes=$6
+       WHERE id=$7 RETURNING *`,
+      [clock_in || null, clock_out || null, lunch_start || null, lunch_end || null,
+       status, workingMinutes, req.params.id]
     )
     res.json({ success: true, data: result.rows[0] })
   } catch (err) {

@@ -4,7 +4,7 @@ const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
 
 const { getMyLeaves, applyLeave } = require('../controllers/leaveController')
-const { clockIn, clockOut, getMyAttendance } = require('../controllers/attendanceController')
+const { clockIn, clockOut, lunchStart, lunchEnd, getMyAttendance, getCompanySettingsHandler } = require('../controllers/attendanceController')
 const { getMyExpenses, submitExpense } = require('../controllers/expenseController')
 const { getMySalary, getMyPayslips } = require('../controllers/salaryController')
 const { getHolidays, getPolicies } = require('../controllers/managerController')
@@ -24,6 +24,8 @@ router.post('/leaves', applyLeave)
 router.get('/attendance', getMyAttendance)
 router.post('/clock-in', clockIn)
 router.post('/clock-out', clockOut)
+router.post('/lunch-start', lunchStart)
+router.post('/lunch-end', lunchEnd)
 
 // Expenses
 router.get('/expenses', getMyExpenses)
@@ -43,6 +45,9 @@ router.post('/offboarding/resign', submitResignation)
 // Complaints
 router.get('/complaints', getMyComplaints)
 router.post('/complaints', raiseComplaint)
+
+// Company settings — read only for employees (work hours, work days for progress bar)
+router.get('/company-settings', getCompanySettingsHandler)
 
 // Holidays + Policies (read only)
 router.get('/holidays', getHolidays)

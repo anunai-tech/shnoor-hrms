@@ -3,15 +3,15 @@ import api from '../../services/api'
 import { suspendCompany } from '../../services/superadminService'
 
 const FEATURE_META = {
-  employees:       { label: 'Max Employees',          hasLimit: true,  limitLabel: 'Max employees',         limitType: 'total' },
-  holidays:        { label: 'Holidays',               hasLimit: true,  limitLabel: 'Max active holidays',   limitType: 'total' },
-  policies:        { label: 'Company Policies',       hasLimit: true,  limitLabel: 'Max active policies',   limitType: 'total' },
-  expenses:        { label: 'Expense Management',     hasLimit: true,  limitLabel: 'Submissions/month',     limitType: 'monthly' },
-  salary_payslips: { label: 'Salary & Payslips',      hasLimit: true,  limitLabel: 'Payslips/month',        limitType: 'monthly' },
-  letters:         { label: 'HR Letters',             hasLimit: true,  limitLabel: 'Letters/month',         limitType: 'monthly' },
-  offboarding:     { label: 'Offboarding & Complaints', hasLimit: false, limitLabel: null,                  limitType: null },
-  messaging:       { label: 'Internal Messaging',     hasLimit: true,  limitLabel: 'Messages/month',        limitType: 'monthly' },
-  branding:        { label: 'Custom Branding',        hasLimit: false, limitLabel: null,                    limitType: null },
+  employees: { label: 'Max Employees', hasLimit: true, limitLabel: 'Max employees', limitType: 'total' },
+  holidays: { label: 'Holidays', hasLimit: true, limitLabel: 'Max active holidays', limitType: 'total' },
+  policies: { label: 'Company Policies', hasLimit: true, limitLabel: 'Max active policies', limitType: 'total' },
+  expenses: { label: 'Expense Management', hasLimit: true, limitLabel: 'Submissions/month', limitType: 'monthly' },
+  salary_payslips: { label: 'Salary & Payslips', hasLimit: true, limitLabel: 'Payslips/month', limitType: 'monthly' },
+  letters: { label: 'HR Letters', hasLimit: true, limitLabel: 'Letters/month', limitType: 'monthly' },
+  offboarding: { label: 'Offboarding & Complaints', hasLimit: false, limitLabel: null, limitType: null },
+  messaging: { label: 'Internal Messaging', hasLimit: true, limitLabel: 'Messages/month', limitType: 'monthly' },
+  branding: { label: 'Custom Branding', hasLimit: false, limitLabel: null, limitType: null },
 }
 
 const ALWAYS_ENABLED = new Set(['employees', 'holidays', 'policies'])
@@ -52,7 +52,7 @@ function CompanyDrawer({ companyId, onClose, onAction }) {
     setLoading(true)
     api.get(`/superadmin/companies/${companyId}/usage`)
       .then(r => { if (r.data.success) setData(r.data.data) })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false))
   }, [companyId])
 
@@ -101,9 +101,8 @@ function CompanyDrawer({ companyId, onClose, onAction }) {
                 <span className="font-display text-xs font-semibold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">
                   {data.plan_name}
                 </span>
-                <span className={`font-display text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  isSuspended ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'
-                }`}>
+                <span className={`font-display text-xs font-semibold px-2.5 py-1 rounded-full ${isSuspended ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'
+                  }`}>
                   {data.company_status || 'active'}
                 </span>
               </div>
@@ -158,9 +157,8 @@ function CompanyDrawer({ companyId, onClose, onAction }) {
               {!showSuspend ? (
                 <button
                   onClick={() => setShowSuspend(true)}
-                  className={`font-display w-full py-2.5 text-sm font-semibold rounded-lg transition ${
-                    isSuspended ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-red-50 text-red-500 hover:bg-red-100'
-                  }`}
+                  className={`font-display w-full py-2.5 text-sm font-semibold rounded-lg transition ${isSuspended ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-red-50 text-red-500 hover:bg-red-100'
+                    }`}
                 >
                   {isSuspended ? 'Activate Company' : 'Suspend Company'}
                 </button>
@@ -176,9 +174,8 @@ function CompanyDrawer({ companyId, onClose, onAction }) {
                   )}
                   <div className="flex gap-2">
                     <button onClick={handleSuspend} disabled={actionLoading}
-                      className={`font-display flex-1 py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50 ${
-                        isSuspended ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                      }`}>
+                      className={`font-display flex-1 py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50 ${isSuspended ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                        }`}>
                       Confirm
                     </button>
                     <button onClick={() => setShowSuspend(false)}
@@ -251,9 +248,8 @@ function FeatureRow({ subscriptionId, featureKey, config, onSaved }) {
       <div className="flex items-center gap-3 flex-1">
         <button
           onClick={handleToggle}
-          className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${
-            enabled ? 'bg-amber-400' : 'bg-gray-200'
-          } ${alwaysOn ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+          className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${enabled ? 'bg-amber-400' : 'bg-gray-200'
+            } ${alwaysOn ? 'cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${enabled ? 'left-5' : 'left-0.5'}`} />
         </button>
@@ -276,6 +272,69 @@ function FeatureRow({ subscriptionId, featureKey, config, onSaved }) {
             {saving ? '...' : 'Save'}
           </button>
         )}
+      </div>
+    </div>
+  )
+}
+
+function DeletePlanModal({ plan, onClose, onDeleted }) {
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await api.delete(`/superadmin/subscriptions/${plan.id}`)
+      onDeleted()
+      onClose()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete plan.')
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-display text-base font-bold text-gray-800">Delete Plan</p>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
+        </div>
+
+        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-4">
+          <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+
+        <p className="font-display text-sm font-semibold text-gray-800 mb-1">
+          Delete "{plan.name}"?
+        </p>
+        <p className="font-body text-xs text-gray-500 mb-1">
+          This plan will be permanently removed from the platform.
+        </p>
+        <p className="font-body text-xs text-gray-500 mb-5">
+          Existing subscribers will not be affected — their current subscription runs until expiry. They simply won't be able to renew this plan.
+        </p>
+
+        {error && <p className="font-body text-xs text-red-500 mb-3">{error}</p>}
+
+        <div className="flex gap-2">
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="font-display flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition disabled:opacity-50"
+          >
+            {deleting ? 'Deleting...' : 'Yes, Delete Plan'}
+          </button>
+          <button
+            onClick={onClose}
+            className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -352,12 +411,13 @@ function PlansTab() {
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [togglingId, setTogglingId] = useState(null)
+  const [deletingPlan, setDeletingPlan] = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)
     api.get('/superadmin/plan-features')
       .then(r => { if (r.data.success) setPlans(r.data.data) })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false))
   }, [])
 
@@ -389,18 +449,31 @@ function PlansTab() {
             <div className="px-5 py-4 border-b border-gray-100">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-display text-base font-bold text-gray-800">{plan.name}</p>
-                <button
-                  onClick={() => handleToggleActive(plan)}
-                  disabled={togglingId === plan.id}
-                  className={`font-display flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition disabled:opacity-50 ${
-                    plan.is_active
-                      ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  {togglingId === plan.id ? '...' : plan.is_active ? 'Live' : 'Draft'}
-                </button>
+                <div className="flex items-center gap-2">
+                  {!plan.is_active && (
+                    <button
+                      onClick={() => setDeletingPlan(plan)}
+                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-500 transition"
+                      title="Delete plan"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleToggleActive(plan)}
+                    disabled={togglingId === plan.id}
+                    className={`font-display flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition disabled:opacity-50 ${plan.is_active
+                        ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+                    {togglingId === plan.id ? '...' : plan.is_active ? 'Live' : 'Draft'}
+                  </button>
+                </div>
               </div>
               <p className="font-body text-xs text-gray-400">
                 ₹{Number(plan.monthly_price).toLocaleString('en-IN')}/mo · ₹{Number(plan.annual_price).toLocaleString('en-IN')}/yr
@@ -428,6 +501,14 @@ function PlansTab() {
       {showAddModal && (
         <AddPlanModal onClose={() => setShowAddModal(false)} onCreated={load} />
       )}
+
+      {deletingPlan && (
+        <DeletePlanModal
+          plan={deletingPlan}
+          onClose={() => setDeletingPlan(null)}
+          onDeleted={load}
+        />
+      )}
     </div>
   )
 }
@@ -442,7 +523,7 @@ function CompaniesTab() {
     setLoading(true)
     api.get('/superadmin/companies')
       .then(r => { if (r.data.success) setCompanies(r.data.data) })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false))
   }, [])
 
@@ -488,10 +569,9 @@ function CompaniesTab() {
                       {c.subscription_name || 'No plan'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`font-display text-xs font-semibold px-2.5 py-1 rounded-full capitalize ${
-                        c.status === 'active' ? 'bg-green-50 text-green-600' :
+                      <span className={`font-display text-xs font-semibold px-2.5 py-1 rounded-full capitalize ${c.status === 'active' ? 'bg-green-50 text-green-600' :
                         c.status === 'suspended' ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-500'
-                      }`}>{c.status || 'pending'}</span>
+                        }`}>{c.status || 'pending'}</span>
                     </td>
                     <td className="font-body px-6 py-4 text-sm text-gray-500">{c.subdomain || '—'}</td>
                     <td className="px-6 py-4">
@@ -535,9 +615,8 @@ export default function PlanManagement() {
       <div className="flex gap-1 border-b border-gray-200">
         {[{ key: 'plans', label: 'Plans & Features' }, { key: 'companies', label: 'Companies' }].map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`font-display px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px transition ${
-              activeTab === tab.key ? 'border-yellow-400 text-yellow-600' : 'border-transparent text-gray-400 hover:text-gray-600'
-            }`}>
+            className={`font-display px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px transition ${activeTab === tab.key ? 'border-yellow-400 text-yellow-600' : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}>
             {tab.label}
           </button>
         ))}
