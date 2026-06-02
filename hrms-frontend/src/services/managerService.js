@@ -48,6 +48,8 @@ export const updateManagerProfile = (data) => api.put('/manager/self/profile', d
 
 // Payroll & Payslips
 export const runPayroll = (data) => api.post('/manager/payroll/run', data)
+export const getPayrollPreview = (month, year) => api.get(`/manager/payroll/preview?month=${month}&year=${year}`)
+export const getPayslipsByYear = (year) => api.get(`/manager/payslips-by-year?year=${year}`)
 export const getPayslipsByUser = (user_id) => api.get(`/manager/payslips/${user_id}`)
 export const getMyPayslips = () => api.get('/manager/self/payslips')
 

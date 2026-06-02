@@ -309,6 +309,7 @@ CREATE TABLE IF NOT EXISTS designations (
   company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
   name VARCHAR(100) NOT NULL,
   default_salary NUMERIC(10,2) DEFAULT 0,
+  expected_working_hours INTEGER DEFAULT 8,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
 );

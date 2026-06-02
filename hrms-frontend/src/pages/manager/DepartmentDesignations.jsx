@@ -31,7 +31,7 @@ function DepartmentDesignations() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   
-  const [formData, setFormData] = useState({ name: '', default_salary: '' })
+  const [formData, setFormData] = useState({ name: '', default_salary: '', expected_working_hours: '' })
   const [search, setSearch] = useState('')
 
   useEffect(() => {
@@ -59,7 +59,7 @@ function DepartmentDesignations() {
         await createDesignation(formData)
       }
       setShowAddModal(false)
-      setFormData({ name: '', default_salary: '' })
+      setFormData({ name: '', default_salary: '', expected_working_hours: '' })
       fetchData()
     } catch (err) {
       console.error(err)
@@ -117,16 +117,16 @@ function DepartmentDesignations() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-800">Organization Setup</h1>
-          <p className="font-body text-sm text-gray-400 mt-1">Manage departments and designations for your company</p>
+          <p className="font-body text-sm text-gray-400 mt-1">Manage departments and roles for your company</p>
         </div>
         <button onClick={() => setShowAddModal(true)}
           className="font-display bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
-          + Add {activeTab === 'departments' ? 'Department' : 'Designation'}
+          + Add {activeTab === 'departments' ? 'Department' : 'Role'}
         </button>
       </div>
 
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-        {[['departments', 'Departments'], ['designations', 'Designations']].map(([key, label]) => (
+        {[['departments', 'Departments'], ['designations', 'Roles']].map(([key, label]) => (
           <button key={key} onClick={() => { setActiveTab(key); setSearch(''); }}
             className={`px-5 py-2 rounded-lg text-sm font-medium transition ${activeTab === key ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
             {label}
@@ -149,7 +149,12 @@ function DepartmentDesignations() {
                   <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
                     <th className="font-display text-left px-6 py-3 font-medium">#</th>
                     <th className="font-display text-left px-6 py-3 font-medium">Name</th>
-                    {activeTab === 'designations' && <th className="font-display text-left px-6 py-3 font-medium">Base Salary</th>}
+                    {activeTab === 'designations' && (
+                      <>
+                        <th className="font-display text-left px-6 py-3 font-medium">Base Salary</th>
+                        <th className="font-display text-left px-6 py-3 font-medium">Contracted Working Hours</th>
+                      </>
+                    )}
                     <th className="font-display text-left px-6 py-3 font-medium">Created On</th>
                     <th className="font-display text-left px-6 py-3 font-medium">Status</th>
                     <th className="font-display text-left px-6 py-3 font-medium">Action</th>
@@ -163,9 +168,14 @@ function DepartmentDesignations() {
                         <p className="font-display text-sm font-medium text-gray-800">{item.name}</p>
                       </td>
                       {activeTab === 'designations' && (
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          ₹{Number(item.default_salary || 0).toLocaleString('en-IN')}
-                        </td>
+                        <>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            ₹{Number(item.default_salary || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {item.expected_working_hours || 8} hrs/day
+                          </td>
+                        </>
                       )}
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(item.created_at).toLocaleDateString('en-GB')}
@@ -177,7 +187,7 @@ function DepartmentDesignations() {
                         <div className="flex items-center gap-3">
                           <button onClick={() => { 
                             setSelectedItem(item); 
-                            setFormData({ name: item.name, default_salary: item.default_salary || '' }); 
+                            setFormData({ name: item.name, default_salary: item.default_salary || '', expected_working_hours: item.expected_working_hours || '' }); 
                             setShowEditModal(true);
                           }} className="text-xs text-primary hover:underline font-medium">Edit</button>
                           <span className="text-gray-300">|</span>
@@ -200,7 +210,7 @@ function DepartmentDesignations() {
       </div>
 
       {showAddModal && (
-        <Modal title={`Add New ${activeTab === 'departments' ? 'Department' : 'Designation'}`} onClose={() => setShowAddModal(false)}>
+        <Modal title={`Add New ${activeTab === 'departments' ? 'Department' : 'Role'}`} onClose={() => setShowAddModal(false)}>
           <div className="space-y-4">
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -209,12 +219,20 @@ function DepartmentDesignations() {
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             {activeTab === 'designations' && (
-              <div>
-                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Base Salary (₹)</label>
-                <input name="default_salary" type="number" value={formData.default_salary} onChange={e => setFormData({ ...formData, default_salary: e.target.value })}
-                  placeholder="e.g. 50000"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-              </div>
+              <>
+                <div>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Base Salary (₹)</label>
+                  <input name="default_salary" type="number" value={formData.default_salary} onChange={e => setFormData({ ...formData, default_salary: e.target.value })}
+                    placeholder="e.g. 50000"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Contracted Working Hours (Daily)</label>
+                  <input name="expected_working_hours" type="number" value={formData.expected_working_hours} onChange={e => setFormData({ ...formData, expected_working_hours: e.target.value })}
+                    placeholder="e.g. 8"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+              </>
             )}
           </div>
           <div className="flex gap-3 mt-6">
@@ -225,7 +243,7 @@ function DepartmentDesignations() {
       )}
 
       {showEditModal && (
-        <Modal title={`Edit ${activeTab === 'departments' ? 'Department' : 'Designation'}`} onClose={() => setShowEditModal(false)}>
+        <Modal title={`Edit ${activeTab === 'departments' ? 'Department' : 'Role'}`} onClose={() => setShowEditModal(false)}>
           <div className="space-y-4">
             <div>
               <label className="font-display block text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -233,11 +251,18 @@ function DepartmentDesignations() {
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             {activeTab === 'designations' && (
-              <div>
-                <label className="font-display block text-sm font-medium text-gray-700 mb-1">Base Salary (₹)</label>
-                <input name="default_salary" type="number" value={formData.default_salary} onChange={e => setFormData({ ...formData, default_salary: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-              </div>
+              <>
+                <div>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Base Salary (₹)</label>
+                  <input name="default_salary" type="number" value={formData.default_salary} onChange={e => setFormData({ ...formData, default_salary: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Contracted Working Hours (Daily)</label>
+                  <input name="expected_working_hours" type="number" value={formData.expected_working_hours} onChange={e => setFormData({ ...formData, expected_working_hours: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+              </>
             )}
           </div>
           <div className="flex gap-3 mt-6">
@@ -248,7 +273,7 @@ function DepartmentDesignations() {
       )}
 
       {showDeleteModal && (
-        <Modal title={`Delete ${activeTab === 'departments' ? 'Department' : 'Designation'}`} onClose={() => setShowDeleteModal(false)}>
+        <Modal title={`Delete ${activeTab === 'departments' ? 'Department' : 'Role'}`} onClose={() => setShowDeleteModal(false)}>
           <p className="font-body text-sm text-gray-600">Are you sure you want to delete <span className="font-semibold text-gray-800">{selectedItem?.name}</span>?</p>
           <div className="flex gap-3 mt-6">
             <button onClick={handleDelete} className="font-display flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition">Delete</button>

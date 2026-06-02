@@ -107,8 +107,14 @@ async function generatePayslipPDF(payslip, user) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9.5)
   doc.setTextColor(220, 38, 38)
-  doc.text('Total Deductions', margin + 5, y)
+  doc.text('Standard Deductions', margin + 5, y)
   doc.text(`- Rs. ${Number(payslip.deductions || 0).toLocaleString('en-IN')}`, margin + contentW - 5, y, { align: 'right' })
+
+  if (Number(payslip.hours_deduction) > 0) {
+    y += 8
+    doc.text('Compromised Working Hours', margin + 5, y)
+    doc.text(`- Rs. ${Number(payslip.hours_deduction || 0).toLocaleString('en-IN')}`, margin + contentW - 5, y, { align: 'right' })
+  }
 
   y += 14
   doc.setFillColor(15, 118, 110)

@@ -87,12 +87,12 @@ exports.getDesignations = async (req, res) => {
 
 exports.createDesignation = async (req, res) => {
   try {
-    const { name, default_salary } = req.body
+    const { name, default_salary, expected_working_hours } = req.body
     if (!name) return res.status(400).json({ success: false, message: 'Designation name is required' })
 
     const result = await pool.query(
-      'INSERT INTO designations (company_id, name, default_salary) VALUES ($1, $2, $3) RETURNING *',
-      [req.user.company_id, name, default_salary || 0]
+      'INSERT INTO designations (company_id, name, default_salary, expected_working_hours) VALUES ($1, $2, $3, $4) RETURNING *',
+      [req.user.company_id, name, default_salary || 0, expected_working_hours || 8]
     )
     res.json({ success: true, data: result.rows[0] })
   } catch (err) {
@@ -130,10 +130,10 @@ exports.toggleDesignationStatus = async (req, res) => {
 exports.updateDesignation = async (req, res) => {
   try {
     const { id } = req.params
-    const { name, default_salary } = req.body
+    const { name, default_salary, expected_working_hours } = req.body
     const result = await pool.query(
-      'UPDATE designations SET name = $1, default_salary = $2 WHERE id = $3 AND company_id = $4 RETURNING *',
-      [name, default_salary || 0, id, req.user.company_id]
+      'UPDATE designations SET name = $1, default_salary = $2, expected_working_hours = $3 WHERE id = $4 AND company_id = $5 RETURNING *',
+      [name, default_salary || 0, expected_working_hours || 8, id, req.user.company_id]
     )
     res.json({ success: true, data: result.rows[0] })
   } catch (err) {

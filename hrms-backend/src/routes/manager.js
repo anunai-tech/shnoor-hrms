@@ -11,7 +11,7 @@ const {
   getMyAttendance
 } = require('../controllers/attendanceController')
 const { getExpenses, updateExpenseStatus, getMyExpenses, submitExpense } = require('../controllers/expenseController')
-const { getSalaries, upsertSalary, getMySalary, runPayroll, getPayslipsByUser, getMyPayslips } = require('../controllers/salaryController')
+const { getSalaries, upsertSalary, getMySalary, runPayroll, getPayslipsByUser, getMyPayslips, getAllPayslipsByYear, getPayrollPreview } = require('../controllers/salaryController')
 const {
   getHolidays, createHoliday, deleteHoliday,
   getPolicies, createPolicy, deletePolicy,
@@ -100,8 +100,10 @@ router.get('/self/salary', getMySalary)
 
 // Payroll & Payslips
 router.post('/payroll/run', runPayroll)
+router.get('/payroll/preview', getPayrollPreview)
 router.get('/payslips/:user_id', getPayslipsByUser)
 router.get('/self/payslips', getMyPayslips)
+router.get('/payslips-by-year', getAllPayslipsByYear)
 
 // Letters
 router.get('/letters', getLetters)
