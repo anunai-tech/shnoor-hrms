@@ -4,7 +4,7 @@ const authenticate = require('../middleware/authenticate')
 const authorize = require('../middleware/authorize')
 
 const { getMyLeaves, applyLeave } = require('../controllers/leaveController')
-const { clockIn, clockOut, lunchStart, lunchEnd, getMyAttendance, getCompanySettingsHandler } = require('../controllers/attendanceController')
+const { clockIn, clockOut, lunchStart, lunchEnd, getMyAttendance } = require('../controllers/attendanceController')
 const { getMyExpenses, submitExpense } = require('../controllers/expenseController')
 const { getMySalary, getMyPayslips } = require('../controllers/salaryController')
 const { getHolidays, getPolicies } = require('../controllers/managerController')
@@ -46,8 +46,27 @@ router.post('/offboarding/resign', submitResignation)
 router.get('/complaints', getMyComplaints)
 router.post('/complaints', raiseComplaint)
 
-// Company settings — read only for employees (work hours, work days for progress bar)
-router.get('/company-settings', getCompanySettingsHandler)
+// Employee's own current shift — used by dashboard for shift card and progress bar
+// Employee's own current shift — shown on dashboard even without a clock-in record today
+router.get('/my-shift', async (req, res) => {
+  const pool = require('../config/db')
+  try {
+    const result = await pool.query(
+      `SELECT s.id, s.name, s.shift_code, s.start_time, s.end_time,
+              s.is_overnight, s.work_days, s.late_threshold_mins,
+              s.half_day_threshold_mins, s.break_allowed
+       FROM shift_assignments sa
+       JOIN shifts s ON s.id = sa.shift_id
+       WHERE sa.user_id = $1 AND sa.effective_to IS NULL
+       ORDER BY sa.effective_from DESC LIMIT 1`,
+      [req.user.id]
+    )
+    res.json({ success: true, data: result.rows[0] || null })
+  } catch (err) {
+    console.error('my-shift error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+})
 
 // Holidays + Policies (read only)
 router.get('/holidays', getHolidays)

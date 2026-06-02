@@ -12,9 +12,10 @@ const FEATURE_META = {
   offboarding: { label: 'Offboarding & Complaints', hasLimit: false, limitLabel: null, limitType: null },
   messaging: { label: 'Internal Messaging', hasLimit: true, limitLabel: 'Messages/month', limitType: 'monthly' },
   branding: { label: 'Custom Branding', hasLimit: false, limitLabel: null, limitType: null },
+  shifts: { label: 'Work Shifts', hasLimit: true, limitLabel: 'Max shifts allowed', limitType: 'total' },
 }
 
-const ALWAYS_ENABLED = new Set(['employees', 'holidays', 'policies'])
+const ALWAYS_ENABLED = new Set(['employees', 'holidays', 'policies', 'shifts'])
 
 function UsageBar({ label, used, limit, warning }) {
   const pct = limit > 0 ? Math.min(Math.round((used / limit) * 100), 100) : 0

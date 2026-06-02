@@ -398,6 +398,21 @@ const createManager = async (req, res) => {
       ]
     )
 
+    const newUserId = result.rows[0].id
+
+    // Assign to company's default shift — same pattern as createEmployee
+    const defaultShift = await pool.query(
+      'SELECT id FROM shifts WHERE company_id = $1 AND is_default = true LIMIT 1',
+      [companyId]
+    )
+    if (defaultShift.rows.length) {
+      await pool.query(
+        `INSERT INTO shift_assignments (user_id, shift_id, company_id, effective_from, assigned_by)
+         VALUES ($1, $2, $3, CURRENT_DATE, NULL)`,
+        [newUserId, defaultShift.rows[0].id, companyId]
+      )
+    }
+
     res.status(201).json({ success: true, data: result.rows[0] })
   } catch (err) {
     if (err.code === '23505') {

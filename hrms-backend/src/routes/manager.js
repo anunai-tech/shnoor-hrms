@@ -8,11 +8,18 @@ const { getLeaves, updateLeaveStatus, getMyLeaves, applyLeave } = require('../co
 const {
   getAttendance, getAttendanceSummaryByMonth,
   clockIn, clockOut, lunchStart, lunchEnd,
-  getMyAttendance, getCompanySettingsHandler, saveCompanySettings
+  getMyAttendance
 } = require('../controllers/attendanceController')
 const { getExpenses, updateExpenseStatus, getMyExpenses, submitExpense } = require('../controllers/expenseController')
 const { getSalaries, upsertSalary, getMySalary, runPayroll, getPayslipsByUser, getMyPayslips } = require('../controllers/salaryController')
-const { getHolidays, createHoliday, deleteHoliday, getPolicies, createPolicy, deletePolicy, getProfile, updateProfile, getDashboardStats } = require('../controllers/managerController')
+const {
+  getHolidays, createHoliday, deleteHoliday,
+  getPolicies, createPolicy, deletePolicy,
+  getProfile, updateProfile, getDashboardStats,
+  getManagers, getAllStaff, updateManager,
+  getShifts, createShift, updateShift, deleteShift,
+  getShiftEmployees, assignEmployeeToShift, getUnassignedEmployees
+} = require('../controllers/managerController')
 const { generateLetter, getLetters, getMyLetters } = require('../controllers/lettersController')
 const { getOffboardingRequests, updateOffboardingStatus, deactivateEmployee, getComplaints, respondToComplaint } = require('../controllers/offboardingController')
 
@@ -34,6 +41,13 @@ router.post('/employees', createEmployee)
 router.put('/employees/:id', updateEmployee)
 router.delete('/employees/:id', deleteEmployee)
 
+// Managers — viewable and editable by manager, for the Employees page managers section
+router.get('/managers', getManagers)
+router.put('/managers/:id', updateManager)
+
+// All staff (employees + managers) — used by shift assignment modals
+router.get('/all-staff', getAllStaff)
+
 // Leaves
 router.get('/leaves', getLeaves)
 router.put('/leaves/:id', updateLeaveStatus)
@@ -51,9 +65,26 @@ router.post('/self/clock-out', clockOut)
 router.post('/self/lunch-start', lunchStart)
 router.post('/self/lunch-end', lunchEnd)
 
-// Company settings — office timings, work days, late threshold
-router.get('/company-settings', getCompanySettingsHandler)
-router.put('/company-settings', saveCompanySettings)
+// Manager's own current shift for the Self dashboard shift card
+router.get('/self/my-shift', async (req, res) => {
+  const pool = require('../config/db')
+  try {
+    const result = await pool.query(
+      `SELECT s.id, s.name, s.shift_code, s.start_time, s.end_time,
+              s.is_overnight, s.work_days, s.late_threshold_mins,
+              s.half_day_threshold_mins, s.break_allowed
+       FROM shift_assignments sa
+       JOIN shifts s ON s.id = sa.shift_id
+       WHERE sa.user_id = $1 AND sa.effective_to IS NULL
+       ORDER BY sa.effective_from DESC LIMIT 1`,
+      [req.user.id]
+    )
+    res.json({ success: true, data: result.rows[0] || null })
+  } catch (err) {
+    console.error('my-shift error:', err)
+    res.status(500).json({ success: false, message: 'Server error' })
+  }
+})
 
 // Expenses
 router.get('/expenses', getExpenses)
@@ -122,6 +153,15 @@ router.post('/offboarding-requests', async (req, res) => {
 router.get('/complaints', getComplaints)
 router.put('/complaints/:id', respondToComplaint)
 
+// Shifts — static routes first, then parameterized, to avoid Express catching /assign and /unassigned-employees as :id
+router.get('/shifts/unassigned-employees', getUnassignedEmployees)
+router.post('/shifts/assign', assignEmployeeToShift)
+router.get('/shifts', getShifts)
+router.post('/shifts', createShift)
+router.put('/shifts/:id', updateShift)
+router.delete('/shifts/:id', deleteShift)
+router.get('/shifts/:id/employees', getShiftEmployees)
+
 // Holidays
 router.get('/holidays', getHolidays)
 router.post('/holidays', createHoliday)
@@ -165,7 +205,7 @@ router.post('/attendance/mark', async (req, res) => {
     const lunchEndVal   = showTimes ? lunch_end   || null : null
 
     const workingMinutes = (clockInVal && clockOutVal)
-      ? computeWorkingMinutes(clockInVal, clockOutVal, lunchStartVal, lunchEndVal)
+      ? computeWorkingMinutes(clockInVal, clockOutVal, lunchStartVal, lunchEndVal, false)
       : null
 
     const existing = await pool.query(
@@ -202,7 +242,7 @@ router.put('/attendance/:id', async (req, res) => {
     const { computeWorkingMinutes } = require('../controllers/attendanceController')
 
     const workingMinutes = (clock_in && clock_out)
-      ? computeWorkingMinutes(clock_in, clock_out, lunch_start, lunch_end)
+      ? computeWorkingMinutes(clock_in, clock_out, lunch_start, lunch_end, false)
       : null
 
     const result = await pool.query(

@@ -22,8 +22,8 @@ const createSubscription = async (req, res) => {
       [name, monthly_price, annual_price, max_users]
     )
     const newPlanId = result.rows[0].id
-    const FEATURE_KEYS = ['employees','holidays','policies','expenses','salary_payslips','letters','offboarding','messaging','branding']
-    const ALWAYS_ON = new Set(['employees', 'holidays', 'policies'])
+    const FEATURE_KEYS = ['employees','holidays','policies','expenses','salary_payslips','letters','offboarding','messaging','branding','shifts']
+    const ALWAYS_ON = new Set(['employees', 'holidays', 'policies', 'shifts'])
     for (const key of FEATURE_KEYS) {
       await dbClient.query(
         'INSERT INTO plan_features (subscription_id, feature_key, is_enabled, monthly_limit) VALUES ($1,$2,$3,null) ON CONFLICT DO NOTHING',
@@ -141,6 +141,23 @@ const createManager = async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,'manager',$6) RETURNING id, first_name, last_name, email`,
       [first_name, last_name, email, phone, password_hash, company_id]
     )
+    const newUserId = result.rows[0].id
+
+    // Assign to company's default shift on creation
+    if (company_id) {
+      const defaultShift = await pool.query(
+        'SELECT id FROM shifts WHERE company_id = $1 AND is_default = true LIMIT 1',
+        [company_id]
+      )
+      if (defaultShift.rows.length) {
+        await pool.query(
+          `INSERT INTO shift_assignments (user_id, shift_id, company_id, effective_from, assigned_by)
+           VALUES ($1, $2, $3, CURRENT_DATE, NULL)`,
+          [newUserId, defaultShift.rows[0].id, company_id]
+        )
+      }
+    }
+
     res.status(201).json({ success: true, data: result.rows[0] })
   } catch (err) {
     if (err.code === '23505') return res.status(400).json({ success: false, message: 'Email already exists' })
@@ -382,6 +399,16 @@ const createClient = async (req, res) => {
     await client.query(
       'INSERT INTO company_branding (company_id, display_name) VALUES ($1, $2)',
       [companyId, company_name.trim()]
+    )
+
+    // Seed a Default Shift so every new company has at least one shift from day one
+    await client.query(
+      `INSERT INTO shifts
+         (company_id, name, shift_code, start_time, end_time, is_overnight,
+          late_threshold_mins, half_day_threshold_mins, work_days, is_default)
+       VALUES ($1, 'Default Shift', 'SHF-001', '09:00', '18:00', false, 15, 240,
+               ARRAY['Mon','Tue','Wed','Thu','Fri'], true)`,
+      [companyId]
     )
 
     await client.query('COMMIT')

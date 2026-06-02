@@ -156,7 +156,7 @@ function EditModal({ record, onClose, onSaved, employees, defaultDate }) {
                 ))}
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {[['lunch_start','Lunch Start'],['lunch_end','Lunch End']].map(([key,label]) => (
+                {[['lunch_start','Break Start'],['lunch_end','Break End']].map(([key,label]) => (
                   <div key={key}>
                     <label className="font-display block text-xs font-semibold text-gray-600 mb-1">{label}</label>
                     <input type="time" value={form[key]} onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
@@ -221,7 +221,7 @@ function DayDetail({ day, employees, onSaved }) {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100">
-                  {['Employee','Role','Status','Clock In','Clock Out','Lunch','Working Hrs',''].map(h => (
+                  {['Employee','Shift','Status','Clock In','Clock Out','Break','Working Hrs',''].map(h => (
                     <th key={h} className="font-display text-left px-4 py-2.5 text-xs font-medium text-gray-400">{h}</th>
                   ))}
                 </tr>
@@ -240,7 +240,14 @@ function DayDetail({ day, employees, onSaved }) {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-body text-xs text-gray-400 capitalize">{row.role || '—'}</span>
+                      {row.shift_name ? (
+                        <div>
+                          <p className="font-display text-xs font-semibold text-gray-700">{row.shift_name}</p>
+                          <p className="font-body text-xs text-gray-400">{row.shift_code} · <span className="capitalize">{row.role}</span></p>
+                        </div>
+                      ) : (
+                        <span className="font-body text-xs text-gray-400 capitalize">{row.role || '—'}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={row._type === 'absent' ? 'Absent' : row.status} />

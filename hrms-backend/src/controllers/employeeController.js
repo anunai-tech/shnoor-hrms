@@ -20,17 +20,20 @@ const hasDateOfBirthColumn = async () => {
   return hasDateOfBirthColumnCache
 }
 
-// GET all employees of manager's company
+// GET all employees of manager's company — includes their current shift for the employees table
 const getEmployees = async (req, res) => {
   try {
     const includeDateOfBirth = await hasDateOfBirthColumn()
-    const dobSelect = includeDateOfBirth ? ', date_of_birth' : ''
+    const dobSelect = includeDateOfBirth ? ', u.date_of_birth' : ''
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, department,
-              designation, joining_date, is_active, profile_photo${dobSelect}
-       FROM users
-       WHERE company_id = $1 AND role = 'employee'
-       ORDER BY created_at DESC`,
+      `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.department,
+              u.designation, u.joining_date, u.is_active, u.profile_photo${dobSelect},
+              sh.name as shift_name, sh.shift_code, sh.id as shift_id
+       FROM users u
+       LEFT JOIN shift_assignments sa ON sa.user_id = u.id AND sa.effective_to IS NULL
+       LEFT JOIN shifts sh ON sh.id = sa.shift_id
+       WHERE u.company_id = $1 AND u.role = 'employee'
+       ORDER BY u.created_at DESC`,
       [req.user.company_id]
     )
     res.json({ success: true, data: result.rows })
@@ -59,7 +62,7 @@ const getEmployee = async (req, res) => {
   }
 }
 
-// POST create employee
+// POST create employee — assigns to shift_id if provided, else defaults to company's default shift
 const createEmployee = async (req, res) => {
   try {
     const empGate = await checkFeatureAccess(req.user.company_id, 'employees')
@@ -70,7 +73,7 @@ const createEmployee = async (req, res) => {
         message: `Your plan allows up to ${empGate.limit} employees. Upgrade to add more.`
       })
     }
-    const { first_name, last_name, email, phone, department, designation, joining_date, password, date_of_birth } = req.body
+    const { first_name, last_name, email, phone, department, designation, joining_date, password, date_of_birth, shift_id } = req.body
 
     if (!first_name || !email) {
       return res.status(400).json({ success: false, message: 'First name and email are required' })
@@ -92,6 +95,25 @@ const createEmployee = async (req, res) => {
       `INSERT INTO users (${columns.join(', ')}) VALUES (${placeholders}) RETURNING id, first_name, last_name, email`,
       values
     )
+    const newUserId = result.rows[0].id
+
+    // Resolve which shift to assign — use provided shift_id or fall back to company default
+    let resolvedShiftId = shift_id || null
+    if (!resolvedShiftId) {
+      const defaultShift = await pool.query(
+        'SELECT id FROM shifts WHERE company_id = $1 AND is_default = true LIMIT 1',
+        [req.user.company_id]
+      )
+      if (defaultShift.rows.length) resolvedShiftId = defaultShift.rows[0].id
+    }
+    if (resolvedShiftId) {
+      await pool.query(
+        `INSERT INTO shift_assignments (user_id, shift_id, company_id, effective_from, assigned_by)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [newUserId, resolvedShiftId, req.user.company_id, joining_date || new Date().toISOString().substring(0, 10), req.user.id]
+      )
+    }
+
     res.status(201).json({ success: true, data: result.rows[0] })
   } catch (err) {
     if (err.code === '23505') {
