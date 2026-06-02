@@ -20,6 +20,15 @@ const {
   getClients, createClient, getCompanyManagers,
   getSubdomainRequests, approveSubdomainRequest, rejectSubdomainRequest
 } = require('../controllers/superadminController')
+const {
+  getEmailSettings, updateEmailSettings,
+  getSmtpSettings, updateSmtpSettings,
+  getResendSettings, updateResendSettings,
+  sendEmailSettingsOtp, verifyEmailSettingsOtp,
+  testEmailSettings,
+  getEmailTemplates, updateEmailTemplates,
+  diagnoseEmail,
+} = require('../controllers/emailSettingsController')
 
 router.use(authenticate)
 router.use(authorize('superadmin'))
@@ -92,5 +101,22 @@ router.put('/pending-payments/:id/reject', rejectManualPayment)
 router.get('/subdomain-requests', getSubdomainRequests)
 router.put('/subdomain-requests/:id/approve', approveSubdomainRequest)
 router.put('/subdomain-requests/:id/reject', rejectSubdomainRequest)
+
+// ── Email Settings & Templates ─────────────────────────────────────────────
+// Specific sub-paths must be declared before the generic /email-settings routes.
+router.get('/email-settings/diagnose',    diagnoseEmail)
+router.post('/email-settings/send-otp',   sendEmailSettingsOtp)
+router.post('/email-settings/verify-otp', verifyEmailSettingsOtp)
+router.post('/email-settings/test',       testEmailSettings)
+router.get('/email-settings/templates',   getEmailTemplates)
+router.put('/email-settings/templates',   updateEmailTemplates)
+// Per-provider routes (used by the frontend SMTP / Resend tabs)
+router.get('/email-settings/smtp',        getSmtpSettings)
+router.put('/email-settings/smtp',        updateSmtpSettings)
+router.get('/email-settings/resend',      getResendSettings)
+router.put('/email-settings/resend',      updateResendSettings)
+// Generic routes (keep for backwards compat / other uses)
+router.get('/email-settings',             getEmailSettings)
+router.put('/email-settings',             updateEmailSettings)
 
 module.exports = router

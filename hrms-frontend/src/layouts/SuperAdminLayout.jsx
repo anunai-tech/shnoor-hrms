@@ -16,6 +16,7 @@ const navItems = [
   { label: 'Contact Queries', path: '/superadmin/contact-queries' },
   { label: 'Payment Gateways', path: '/superadmin/payment-gateways' },
   { label: 'Website Settings', path: '/superadmin/website-settings' },
+  { label: 'Email Settings', path: '/superadmin/email-settings' },
   { label: 'Settings', path: '/superadmin/settings' },
   { label: 'Profile', path: '/superadmin/profile' },
 ]
@@ -131,7 +132,7 @@ function SuperAdminLayout({ children }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {children}
         </main>
       </div>

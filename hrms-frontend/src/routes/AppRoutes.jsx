@@ -26,12 +26,12 @@ import ClientDashboard from '../pages/client/ClientDashboard'
 import CurrentPlan from '../pages/client/CurrentPlan'
 import Usage from '../pages/client/Usage'
 import ClientSettings from '../pages/client/Settings'
+import ClientTransactions from '../pages/client/ClientTransactions'
 import Staff from '../pages/client/Managers'
 import Billings from '../pages/client/Billings'
-import ClientInvoices from '../pages/client/ClientInvoices'
-import ClientTransactions from '../pages/client/ClientTransactions'
 import Support from '../pages/client/Support'
 import CompanyLoginPage from '../pages/company/CompanyLoginPage'
+import ClientInvoices from '../pages/client/ClientInvoices'
 
 // SuperAdmin pages
 import SuperAdminDashboard from '../pages/superadmin/SuperAdminDashboard'
@@ -47,6 +47,7 @@ import Clients from '../pages/superadmin/Clients'
 import SubdomainRequests from '../pages/superadmin/SubdomainRequests'
 import PaymentGateways from '../pages/superadmin/PaymentGateways'
 import Invoices from '../pages/superadmin/Invoices'
+import EmailSettings from '../pages/superadmin/EmailSettings'
 
 // Manager pages
 import ManagerDashboard from '../pages/manager/ManagerDashboard'
@@ -203,16 +204,17 @@ function MainSiteRoutes() {
         <Route path="/superadmin/subdomain-requests" element={<SuperAdminPage component={SubdomainRequests} />} />
         <Route path="/superadmin/payment-gateways" element={<SuperAdminPage component={PaymentGateways} />} />
         <Route path="/superadmin/invoices" element={<SuperAdminPage component={Invoices} />} />
+        <Route path="/superadmin/email-settings" element={<SuperAdminPage component={EmailSettings} />} />
 
         {/* Client Area */}
         <Route path="/client/dashboard" element={<ClientPage component={ClientDashboard} />} />
         <Route path="/client/managers" element={<ClientPage component={Staff} />} />
         <Route path="/client/plan" element={<ClientPage component={CurrentPlan} />} />
         <Route path="/client/usage" element={<ClientPage component={Usage} />} />
-        <Route path="/client/settings" element={<ClientPage component={ClientSettings} />} />
-        <Route path="/client/billings" element={<ClientPage component={Billings} />} />
-        <Route path="/client/invoices" element={<ClientPage component={ClientInvoices} />} />
         <Route path="/client/transactions" element={<ClientPage component={ClientTransactions} />} />
+        <Route path="/client/settings" element={<ClientPage component={ClientSettings} />} />
+         <Route path="/client/invoices" element={<ClientPage component={ClientInvoices} />} />
+        <Route path="/client/billings" element={<ClientPage component={Billings} />} />
         <Route path="/client/support" element={<ClientPage component={Support} />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -221,8 +223,15 @@ function MainSiteRoutes() {
   )
 }
 
-// reads subdomain and serves the correct route tree
 function AppRoutes() {
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname
+    const mainSitePaths = ['/superadmin', '/client', '/login', '/register', '/forgot-password', '/privacy-policy', '/terms']
+    if (mainSitePaths.some(p => path.startsWith(p)) || path === '/') {
+      sessionStorage.removeItem('companySlug')
+    }
+  }
+
   const { isCompany } = useSubdomain()
   if (isCompany) return <CompanyRoutes />
   return <MainSiteRoutes />
