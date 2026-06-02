@@ -139,7 +139,8 @@ function ManagerDashboard() {
               if (!feat.enabled || feat.limit === null || feat.used === null) return null
               const labels = {
                 employees: 'Employees', letters: 'Letters', expenses: 'Expenses',
-                salary_payslips: 'Payslips', messaging: 'Messages', holidays: 'Holidays', policies: 'Policies'
+                salary_payslips: 'Payslips', messaging: 'Messages', holidays: 'Holidays',
+                policies: 'Policies', shifts: 'Shifts'
               }
               const label = labels[key]
               if (!label) return null

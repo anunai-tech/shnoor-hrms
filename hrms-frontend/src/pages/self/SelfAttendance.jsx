@@ -71,7 +71,7 @@ function SelfAttendance() {
                 <th className="font-display text-left px-6 py-3 font-medium">Date</th>
                 <th className="font-display text-left px-6 py-3 font-medium">Clock In</th>
                 <th className="font-display text-left px-6 py-3 font-medium">Clock Out</th>
-                <th className="font-display text-left px-6 py-3 font-medium">Lunch</th>
+                <th className="font-display text-left px-6 py-3 font-medium">Break</th>
                 <th className="font-display text-left px-6 py-3 font-medium">Working Hrs</th>
                 <th className="font-display text-left px-6 py-3 font-medium">Status</th>
               </tr>

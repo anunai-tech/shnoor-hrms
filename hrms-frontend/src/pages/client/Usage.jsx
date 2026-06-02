@@ -49,6 +49,7 @@ function Usage() {
     employees: 'Employees', holidays: 'Holidays', policies: 'Company Policies',
     expenses: 'Expenses (this month)', salary_payslips: 'Payslips (this month)',
     letters: 'Letters (this month)', messaging: 'Messages (this month)',
+    shifts: 'Work Shifts',
   }
 
   return (

@@ -46,6 +46,14 @@ const getUsageCount = async (companyId, featureKey) => {
       )
       return parseInt(r.rows[0].count)
     }
+    // Shifts limit = total active shifts for the company (not monthly, it's a total cap)
+    case 'shifts': {
+      const r = await pool.query(
+        'SELECT COUNT(*) FROM shifts WHERE company_id=$1 AND is_active=true',
+        [companyId]
+      )
+      return parseInt(r.rows[0].count)
+    }
     default:
       return null
   }
@@ -107,7 +115,7 @@ const getCompanyPlanFeatures = async (companyId) => {
     const featureMap = {}
     for (const row of featureRows) featureMap[row.feature_key] = row
 
-    const KEYS = ['employees','holidays','policies','expenses','salary_payslips','letters','offboarding','messaging','branding']
+    const KEYS = ['employees','holidays','policies','expenses','salary_payslips','letters','offboarding','messaging','branding','shifts']
     const features = {}
     for (const key of KEYS) {
       const cfg = featureMap[key] || { is_enabled: true, monthly_limit: null }

@@ -35,7 +35,7 @@ const timeStrToMinutes = (t) => {
 const getStatusChip = (record) => {
   if (!record) return { label: 'Not Started', color: 'bg-gray-100 text-gray-500' }
   if (record.clock_out) return { label: 'Done', color: 'bg-blue-50 text-blue-600' }
-  if (record.lunch_start && !record.lunch_end) return { label: 'On Lunch Break', color: 'bg-amber-50 text-amber-600' }
+  if (record.lunch_start && !record.lunch_end) return { label: 'On Break', color: 'bg-amber-50 text-amber-600' }
   if (record.status === 'Late') return { label: 'Late', color: 'bg-yellow-50 text-yellow-600' }
   return { label: 'Working', color: 'bg-green-50 text-green-600' }
 }
@@ -95,7 +95,7 @@ function SelfDashboard() {
   const [todayRecord,      setTodayRecord]      = useState(null)
   const [recentAttendance, setRecentAttendance] = useState([])
   const [actionLoading,    setActionLoading]    = useState(false)
-  const [companySettings,  setCompanySettings]  = useState(null)
+  const [myShift,          setMyShift]          = useState(null)
   const [leaveBalance, setLeaveBalance] = useState([
     { type: 'Paid Leaves',   total: 12,   used: 0, remaining: 12,   isUnpaid: false },
     { type: 'Sick Leaves',   total: 6,    used: 0, remaining: 6,    isUnpaid: false },
@@ -115,8 +115,8 @@ function SelfDashboard() {
 
   useEffect(() => {
     loadAttendance()
-    api.get('/manager/company-settings').then(res => {
-      if (res.data.success) setCompanySettings(res.data.data)
+    api.get('/manager/self/my-shift').then(res => {
+      if (res.data.success) setMyShift(res.data.data)
     }).catch(() => {})
     getMyLeaves().then(res => {
       const approved = res.data.data.filter(l => l.status === 'Approved')
@@ -152,7 +152,7 @@ function SelfDashboard() {
   const status       = getStatusChip(todayRecord)
 
   const mainBtn = {
-    label: isClockedOut ? 'Attendance Done ✓' : isOnLunch ? 'On Lunch Break' : isClockedIn ? 'Clock Out' : 'Clock In',
+    label: isClockedOut ? 'Attendance Done ✓' : isOnLunch ? 'On Break' : isClockedIn ? 'Clock Out' : 'Clock In',
     style: isClockedOut ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : isOnLunch ? 'bg-amber-400 text-white cursor-not-allowed' : isClockedIn ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white',
     action: isClockedOut || isOnLunch ? null : isClockedIn ? () => handleAction('/manager/self/clock-out', 'Failed to clock out') : () => handleAction('/manager/self/clock-in', 'Failed to clock in')
   }
@@ -184,16 +184,16 @@ function SelfDashboard() {
 
           {isClockedIn && !isClockedOut && (
             isOnLunch ? (
-              <button onClick={() => handleAction('/manager/self/lunch-end', 'Failed to end lunch')}
+              <button onClick={() => handleAction('/manager/self/lunch-end', 'Failed to end break')}
                 disabled={actionLoading}
                 className="font-display px-6 py-2.5 rounded-xl text-sm font-semibold bg-amber-400 hover:bg-amber-500 text-white transition disabled:opacity-60">
-                {actionLoading ? '...' : 'End Lunch Break'}
+                {actionLoading ? '...' : 'End Break'}
               </button>
             ) : !hasHadLunch ? (
-              <button onClick={() => handleAction('/manager/self/lunch-start', 'Failed to start lunch')}
+              <button onClick={() => handleAction('/manager/self/lunch-start', 'Failed to start break')}
                 disabled={actionLoading}
                 className="font-display px-6 py-2.5 rounded-xl text-sm font-semibold bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 transition disabled:opacity-60">
-                {actionLoading ? '...' : 'Start Lunch Break'}
+                {actionLoading ? '...' : 'Start Break'}
               </button>
             ) : null
           )}
@@ -203,7 +203,7 @@ function SelfDashboard() {
           {[
             { label: 'Clock In',    value: todayRecord?.clock_in  || '—' },
             { label: 'Clock Out',   value: todayRecord?.clock_out || '—' },
-            { label: 'Lunch',       value: todayRecord?.lunch_start ? `${todayRecord.lunch_start} – ${todayRecord.lunch_end || 'ongoing'}` : '—' },
+            { label: 'Break',       value: todayRecord?.lunch_start ? `${todayRecord.lunch_start} – ${todayRecord.lunch_end || 'ongoing'}` : '—' },
             { label: 'Working Hrs', value: formatMinutes(todayRecord?.working_minutes) },
           ].map(({ label, value }) => (
             <div key={label}>
@@ -213,14 +213,33 @@ function SelfDashboard() {
           ))}
         </div>
 
-        {isClockedIn && companySettings && (
+        {/* Progress bar — shift timings from attendance record, then standalone shift fetch */}
+        {isClockedIn && (todayRecord?.shift_start || myShift?.start_time) && (
           <AttendanceProgressBar
             clockIn={todayRecord?.clock_in}
-            workStart={companySettings.work_start_time}
-            workEnd={companySettings.work_end_time}
+            workStart={todayRecord?.shift_start || myShift?.start_time}
+            workEnd={todayRecord?.shift_end   || myShift?.end_time}
           />
         )}
       </div>
+
+      {/* Shift Info — uses today's record if clocked in, otherwise standalone shift fetch */}
+      {(todayRecord?.shift_name || myShift?.name) && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-body text-xs text-gray-400 mb-0.5">Your Shift</p>
+            <p className="font-display text-sm font-bold text-gray-800">{todayRecord?.shift_name || myShift?.name}</p>
+            <p className="font-body text-xs text-gray-400">
+              {todayRecord?.shift_code || myShift?.shift_code} · {todayRecord?.shift_start || myShift?.start_time} – {todayRecord?.shift_end || myShift?.end_time}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Leave Balance */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
