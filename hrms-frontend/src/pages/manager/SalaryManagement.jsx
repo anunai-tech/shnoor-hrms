@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getSalaries, upsertSalary, runPayroll } from '../../services/managerService'
+import { getSalaries, upsertSalary, runPayroll, getPayslipsByYear, getPayrollPreview } from '../../services/managerService'
 import { usePlan } from '../../context/PlanContext'
 import FeatureGateScreen from '../../components/FeatureGateScreen'
 
@@ -25,6 +25,8 @@ function Modal({ title, onClose, children }) {
 
 function SalaryManagement() {
   const [salaries, setSalaries] = useState([])
+  const [payslipsData, setPayslipsData] = useState([])
+  const [previews, setPreviews] = useState({})
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
@@ -35,15 +37,42 @@ function SalaryManagement() {
   const [formData, setFormData] = useState({ basic: '', hra: '', transport: '', other_allowance: '', deductions: '' })
   const [editError, setEditError] = useState('')
 
-  // Run Payroll modal state
-  const [showPayrollModal, setShowPayrollModal] = useState(false)
-  const [payrollMonth, setPayrollMonth] = useState(new Date().getMonth() + 1) // 1-12
-  const [payrollYear, setPayrollYear] = useState(new Date().getFullYear())
+  // Run Payroll state
+  const [expandedMonth, setExpandedMonth] = useState(new Date().getMonth() + 1) // 1-12
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [payrollRunning, setPayrollRunning] = useState(false)
   const [payrollSuccess, setPayrollSuccess] = useState('')
   const [payrollError, setPayrollError] = useState('')
 
-  useEffect(() => { fetchSalaries() }, [])
+  useEffect(() => { 
+    fetchSalaries()
+    fetchPayslips(selectedYear)
+    setPreviews({}) // Clear previews on year change
+  }, [selectedYear])
+
+  useEffect(() => {
+    if (expandedMonth && !previews[expandedMonth]) {
+      fetchPreview(expandedMonth, selectedYear)
+    }
+  }, [expandedMonth, selectedYear])
+
+  const fetchPreview = async (month, year) => {
+    try {
+      const res = await getPayrollPreview(month, year)
+      setPreviews(prev => ({ ...prev, [month]: res.data.data }))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const fetchPayslips = async (year) => {
+    try {
+      const res = await getPayslipsByYear(year)
+      setPayslipsData(res.data.data)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   const fetchSalaries = async () => {
     try {
@@ -91,8 +120,10 @@ function SalaryManagement() {
     setPayrollSuccess('')
     setPayrollRunning(true)
     try {
-      const res = await runPayroll({ month: payrollMonth, year: payrollYear })
+      const res = await runPayroll({ month: expandedMonth, year: selectedYear })
       setPayrollSuccess(res.data.message)
+      fetchPayslips(selectedYear)
+      fetchSalaries()
     } catch (err) {
       setPayrollError(err.response?.data?.message || 'Failed to run payroll.')
     } finally {
@@ -144,70 +175,154 @@ function SalaryManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-800">Salary Management</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-800">Payroll Management</h1>
           <p className="font-body text-sm text-gray-400 mt-1">Manage employee salary structures and run payroll</p>
         </div>
-        <button
-          onClick={() => { setPayrollSuccess(''); setPayrollError(''); setShowPayrollModal(true) }}
-          className="font-display bg-primary hover:opacity-90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
-        >
-          Run Payroll
-        </button>
+        <div className="flex gap-4 items-center">
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search employees..." 
+            className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} 
+            className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
       </div>
 
-      {/* Salary Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or department..."
-            className="w-full max-w-sm border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-                <th className="font-display text-left px-6 py-3 font-medium">#</th>
-                <th className="font-display text-left px-6 py-3 font-medium">Name</th>
-                <th className="font-display text-left px-6 py-3 font-medium">Role</th>
-                <th className="font-display text-left px-6 py-3 font-medium">Department</th>
-                <th className="font-display text-left px-6 py-3 font-medium">Basic</th>
-                <th className="font-display text-left px-6 py-3 font-medium">Net Pay</th>
-                <th className="font-display text-left px-6 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan="7" className="font-body text-center py-10 text-sm text-gray-400">No records found</td></tr>
-              ) : (
-                filtered.map((emp, index) => (
-                  <tr key={emp.user_id} className={`border-b border-gray-50 hover:bg-gray-50 transition ${emp.role === 'manager' ? 'bg-amber-50/30' : ''}`}>
-                    <td className="px-6 py-4 text-sm text-gray-400">{index + 1}</td>
-                    <td className="px-6 py-4">
-                      <p className="font-display text-sm font-medium text-gray-800">{emp.first_name} {emp.last_name}</p>
-                      <p className="text-xs text-gray-400">{emp.designation}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${emp.role === 'manager' ? 'bg-amber-100 text-primary' : 'bg-gray-100 text-gray-600'}`}>
-                        {emp.role === 'manager' ? 'You (Manager)' : 'Employee'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{emp.department || '—'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">₹{Number(emp.basic || 0).toLocaleString('en-IN')}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-800">₹{Number(emp.net_pay || 0).toLocaleString('en-IN')}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button onClick={() => { setSelectedEmployee(emp); setShowViewModal(true) }}
-                          className="text-xs text-primary hover:underline font-medium">View</button>
-                        <span className="text-gray-300">|</span>
-                        <button onClick={() => openEdit(emp)}
-                          className="text-xs text-primary hover:underline font-medium">Edit</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+      {/* Months Accordion */}
+      <div className="space-y-3">
+        {MONTHS.map((monthName, index) => {
+          const monthNum = index + 1
+          const isExpanded = expandedMonth === monthNum
+          const currentDate = new Date()
+          const isFutureMonth = selectedYear > currentDate.getFullYear() || (selectedYear === currentDate.getFullYear() && monthNum > currentDate.getMonth() + 1)
+          
+          // Payroll generation window: Last day of the month to the 7th of next month
+          const daysInMonth = new Date(selectedYear, monthNum, 0).getDate()
+          const windowStart = new Date(selectedYear, monthNum - 1, daysInMonth, 0, 0, 0)
+          const windowEnd = new Date(selectedYear, monthNum, 7, 23, 59, 59)
+          
+          const isTooEarly = currentDate < windowStart
+          const isTooLate = currentDate > windowEnd
+          const isWindowOpen = !isTooEarly && !isTooLate
+          const buttonDisabled = payrollRunning || !isWindowOpen
+
+          let buttonText = `Generate Payroll for ${monthName}`
+          if (payrollRunning) buttonText = 'Generating...'
+          else if (isTooEarly) buttonText = 'Available at Month End'
+          else if (isTooLate) buttonText = 'Payroll Closed'
+
+          return (
+            <div key={monthNum} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <button 
+                onClick={() => {
+                  const newMonth = isExpanded ? null : monthNum
+                  setExpandedMonth(newMonth)
+                  setPayrollSuccess('')
+                  setPayrollError('')
+                }}
+                className="w-full px-6 py-4 flex items-center justify-between bg-white hover:bg-gray-50 transition"
+              >
+                <span className="font-display font-semibold text-gray-800">{monthName} {selectedYear}</span>
+                <span className="text-gray-400">{isExpanded ? '▲' : '▼'}</span>
+              </button>
+              
+              {isExpanded && (
+                <div className="border-t border-gray-100 p-6 bg-gray-50/50">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-display font-semibold text-gray-800">Employee Salaries</h3>
+                    <div className="flex items-center gap-3">
+                      {payrollError && <span className="text-sm text-red-500 font-medium">{payrollError}</span>}
+                      {payrollSuccess && <span className="text-sm text-green-600 font-medium">{payrollSuccess}</span>}
+                      <button 
+                        onClick={handleRunPayroll}
+                        disabled={buttonDisabled}
+                        className={`text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition ${!isWindowOpen ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:opacity-90 disabled:opacity-50'}`}
+                      >
+                        {buttonText}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="overflow-x-auto bg-white border border-gray-100 rounded-lg shadow-sm">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
+                          <th className="font-display text-left px-6 py-3 font-medium">#</th>
+                          <th className="font-display text-left px-6 py-3 font-medium">Name</th>
+                          <th className="font-display text-left px-6 py-3 font-medium">Role</th>
+                          <th className="font-display text-left px-6 py-3 font-medium">Department</th>
+                          <th className="font-display text-left px-6 py-3 font-medium">Basic</th>
+                          <th className="font-display text-left px-6 py-3 font-medium">Net Pay</th>
+                          <th className="font-display text-left px-6 py-3 font-medium">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.length === 0 ? (
+                          <tr><td colSpan="7" className="font-body text-center py-10 text-sm text-gray-400">No records found</td></tr>
+                        ) : (
+                          filtered.map((emp, index) => {
+                            const monthPayslip = payslipsData.find(p => p.user_id === emp.user_id && p.month === monthNum)
+                            const monthPreview = (previews[monthNum] || []).find(p => p.user_id === emp.user_id)
+                            
+                            // 1. Use generated payslip if exists
+                            // 2. Otherwise use the live dynamic preview based on attendance
+                            // 3. Otherwise fall back to structural fixed data
+                            let activeData = monthPayslip || monthPreview || emp
+                            
+                            let displayBasic = activeData.basic
+                            let displayNetPay = activeData.net_pay || 0
+                            let displayHoursDeduction = activeData.hours_deduction || 0
+                            let displayDeductions = activeData.deductions
+                            const isGenerated = !!monthPayslip
+                            const isPreview = !monthPayslip && !!monthPreview
+
+                            // For future months, force Net Pay to 0
+                            if (isFutureMonth && !isGenerated) {
+                              displayNetPay = 0
+                            }
+
+                            return (
+                            <tr key={emp.user_id} className={`border-b border-gray-50 hover:bg-gray-50 transition ${emp.role === 'manager' ? 'bg-amber-50/30' : ''}`}>
+                              <td className="px-6 py-4 text-sm text-gray-400">{index + 1}</td>
+                              <td className="px-6 py-4">
+                                <p className="font-display text-sm font-medium text-gray-800">{emp.first_name} {emp.last_name}</p>
+                                <p className="text-xs text-gray-400">{emp.designation}</p>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${emp.role === 'manager' ? 'bg-amber-100 text-primary' : 'bg-gray-100 text-gray-600'}`}>
+                                  {emp.role === 'manager' ? 'You (Manager)' : 'Employee'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500">{emp.department || '—'}</td>
+                              <td className="px-6 py-4 text-sm text-gray-600">
+                                ₹{Number(displayBasic || 0).toLocaleString('en-IN')}
+                                {isGenerated && <span className="ml-2 text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded">Generated</span>}
+                                {isPreview && <span className="ml-2 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Preview</span>}
+                              </td>
+                              <td className="px-6 py-4 text-sm font-semibold text-gray-800">₹{Number(displayNetPay).toLocaleString('en-IN')}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex gap-2">
+                                  <button onClick={() => { 
+                                    setSelectedEmployee({...emp, latest_net_pay: displayNetPay, hours_deduction: displayHoursDeduction, deductions: displayDeductions, basic: displayBasic }); 
+                                    setShowViewModal(true) 
+                                  }}
+                                    className="text-xs text-primary hover:underline font-medium">View</button>
+                                  <span className="text-gray-300">|</span>
+                                  <button onClick={() => openEdit(emp)}
+                                    className="text-xs text-primary hover:underline font-medium">Edit Structure</button>
+                                </div>
+                              </td>
+                            </tr>
+                          )})
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* View Salary Modal */}
@@ -224,12 +339,16 @@ function SalaryManagement() {
                 </div>
               ))}
               <div className="flex justify-between text-sm border-t border-gray-100 pt-2">
-                <span className="text-red-500">Deductions</span>
+                <span className="text-red-500">Standard Deductions</span>
                 <span className="text-red-500">- ₹{Number(selectedEmployee.deductions || 0).toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold bg-amber-50 rounded-lg px-3 py-2">
-                <span className="text-amber-700">Net Pay</span>
-                <span className="text-amber-700">₹{Number(selectedEmployee.net_pay || 0).toLocaleString('en-IN')}</span>
+              <div className="flex justify-between text-sm">
+                <span className="text-red-500">Compromised Working Hours</span>
+                <span className="text-red-500">- ₹{Number(selectedEmployee.hours_deduction || 0).toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between text-sm font-bold bg-amber-50 rounded-lg px-3 py-2 mt-2">
+                <span className="text-amber-700">Net Pay (Latest)</span>
+                <span className="text-amber-700">₹{Number(selectedEmployee.latest_net_pay || selectedEmployee.net_pay || 0).toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -247,52 +366,6 @@ function SalaryManagement() {
             <button onClick={() => setShowEditModal(false)} className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>          </div >
         </Modal >
       )
-      }
-
-      {/* Run Payroll Modal */}
-      {
-        showPayrollModal && (
-          <Modal title="Run Payroll" onClose={() => setShowPayrollModal(false)}>
-            <div className="space-y-5">
-              <p className="font-body text-sm text-gray-500">
-                This will generate payslips for <strong>all employees and yourself</strong> based on their current salary structure for the selected month.
-                If payslips already exist for this month, they will be updated.
-              </p>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Month</label>
-                  <select value={payrollMonth} onChange={e => setPayrollMonth(Number(e.target.value))}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-                    {MONTHS.map((m, i) => (
-                      <option key={i + 1} value={i + 1}>{m}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="font-display block text-sm font-medium text-gray-700 mb-1">Year</label>
-                  <select value={payrollYear} onChange={e => setPayrollYear(Number(e.target.value))}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-                    {[2024, 2025, 2026, 2027].map(y => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {payrollError && <div className="font-body bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">{payrollError}</div>}
-              {payrollSuccess && <div className="font-body bg-green-50 border border-green-200 text-green-600 text-sm rounded-lg px-4 py-3">✓ {payrollSuccess}</div>}
-
-              <div className="flex gap-3">
-                <button onClick={handleRunPayroll} disabled={payrollRunning}
-                  className="font-display flex-1 bg-primary hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold py-2.5 rounded-lg transition">            {payrollRunning ? 'Generating...' : `Generate Payslips for ${MONTHS[payrollMonth - 1]} ${payrollYear}`}
-                </button>
-                <button onClick={() => setShowPayrollModal(false)}
-                  className="font-display flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition">Close</button>
-              </div>
-            </div>
-          </Modal>
-        )
       }
 
     </div >

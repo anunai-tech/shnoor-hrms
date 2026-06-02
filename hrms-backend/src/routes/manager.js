@@ -11,7 +11,7 @@ const {
   getMyAttendance
 } = require('../controllers/attendanceController')
 const { getExpenses, updateExpenseStatus, getMyExpenses, submitExpense } = require('../controllers/expenseController')
-const { getSalaries, upsertSalary, getMySalary, runPayroll, getPayslipsByUser, getMyPayslips } = require('../controllers/salaryController')
+const { getSalaries, upsertSalary, getMySalary, runPayroll, getPayslipsByUser, getMyPayslips, getAllPayslipsByYear, getPayrollPreview } = require('../controllers/salaryController')
 const {
   getHolidays, createHoliday, deleteHoliday,
   getPolicies, createPolicy, deletePolicy,
@@ -22,6 +22,7 @@ const {
 } = require('../controllers/managerController')
 const { generateLetter, getLetters, getMyLetters } = require('../controllers/lettersController')
 const { getOffboardingRequests, updateOffboardingStatus, deactivateEmployee, getComplaints, respondToComplaint } = require('../controllers/offboardingController')
+const { getDepartments, createDepartment, deleteDepartment, toggleDepartmentStatus, updateDepartment, getDesignations, createDesignation, deleteDesignation, toggleDesignationStatus, updateDesignation } = require('../controllers/orgController')
 
 const pool = require('../config/db')
 const bcrypt = require('bcryptjs')
@@ -99,8 +100,10 @@ router.get('/self/salary', getMySalary)
 
 // Payroll & Payslips
 router.post('/payroll/run', runPayroll)
+router.get('/payroll/preview', getPayrollPreview)
 router.get('/payslips/:user_id', getPayslipsByUser)
 router.get('/self/payslips', getMyPayslips)
+router.get('/payslips-by-year', getAllPayslipsByYear)
 
 // Letters
 router.get('/letters', getLetters)
@@ -171,6 +174,20 @@ router.delete('/holidays/:id', deleteHoliday)
 router.get('/policies', getPolicies)
 router.post('/policies', createPolicy)
 router.delete('/policies/:id', deletePolicy)
+
+// Departments
+router.get('/departments', getDepartments)
+router.post('/departments', createDepartment)
+router.put('/departments/:id', updateDepartment)
+router.delete('/departments/:id', deleteDepartment)
+router.put('/departments/:id/toggle', toggleDepartmentStatus)
+
+// Designations
+router.get('/designations', getDesignations)
+router.post('/designations', createDesignation)
+router.put('/designations/:id', updateDesignation)
+router.delete('/designations/:id', deleteDesignation)
+router.put('/designations/:id/toggle', toggleDesignationStatus)
 
 // Profile
 router.get('/self/profile', getProfile)

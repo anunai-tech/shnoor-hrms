@@ -62,6 +62,7 @@ import SalaryManagement from '../pages/manager/SalaryManagement'
 import Offboarding from '../pages/manager/Offboarding'
 import Letters from '../pages/manager/Letters'
 import ManagerMessages from '../pages/manager/Messages'
+import DepartmentDesignations from '../pages/manager/DepartmentDesignations'
 
 // Manager self pages
 import SelfDashboard from '../pages/self/SelfDashboard'
@@ -144,6 +145,7 @@ function CompanyRoutes() {
         <Route path="/manager/settings" element={<ManagerPage component={ManagerSettings} />} />
         <Route path="/manager/offboarding" element={<ManagerPage component={Offboarding} />} />
         <Route path="/manager/letters" element={<ManagerPage component={Letters} />} />
+        <Route path="/manager/departments-designations" element={<ManagerPage component={DepartmentDesignations} />} />
 
         {/* Manager self */}
         <Route path="/manager/self/dashboard" element={<ManagerPage component={SelfDashboard} />} />
